@@ -1,2 +1,1 @@
-# de
-Desktop Environment for gramado/kernel.
+# de - Desktop Environment for gramado/kernel.
