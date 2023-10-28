@@ -1,3 +1,3 @@
-# Gramado B2 - Display server and client-side GUI applications. 
+# shell - Client-side GUI applications. 
 
 # Quote

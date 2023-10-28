@@ -1,4 +1,4 @@
-# Gramland
+# Gramland - Display server.
 
 ```
  * Gramland Display Server.
