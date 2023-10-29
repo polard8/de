@@ -12,7 +12,7 @@ all:
 	make -C client/
 
 	make -C cmdline/
-	make -C docv/
+	make -C doc/
 	make -C editor/
 	make -C gdm/
 	#make -C setup/

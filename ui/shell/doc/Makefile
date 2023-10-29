@@ -96,9 +96,9 @@ all-c:
 	gcc  -c  compiler.c  -I $(LIBC) $(CFLAGS) -o compiler.o
 
 gramcc-link:
-	ld $(linkFlags) -o DOCV.BIN $(myObjects)    
+	ld $(linkFlags) -o DOC.BIN $(myObjects)    
 finalize:
-	cp DOCV.BIN  ../bin
+	cp DOC.BIN  ../bin
 clean:
 	-rm *.o
-	-rm DOCV.BIN 
+	-rm DOC.BIN 
