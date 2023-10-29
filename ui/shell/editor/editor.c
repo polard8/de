@@ -587,11 +587,10 @@ void pump(int fd, int wid)
     editorProcedure( fd, e->window, e->type, e->long1, e->long2 );
 }
 
-int editor_initialize( int argc, char *argv[] )
+// Called by main() in main.c.
+int editor_initialize(int argc, char *argv[])
 {
     int client_fd = -1;
-
-    //debug_print ("EDITOR.BIN: Initializing\n");
 
     isTimeToQuit = FALSE;
 
@@ -612,8 +611,6 @@ int editor_initialize( int argc, char *argv[] )
 
     blink_status=FALSE;
 
-
-
 /*
 // #test
 // OK!
@@ -632,22 +629,18 @@ int editor_initialize( int argc, char *argv[] )
 // IN: 
 // hostname:number.screen_number
 
-    Display = 
-        (struct gws_display_d *) gws_open_display("display:name.0");
+    const char *display_name_string = "display:name.0";
 
-    if ((void*) Display == NULL)
-    {
-        debug_print ("editor: Couldn't open display\n");
-        printf      ("editor: Couldn't open display\n");
-        exit(1);
+    Display = (struct gws_display_d *) gws_open_display(display_name_string);
+    if ((void*) Display == NULL){
+        printf("editor.bin: Display\n");
+        goto fail;
     }
 
     client_fd = (int) Display->fd;
-    if (client_fd <= 0)
-    {
-        debug_print("editor: bad fd\n");
-        printf     ("editor: bad fd\n");
-        exit(1);
+    if (client_fd <= 0){
+        printf("editor.bin: fd\n");
+        goto fail;
     }
 
 // =====================================================
@@ -655,12 +648,13 @@ int editor_initialize( int argc, char *argv[] )
 // Device info
     unsigned long w = gws_get_system_metrics(1);
     unsigned long h = gws_get_system_metrics(2);
-    if ( w == 0 || h == 0 ){
-        printf ("editor: w h \n");
-        exit(1);
+    if ( w == 0 || h == 0 )
+    {
+        printf("editor.bin: w h \n");
+        goto fail;
     }
 
-// Tamanho da janela.
+// Width
     unsigned long w_width = (w>>1);
     // #hack
     if (w == 800)
@@ -668,7 +662,9 @@ int editor_initialize( int argc, char *argv[] )
     // #hack
     if (w == 640)
         w_width = 480;
-    unsigned long w_height = (h - 100); //(h>>1);
+
+// Height
+    unsigned long w_height = (h - 100);  //(h>>1);
 
 // Original
 /*
@@ -677,7 +673,7 @@ int editor_initialize( int argc, char *argv[] )
 */
 
     unsigned long viewwindowx = 10;
-    unsigned long viewwindowy = 10; 
+    unsigned long viewwindowy = 10;
 
     // test1: Erro de posicionamento.
     //unsigned long viewwindowx = 580;
@@ -710,6 +706,8 @@ int editor_initialize( int argc, char *argv[] )
     cursor_x_max = ((w_width/8)  -1);
     cursor_y_max = ((w_height/8) -1);
 
+    unsigned int client_area_color = COLOR_RED;  // Not implemented 
+    unsigned int frame_color = COLOR_GRAY;
 
     main_window = 
         (int) gws_create_window (
@@ -720,33 +718,38 @@ int editor_initialize( int argc, char *argv[] )
                   program_name, 
                   viewwindowx, viewwindowy, w_width, w_height,
                   0, 
-                  0x0000,  
-                  COLOR_RED,   // #todo: client bg. Not implemented. 
-                  COLOR_GRAY );
+                  0x0000, 
+                  client_area_color,
+                  frame_color );
 
-    if (main_window < 0)
-    {
-        debug_print("Editor: main_window fail\n"); 
-             printf("Editor: main_window fail\n"); 
-        exit(1);
+    if (main_window < 0){
+        printf("editor.bin: main_window failed\n");
+        goto fail;
     }
+
     //#debug
-    gws_refresh_window (client_fd, main_window);
+    gws_refresh_window(client_fd, main_window);
 
 
 // Label.
 // Text inside the main window.
 // Right below the title bar.
 // Right above the client window.
-     gws_draw_text (
-        (int) client_fd,      // fd,
-        (int) main_window,    // window id,
-        (unsigned long) 2,          // l 
-        (unsigned long) 4 +(24/3),  // t
-        (unsigned long) COLOR_BLACK,
-        text1_string);
+
+    unsigned long text_l = 2;
+    unsigned long text_t = 4 + (24/3);
+    unsigned int text_color = COLOR_BLACK;
+
+    gws_draw_text (
+        (int) client_fd,
+        (int) main_window,
+        (unsigned long) text_l,
+        (unsigned long) text_t,
+        (unsigned long) text_color,
+        text1_string );
+
     //#debug
-    gws_refresh_window (client_fd, main_window);
+    gws_refresh_window(client_fd, main_window);
 // -----------------------------
 
     // Local.
@@ -767,22 +770,23 @@ int editor_initialize( int argc, char *argv[] )
     addressbar_window = 
         (int) gws_create_window (
                   client_fd,
-                  WT_EDITBOX,1,1,bar1_string,
+                  WT_EDITBOX, 1, 1, bar1_string,
                   (( lWi.cr_width/8 )*2),  //l
                   4,                       //t
                   (( lWi.cr_width/8 )*3), 
                   24,    
                   main_window, 
-                  0, COLOR_WHITE, COLOR_WHITE );
+                  0, 
+                  COLOR_WHITE, COLOR_WHITE );
 
-    if (addressbar_window < 0)
-    {
-        debug_print("Editor: addressbar_window fail\n"); 
-             printf("Editor: addressbar_window fail\n"); 
-        exit(1);
+    if (addressbar_window < 0){
+        printf("editor.bin: addressbar_window failed\n");
+        goto fail;
     }
+
     //#debug
-    gws_refresh_window (client_fd, main_window);
+    gws_refresh_window(client_fd, main_window);
+
 
 // Text inside the address bar.
     if (addressbar_window > 0)
@@ -793,7 +797,7 @@ int editor_initialize( int argc, char *argv[] )
             (unsigned long) 8,          // left
             (unsigned long) 8,          // top
             (unsigned long) COLOR_BLACK,
-            text2_string);
+            text2_string );
     }
     //#debug
     gws_refresh_window (client_fd, main_window);
@@ -817,16 +821,14 @@ int editor_initialize( int argc, char *argv[] )
                   1,
                   b1_string,
                   (( lWi.cr_width/8 )*6),  //l 
-                  4,                  //t
+                  4,                       //t
                   (( lWi.cr_width/8 )*1), 
                   24,
                   main_window, 0, COLOR_GRAY, COLOR_GRAY );
 
-    if (savebutton_window < 0)
-    {
-        debug_print("Editor: savebutton_window fail\n"); 
-             printf("Editor: savebutton_window fail\n"); 
-        exit(1);
+    if (savebutton_window < 0){
+        printf("editor.bin: savebutton_window failed\n");
+        goto fail;
     }
     //#debug
     gws_refresh_window (client_fd, main_window);
@@ -885,11 +887,9 @@ int editor_initialize( int argc, char *argv[] )
                   cw_left, cw_top, cw_width, cw_height,
                   main_window, 0, COLOR_WHITE, COLOR_WHITE );
 
-    if (client_window < 0)
-    {
-        debug_print("Editor: client_window fail\n"); 
-             printf("Editor: client_window fail\n"); 
-        exit(1);
+    if (client_window < 0){
+        printf("editor.bin: client_window failed\n");
+        goto fail;
     }
     //#debug
     gws_refresh_window (client_fd, main_window);
@@ -975,14 +975,16 @@ int editor_initialize( int argc, char *argv[] )
         pump(client_fd,main_window);
     };
 
-    if (isTimeToQuit == TRUE){
+// ok
+    if (isTimeToQuit == TRUE)
+    {
         printf("editor.bin: isTimeToQuit\n");
-        exit(0);
+        return EXIT_SUCCESS;
     }
 
 // Hang
-    printf("editor.bin: Fail. Not listening\n");
-    while(1){
+    printf("editor.bin: main loop failedn");
+    while (1){
     };
 
 
@@ -1073,10 +1075,12 @@ int editor_initialize( int argc, char *argv[] )
 
 // exit
     //close (client_fd);
-    debug_print ("editor: bye\n"); 
-    printf      ("editor: bye\n");
+    debug_print("editor: bye\n"); 
+    printf     ("editor: bye\n");
 
-    return 0;
+    return EXIT_SUCCESS;
+fail:
+    return EXIT_FAILURE;
 }
 
 //

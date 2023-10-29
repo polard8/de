@@ -30,8 +30,7 @@
 #include <editor.h>
 
 
-
-int main( int argc, char *argv[] )
+int main(int argc, char *argv[])
 {
     return (int) editor_initialize(argc,argv);
 }
