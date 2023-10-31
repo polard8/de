@@ -5,6 +5,13 @@
 // Environment: ring 3 application.
 // Created by Fred Nora.
 
+// + It only works on qemu. (TCG or KVM).
+// + It works on qemu with TCG.
+// + It works on qemu with KVM.
+//   But we still can't realise when KVM is running on qemu.
+//   It's because is also used by virtualbox.
+//   And the shutdown routine only works on qemu.
+
 //#include <sys/types.h>
 #include <rtl/gramado.h>
 #include <stddef.h>
@@ -18,7 +25,10 @@
 //#test
 #include "qemu.h"
 
-#define is_qemu  rtl_is_qemu
+// #bugbug
+// Actually rtl_is_qemu() is probing for TCG only.
+// The shutdown routine also work on qemu with kvm.
+#define is_tcg rtl_is_qemu
 
 static int shutdown_verbose = FALSE;
 
@@ -59,9 +69,9 @@ static void __serial_write_char (unsigned char data)
 // Podemos testar para outros hv, como kvm ...
 int main(int argc, char *argv[])
 {
-    static int isQEMU = FALSE;
-    //int isVirtualBox = FALSE;
-    //int isBochs      = FALSE;
+    static int isTCG = FALSE;
+    // ...
+
     register int i=0;
     int fSilent = FALSE;
 
@@ -89,10 +99,16 @@ int main(int argc, char *argv[])
     }
 
 // ==============================
-// qemu
-// In newer versions of QEMU, you can do shutdown with:
-    isQEMU = (int) is_qemu();
-    if (isQEMU == TRUE){
+// qemu with tcg.
+// + It only works on qemu. (TCG or KVM).
+// + It works on qemu with TCG.
+// + It works on qemu with KVM.
+//   But we still can't realise when KVM is running on qemu.
+//   It's because is also used by virtualbox.
+//   And the shutdown routine only works on qemu.
+    //isTCG = (int) is_tcg();
+    isTCG = (int) rtl_get_system_metrics(300); // Is it running on tcg?
+    if (isTCG == TRUE){
         do_via_qemu(shutdown_verbose);
     }
 
@@ -112,8 +128,9 @@ int main(int argc, char *argv[])
 fail:
 
     printf("shutdown.bin: Failed\n");
-    if (isQEMU != TRUE){
-        printf("Not running on qemu\n");
+    if (isTCG != TRUE)
+    {
+        printf("Not running on qemu with TCG\n");
     }
 
     return EXIT_FAILURE;

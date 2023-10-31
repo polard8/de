@@ -13,6 +13,28 @@
 
 
 /*
+// #todo: Not tested.
+char *rtl_string_toupper(const char *str);
+char *rtl_string_toupper(const char *str) 
+{
+    register int i=0;
+    char *p;
+    p = str;
+
+    if ((void*) str == NULL)
+        return NULL;
+
+    for (i=0; str[i] != '\0'; i++) 
+    {
+        str[i] = toupper(str[i]);
+    }
+
+    return (char *) p;
+}
+*/
+
+
+/*
  // ?? not tested
 char rtl_convert_char_to_uppercase( char ch );
 char rtl_convert_char_to_uppercase( char ch )
