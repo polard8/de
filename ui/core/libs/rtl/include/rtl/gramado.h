@@ -61,15 +61,6 @@ void rtl_elegant_exit_on_fail(void);
 
 // =====================================================
 
-// system call
-// 0x80
-void *gramado_system_call ( 
-    unsigned long a,  //Service number. 
-    unsigned long b, 
-    unsigned long c, 
-    unsigned long d );
-
-
 void *sc80 ( 
     unsigned long a,  //Service number. 
     unsigned long b, 
@@ -93,6 +84,20 @@ void *sc83 (
     unsigned long b, 
     unsigned long c, 
     unsigned long d );
+
+// system call
+// 0x80
+void *gramado_system_call ( 
+    unsigned long a,  //Service number. 
+    unsigned long b, 
+    unsigned long c, 
+    unsigned long d );
+
+
+unsigned long 
+rtl_dispatch_signal_handler (
+    unsigned long function_address, 
+    unsigned long param1 );
 
 // =====================================================
 

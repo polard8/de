@@ -41,25 +41,12 @@ unsigned long RTLEventBuffer[32];
 
 // System call.
 // Interrupt 0x80.
-void *gramado_system_call ( 
-    unsigned long a, 
-    unsigned long b, 
-    unsigned long c, 
-    unsigned long d )
-{
-// Adapter. System dependent.
-    return (void *) sc80(a,b,c,d);
-}
-
-// System call.
-// Interrupt 0x80.
 void *sc80 ( 
     unsigned long a, 
     unsigned long b, 
     unsigned long c, 
     unsigned long d )
 {
-// Wisdom
 // Adapter. System dependent.
     unsigned long __Ret=0;
 
@@ -126,6 +113,44 @@ void *sc83 (
 
     return (void *) __Ret; 
 }
+
+// System call.
+// Interrupt 0x80.
+void *gramado_system_call ( 
+    unsigned long a, 
+    unsigned long b, 
+    unsigned long c, 
+    unsigned long d )
+{
+// Adapter. System dependent.
+    return (void *) sc80(a,b,c,d);
+}
+
+// Execute a signal handler
+// given the address and only one parameter.
+unsigned long 
+rtl_dispatch_signal_handler (
+    unsigned long function_address, 
+    unsigned long param1 )
+{
+    unsigned long __Return=0;
+    unsigned long __p1 = (unsigned long ) param1;
+    // ...
+
+    asm volatile ( "movq %1, %%rax;"
+                   "movq %%rax, %0;"
+                   "movq %%rax, %%rdi;"
+                   :"=r"(__Return)  // Output
+                   :"r"(__p1)       // Input
+                   :"%rax"          // Clobbered register
+    );
+    asm volatile ( "call *%0" 
+                   : "=r"(__Return)  // output
+                   : "r"(function_address));
+
+    return (unsigned long) __Return;
+}
+
 
 
 // =============================================================
