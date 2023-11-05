@@ -384,6 +384,10 @@ struct windowframe_d
 };
 
 
+#define TEXT_SIZE_FOR_SINGLE_LINE  128
+#define TEXT_SIZE_FOR_MULTIPLE_LINE  256
+
+
 /*
  * gws_window_d:
  *     The window structure.
@@ -1036,6 +1040,13 @@ wm_draw_char_into_the_window(
     int ch,
     unsigned int color );
 
+void 
+wm_draw_char_into_the_window2(
+    struct gws_window_d *window, 
+    int ch,
+    unsigned int color );
+
+void wm_draw_text_buffer(struct gws_window_d *window);
 
 // Post message to the window. (broadcast)
 int 

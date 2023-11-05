@@ -163,6 +163,7 @@ static void on_mouse_leave(struct gws_window_d *window);
 static void on_mouse_hover(struct gws_window_d *window);
 
 static void on_drop(void);
+static void on_enter(void);
 
 static void on_update_window(struct gws_window_d *window, int event_type);
 
@@ -292,9 +293,10 @@ static void wmProcessTimerEvent(unsigned long long1, unsigned long long2)
     };
 }
 
-void on_enter(void);
-void on_enter(void)
+static void on_enter(void)
 {
+// Called by wmProcessKeyboardEvent().
+
     struct gws_window_d *window;
 
     // We need the keyboard_owner.
@@ -305,10 +307,13 @@ void on_enter(void)
         return;
 
 
-// Nothing for now.
+// #warning
+// We also need to handle the 'enter' key when in
+// editbox single line. But for different purposes,
+// just line 'first responder' or button with focus.
+
     if (window->type == WT_EDITBOX_SINGLE_LINE)
         return;
-
 
     // APAGADO: Se esta apagado, ok, apenas pinte.
     if (window->ip_on != TRUE){
@@ -347,7 +352,14 @@ position:
         }
 
         window->ip_y++;
-        //window->ip_x = 0;
+
+        // #bugbug
+        // #todo
+        // Actually, we need to handle the buffer and all
+        // the buffer for lines, and in this case the
+        // pointer needs to go to the last char in the 
+        // next line, not in the first char of the next line.
+        window->ip_x = 0;
     }
 }
 
@@ -401,24 +413,25 @@ wmProcessKeyboardEvent(
         if (window->magic != 1234)
             return 0;
 
-
         // Enter?
-        if (long1 == VK_RETURN){
+        if (long1 == VK_RETURN)
+        {
             on_enter();
+            window->ip_on = FALSE;
             return 0;
         }
 
         // Print a char into the window with focus.
         // It needs to be an editbox?
         //#todo: on printable.
-        
+
         // APAGADO: Se esta apagado, ok, apenas pinte.
         if (window->ip_on != TRUE){
             // Pinte
             wm_draw_char_into_the_window(
                 window, (int) long1, fg_color );
         // ACESO: Se esta acesa, apague, depois pinte.
-        }else{
+        }else if (window->ip_on == TRUE){
             
             // Apague
             // #todo: Create a worker.
@@ -441,6 +454,7 @@ wmProcessKeyboardEvent(
             (int) msg,
             (unsigned long) long1,
             (unsigned long) long2);
+
         return 0;
     }
 
@@ -4359,6 +4373,15 @@ wm_draw_char_into_the_window(
     int ch,
     unsigned int color )
 {
+
+// #bugbug
+// #todo
+// In this case we need only to print the char
+// not changing the cursor position.
+// Another routine is nonna draw the whole line
+// or the whole 'window text' inside the editbox window.
+// in both types, single line and multiple lines.
+
 // We are painting only on 'editbox'.
 // Not on root window.
 // #todo
@@ -4403,6 +4426,9 @@ wm_draw_char_into_the_window(
     }
 
 // No enter
+// #warning
+// The ented need to be handle
+// in the wrapper that called this worker.
     if (ch == VK_RETURN)
         return;
 
@@ -4609,6 +4635,212 @@ printable:
             }
         }
     }
+}
+
+// #bugbug
+// #todo
+// In this case we need only to print the char
+// not changing the cursor position.
+// Another routine is nonna draw the whole line
+// or the whole 'window text' inside the editbox window.
+// in both types, single line and multiple lines.
+void 
+wm_draw_char_into_the_window2(
+    struct gws_window_d *window, 
+    int ch,
+    unsigned int color )
+{
+// draw char support.
+    unsigned char _string[4];
+// Vamos checar se é um controle ou outro tipo de char.
+    unsigned char ascii = (unsigned char) ch;
+    int is_control=FALSE;
+
+// Invalid window
+    if ((void*)window == NULL){
+        return;
+    }
+    if (window->magic != 1234){
+        return;
+    }
+
+// Not on root window.
+    if (window == __root_window)
+        return;
+
+// Invalid window type
+    int is_valid_wt=FALSE;
+    switch (window->type){
+        case WT_EDITBOX_SINGLE_LINE:
+        case WT_EDITBOX_MULTIPLE_LINES:
+            is_valid_wt = TRUE;
+            break;
+    };
+    if (is_valid_wt != TRUE)
+        return;
+
+
+// Invalid char
+    if (ch<0){
+        return;
+    }
+
+// ----------------------
+
+// Not printable.
+// 32~127
+// A=41h | a=61H
+// Control character or non-printing character (NPC).
+// see:
+// https://en.wikipedia.org/wiki/Control_character
+// https://en.wikipedia.org/wiki/ASCII#Printable_characters
+//    ASCII code 96  = ` ( Grave accent )
+//    ASCII code 239 = ´ ( Acute accent )
+//    ASCII code 128 = Ç ( Majuscule C-cedilla )
+//    ASCII code 135 = ç ( Minuscule c-cedilla )
+// 168 - trema
+
+    int is_abnt2_printable=FALSE;
+
+    // Not printable for US.
+    if (ascii < 0x20 || ascii >= 0x7F)
+    {
+        // Control char
+        if (ascii < 0x20 || ascii == 0x7F){
+            is_control = TRUE;
+        }
+        
+        if ( ascii == 168 ||   // trema
+             ascii == 239 ||   // acute
+             ascii == 128 ||   // Ç
+             ascii == 135 )    // ç
+        {
+            is_abnt2_printable = TRUE;
+            goto printable;
+        }
+        return;
+    }
+
+
+printable:
+
+// string
+   _string[0] = (unsigned char) ch;
+   _string[1] = 0;
+
+// types
+    if (window->type == WT_OVERLAPPED){ return; }
+    if (window->type == WT_SCROLLBAR) { return; }
+    if (window->type == WT_STATUSBAR) { return; }
+    if (window->type == WT_CHECKBOX)  { return; }
+    if (window->type == WT_BUTTON)    { return; }
+    // ...
+
+// #todo
+// Isso pode receber char se tiver em modo de edição.
+// Para editarmos a label.
+// #todo: edit label if in edition mode.
+// #todo: open application if its a desktop icon.
+    if (window->type == WT_ICON){
+        return;
+    }
+
+// Editbox
+// Printable chars.
+// Print the char into an window 
+// of type Editbox.
+// Ascci printable chars: (0x20~0x7F)
+// Terry's font has more printable chars.
+
+    if ( window->type == WT_EDITBOX ||
+         window->type == WT_EDITBOX_MULTIPLE_LINES )
+    {
+        // #todo
+        // Devemos enfileirar os chars dentro de um buffer
+        // indicado na estrutura de janela.
+        // Depois podemos manipular o texto, inclusive,
+        // entregarmos ele para o aplicativo. 
+        
+        // Draw char
+        // #bugbug: Maybe we need to use draw_char??();
+        // see: dtext.c
+        //if(ascii=='M'){printf("M: calling dtextDrawText\n");}
+        dtextDrawText ( 
+            (struct gws_window_d *) window,
+            (window->ip_x*8), 
+            (window->ip_y*8), 
+            (unsigned int) color, 
+            (unsigned char *) _string );  //&_string[0] );
+
+        // Refresh rectangle
+        // x,y,w,h
+        gws_refresh_rectangle ( 
+            (window->absolute_x + (window->ip_x*8)), 
+            (window->absolute_y + (window->ip_y*8)), 
+            8, 
+            8 );
+
+        // Increment pointer.
+        // Se for maior que a quantidade de bytes (chars?) na janela.
+        window->ip_x++;
+        if (window->ip_x >= window->width_in_chars)
+        {
+            window->ip_x=0;
+            if (window->type == WT_EDITBOX_MULTIPLE_LINES)
+            {    
+                window->ip_y++;
+                // Última linha?
+                //if( window->ip_y > window->height_in_chars)
+                //     fail!
+            }
+        }
+    }
+}
+
+// #test
+// Draw the whole window text buffer.
+void wm_draw_text_buffer(struct gws_window_d *window)
+{
+    if ((void*) window == NULL)
+        return;
+    if (window->magic != 1234)
+        return;
+
+    register int i=0;
+    size_t BufferSize=0;
+    BufferSize = window->textbuffer_size_in_bytes;
+    char ch=0;
+    int iChar=0;
+    char *p;
+
+    if (window->type == WT_EDITBOX_SINGLE_LINE)
+    {
+        // #bugbug
+        if (BufferSize < 0)
+            return;
+        if (BufferSize > TEXT_SIZE_FOR_SINGLE_LINE)
+            return;
+        window->ip_x = 0;
+        window->ip_y = 0;
+        // Get the base.
+        p = window->window_text;
+        for (i=0; i<BufferSize; i++)
+        {
+            ch = (char) *p; // Get next char.
+            iChar = (int) (ch & 0xFF);
+            
+            wm_draw_char_into_the_window2( 
+                window,
+                iChar,
+                COLOR_BLACK );
+            // Next cahr.
+            p++;
+        };
+    }
+
+    if (window->type == WT_EDITBOX_MULTIPLE_LINES)
+    {
+    }    
 }
 
 

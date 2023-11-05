@@ -1924,13 +1924,13 @@ void *CreateWindow (
         //--------------------
         // Let's setup the buffer for the text.
         if (type == WT_EDITBOX)
-            text_size = 128;
+            text_size = TEXT_SIZE_FOR_SINGLE_LINE; //128;
         if (type == WT_EDITBOX_MULTIPLE_LINES)
-            text_size = 256;
+            text_size = TEXT_SIZE_FOR_MULTIPLE_LINE; //256;
         __w->textbuffer_size_in_bytes = 0;
         __w->text_size_in_bytes = 0;
         __w->window_text = (void*) malloc(text_size);
-        if ( (void*) __w->window_text != NULL )
+        if ((void*) __w->window_text != NULL)
         {
             memset(__w->window_text, 0, text_size);  // Clean
             __w->textbuffer_size_in_bytes = (size_t) text_size;
