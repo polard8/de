@@ -2234,8 +2234,8 @@ int destroy_window_by_wid(int wid)
     if (window->magic != 1234)
         goto fail;
 
-
-// No ...
+// No!
+// The client can't destroy the root window.
     if (window == __root_window)
         goto fail;
 

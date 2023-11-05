@@ -158,6 +158,8 @@ static unsigned long last_dy = 0;
 const char *dm_image_name = "gdm.bin";  // display manager.
 const char *tb_image_name = "taskbar.bin";  // taskbar.
 
+const char *app_shutdown = "shutdown.bin";
+
 //
 // == Private functions: Prototypes ========
 //
@@ -1665,24 +1667,23 @@ int serviceAsyncCommand(void)
 
     // 1 =  Exit GWS
     // Shutdown the server.
-    // ASYNC_REQUEST_EXIT
-    case 1:
+    case ASYNC_REQUEST_EXIT:
         gwssrv_debug_print("serviceAsyncCommand: [1] Exit\n");
         printf            ("serviceAsyncCommand: [1] Exit\n");
         gwssrv_quit();
         goto done;
         break;
 
-    // hello
-    case 2:
+    // 2 - Hello
+    case ASYNC_REQUEST_HELLO2:
         gwssrv_debug_print ("serviceAsyncCommand: [2] hello\n");
         printf("HELLO 2\n");
         //exit(0);
         //return 0;
         break;
 
-    // hello
-    case 3:
+    // 3 - Hello
+    case ASYNC_REQUEST_HELLO3:
         gwssrv_debug_print ("serviceAsyncCommand: [3] hello\n");
         printf("HELLO 3\n");
         //exit(0);
@@ -1690,11 +1691,10 @@ int serviceAsyncCommand(void)
         goto done;
         break;
 
-    // Demos:
+    // 4 - Start animation
     // See: demos.c
-    // ASYNC_REQUEST_START_ANIMATION
-    case 4:
-        gwssrv_debug_print("serviceAsyncCommand: [4] \n");
+    case ASYNC_REQUEST_START_ANIMATION:
+        gwssrv_debug_print("serviceAsyncCommand: [4]\n");
         if (current_mode == GRAMADO_JAIL){
             gwssrv_debug_print("serviceAsyncCommand: [request 4] demo\n"); 
             demos_startup_animation(subrequest_id);
@@ -1716,9 +1716,8 @@ int serviceAsyncCommand(void)
        //}
        //break;
 
-    // Setup if we will show or not the 'fps window'.
-    // ASYNC_REQUEST_FPS_FLAG
-    case 6:
+    // 6 - Setup if we will show or not the 'fps window'.
+    case ASYNC_REQUEST_FPS_FLAG:
         gwssrv_debug_print ("serviceAsyncCommand: [6]\n");
         if (subrequest_id == TRUE){ show_fps_window = TRUE;  goto done; }
         if (subrequest_id != TRUE){ show_fps_window = FALSE; goto done; }
@@ -1726,8 +1725,9 @@ int serviceAsyncCommand(void)
         goto done;
         break;
 
-    // Register wm pid
+
     // #suspended: o wm fica no ws por enquanto.
+    // Register wm pid
     case 7:
         //gwssrv_debug_print ("serviceAsyncCommand: [7] Register wm pid\n");
         //printf ("serviceAsyncCommand: [7] [BREAKPOINT] Register wm pid\n");
@@ -1737,6 +1737,7 @@ int serviceAsyncCommand(void)
         goto done;
         break;
  
+    // #suspended
     // 8
     // Window Manager requests. Power Trio.
     // As mensages aqui interessam somente ao window manager
@@ -1751,10 +1752,9 @@ int serviceAsyncCommand(void)
         goto done;
         break;
 
-    // Set focus.
-    // ASYNC_REQUEST_SET_FOCUS_BY_WID
-    case 9:
-        // gwssrv_debug_print ("serviceAsyncCommand: [9] \n");
+    // 9 - Set focus
+    case ASYNC_REQUEST_SET_FOCUS_BY_WID:
+        // gwssrv_debug_print ("serviceAsyncCommand: [9]\n");
         if (data<0){
             goto done;
         }
@@ -1762,6 +1762,7 @@ int serviceAsyncCommand(void)
         goto done;
         break;
 
+    // #suspended
     // #test
     // drawing a rect using ring0 and ring3 routines.
     // TRUE = use kgws ; FALSE =  do not use kgws.
@@ -1781,6 +1782,7 @@ int serviceAsyncCommand(void)
         goto done;
         break;
 
+    // #suspended
     //see: wm.c
     case 11:
         //#bugbug: Maybe not.
@@ -1789,34 +1791,34 @@ int serviceAsyncCommand(void)
         goto done;
         break;
 
-    // ASYNC_REQUEST_SWITCH_ACTIVE_WINDOW
-    case 12:
+    // 12 - Switch active window.
+    // ?? #todo: Explain it better.
+    case ASYNC_REQUEST_SWITCH_ACTIVE_WINDOW:
         __switch_active_window(TRUE);
         goto done;
         break;
 
-    // data=wid
-    // ASYNC_REQUEST_INVALIDATE_WINDOW_BY_WID
-    case 13:
+    // 13 - Invalidate window by wid.
+    // data = wid.
+    case ASYNC_REQUEST_INVALIDATE_WINDOW_BY_WID:
         invalidate_window_by_id(data);
         goto done;
         break;
 
-// Clear the window
-// Repaint it using the default background color.
-// ASYNC_REQUEST_CLEAR_WINDOW_BY_WID
-    case 14:
-        // #todo data = wid
+    // 14 Clear the window given the wid.
+    // Repaint it using the default background color.
+    // #todo data = wid
+    case ASYNC_REQUEST_CLEAR_WINDOW_BY_WID:
         //printf("14: wid={%d}\n",data);
         wid = (int) (data & 0xFFFFFFFF);
         clear_window_by_id(wid,TRUE);
         goto done;
         break;
 
-    // Set active window by id.
-    // ASYNC_REQUEST_SET_ACTIVE_WINDOW_BY_WID
-    case 15:
-        // gwssrv_debug_print ("serviceAsyncCommand: [9] \n");
+    // 15 - Set active widnow.
+    // Set the active widnow given the wid.
+    case ASYNC_REQUEST_SET_ACTIVE_WINDOW_BY_WID:
+        // gwssrv_debug_print ("serviceAsyncCommand: [9]\n");
         wid = (int) (data & 0xFFFFFFFF);
         if (wid<0){
             goto done;
@@ -1828,20 +1830,28 @@ int serviceAsyncCommand(void)
     // #todo
     // Change the title bar icon, given the cache ID.
 
-// poweroff
-// qemu only
-// ASYNC_REQUEST_LAUNCH_SHUTDOWN
-    case 22:
-        rtl_clone_and_execute("shutdown.bin");
+    // 22 - Shutdown via display server.
+    // Launch the shutdown application.
+    // Power off, qemu only.
+    case ASYNC_REQUEST_LAUNCH_SHUTDOWN:
+        rtl_clone_and_execute(app_shutdown);
         goto done;
         break;
 
-// Enable ps2-mouse support.
-// ASYNC_REQUEST_ENABLE_PS2_MOUSE
-    case 44:
-        // Calling the kernel to make the full ps2 initialization.
-        // #todo: Create a wrapper fot that syscall.
-        // #todo: Allow only the ws pid to make this call.
+    // 44 - Enable mouse support. 
+    // Enable ps2-mouse support.
+    // Actully we're gonna do the full initialization
+    // of the PS2 controller.
+    // #bugbug:
+    // The keyboard device was already initialized in the 
+    // kernel initialization.
+    // #todo: Explain it better.
+    // Calling the kernel to make the full ps2 initialization.
+    // #todo: Create a wrapper fot that syscall.
+    // #todo: Allow only the ws pid to make this call.
+    // + Enable the use of mouse here in the server.
+    case ASYNC_REQUEST_ENABLE_PS2_MOUSE:
+        // syscall: Initialize ps2 controller.
         sc82( 22011, 0, 0, 0 );
         // Enable the use of mouse here in the server.
         gUseMouse = TRUE;
@@ -1850,28 +1860,29 @@ int serviceAsyncCommand(void)
 
     // ...
 
+    // 88 - Quit
     // Set flag to quit the server.
-    // ASYNC_REQUEST_QUIT
-    case 88:
+    case ASYNC_REQUEST_QUIT:
         printf("88: IsTimeToQuit\n");
         gwssrv_quit();
         goto done;
         break;
 
+    // 89 - Reboot the system.
     // Reboot the system via ws.
-    // ASYNC_REQUEST_REBOOT
-    case 89:
+    case ASYNC_REQUEST_REBOOT:
         printf("89: Reboot via ws\n");
         wm_reboot();
         goto done;
         break;
 
-    // Destroy window.
-    // ASYNC_REQUEST_DESTROY_WINDOW
-    case 90:
+    // 90 - Destroy window
+    // Destroy a window given the wid.
+    // #warning: This routine can't destroy the root window.
+    case ASYNC_REQUEST_DESTROY_WINDOW:
         wid = (int) (data & 0xFFFFFFFF);
         // #debug
-        printf("90: Destroy window %d\n",wid);
+        //printf("90: Destroy window %d\n",wid);
         destroy_window_by_wid(wid);
         break;
 
@@ -1880,42 +1891,49 @@ int serviceAsyncCommand(void)
         wid = (int) (data & 0xFFFFFFFF);
         //#debug
         printf("91: Lock window %d\n",wid);
-        break;  */
+        break;
+    */
 
-    // put pixel.
+    // 1000 - Put a pixel into the backbuffer.
     // IN: color, x, y, rop
-    // ASYNC_REQUEST_PUT_PIXEL
-    case 1000:
-        //printf("1000: %d %d %d\n",data1,data2,data3);
+    // #todo: Explain it better.
+    case ASYNC_REQUEST_PUT_PIXEL:
+        // #debug
+        // printf("1000: %d %d %d\n",data1,data2,data3);
         libdisp_backbuffer_putpixel(
             (unsigned int) data3,
             (data1 & 0xFFFFFFFF),
             (data2 & 0xFFFFFFFF),
             (data4 & 0xFFFFFFFF) );
-        //refresh_screen();  //#bugbug
         break;
+
+    // #todo
+    // Maybe we can create a request to put a pixel into the
+    // front buffer. It's because this is a display server.
+    // And this is what a display server do, calling the 
+    // display device driver.
 
     // ...
 
     default:
-        gwssrv_debug_print ("serviceAsyncCommand: [ERROR] bad request\n");
-                 // printf ("serviceAsyncCommand: [ERROR] bad request\n");
-        // return -1;
+        gwssrv_debug_print("serviceAsyncCommand: Bad request\n");
+                // printf ("serviceAsyncCommand: Bad request\n");
         goto fail;
         break;
     };
 
     goto fail;
 
+// Clear the buffer to avoid data leak.
 done:
-// Clear the buffer to avoid leak.
-    for (i=0; i<MSG_BUFFER_SIZE; i++)
+    for (i=0; i<MSG_BUFFER_SIZE; i++){
         __buffer[i] = 0;
+    };
     return 0;
+
 fail:
-    gwssrv_debug_print ("serviceAsyncCommand: FAIL\n");
-    //asm("sti");
-    return (int)(-1);
+    gwssrv_debug_print("serviceAsyncCommand: Fail\n");
+    return (int) (-1);
 }
 
 /*
