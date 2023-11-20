@@ -409,17 +409,15 @@ struct gws_window_d
     int magic;
 
 // The input status.
-// If the window is disable, it can't receive
-// input from keyboard or mouse.
+// If the window is disable, it can't receive input from keyboard or mouse.
     int enabled;
 
     // In the window stack we have two major components:
     // + The frame (top frame and bottom frame).
     // + The Client area.
 
-// The frame.
+// The window frame
 // Top frame has: title bar, tool bar, menu bar ...
-// Not a pointer.
     struct windowframe_d  frame;
 
 // The frame's rectangle.
@@ -544,6 +542,17 @@ struct gws_window_d
     int status;
 
 // ======================================
+// DOC
+
+    char *window_doc;
+    size_t docbuffer_size_in_bytes;
+    size_t doc_size_in_bytes;
+    int doc_fd;             // file descriptor for the document.
+
+
+// ======================================
+// TEXT
+
 // The text support.
 // Used by input devices or just to show the text
 // when we dont have input support.
@@ -555,36 +564,47 @@ struct gws_window_d
     int text_fd;             // file descriptor for the text
     // color?
 
-    char *window_doc;
-    size_t docbuffer_size_in_bytes;
-    size_t doc_size_in_bytes;
-    int doc_fd;             // file descriptor for the document.
+// Text support
+// This is part of our effort to handle the text inside a
+// EDITBOX window.
+// Text buffers support 
+// Um ponteiro para um array de ponteiros de estruturas de linhas
+// Explicando: Nesse endereço teremos um array. 
+// Cada ponteiro armazenado nesse array é um ponteiro para uma 
+// estrutura de linha.
+// Obs: @todo: Todos esses elementos podem formar uma estrutura e 
+// ficaria aqui apenas um ponteiro para ela.
 
+    void *LineArray;
+    int LineArrayIndexTotal;    //Total de índices presentes nesse array.
+    int LineArrayIndexMax;      //Número máximo de índices permitidos no array de linhas.
+    int LineArrayTopLineIndex;  //Indice para a linha que ficará no topo da página.
+    int LineArrayPointerX;      //Em qual linha o ponteiro está. 	
+    int LineArrayPointerY;      //em qual coluna o ponteiro está.
     // ...
 
 //==================================================
+// DC - Device context
 
 // #todo
     struct dc_d  *window_dc;
 // Maybe we can have a device context only for the client area.
     struct dc_d  *client_dc;
 
-//
-// == window stack ================================
-//
-
+// ==================================================
+// STACK - The layers/parts of a window.
 // This is a stack of elements to build an application window.
 // Some kinds of window do not use all these elements.
 
-// 1
-// Shadow
+// ================
+// 1 - Shadow
 
     unsigned int shadow_color; 
     int shadow_style;
     int shadowUsed;
 
-// 2
-// Background
+// ================
+// 2 - Background
 
     unsigned int bg_color; 
     unsigned int bg_color_when_mousehover;
@@ -592,8 +612,8 @@ struct gws_window_d
     int background_style;
     int backgroundUsed;
 
-// 3
-// Titlebar
+// ================
+// 3 - Titlebar
 
     struct gws_window_d  *titlebar;
     unsigned int titlebar_color;
@@ -622,9 +642,8 @@ struct gws_window_d
     int titlebar_style;
     int titlebarUsed;
 
-// =========================================================
-// 4
-// Controls
+// ================
+// 4 - Controls
 
     int minimizebuttonUsed;
     int maximizebuttonUsed;
@@ -633,10 +652,8 @@ struct gws_window_d
     int controls_style;
     int controlsUsed;
 
-
-// =========================================================
-// 5
-// Borders
+// ================
+// 5 - Borders
 
     unsigned int border_color1;  // top/left
     unsigned int border_color2;  // right/bottom
@@ -644,9 +661,8 @@ struct gws_window_d
     int border_style;
     int borderUsed;
 
-// =========================================================
-// 6
-// Menubar
+// ================
+// 6 - Menubar
 
     struct gws_window_d *menubar;
     struct gws_menu_d  *barMenu;      // Menu da barra de menu.
@@ -655,9 +671,8 @@ struct gws_window_d
     int menubar_style;
     int menubarUsed; 
 
-// =========================================================
-// 7
-// Toolbar
+// ================
+// 7 - Toolbar
 
     struct gws_window_d *toolbar;
     unsigned int toolbar_color;
@@ -665,9 +680,8 @@ struct gws_window_d
     int toolbar_style;
     int toolbarUsed;
 
-// =========================================================
-// 8
-// Client area Support.
+// ================
+// 8 - Client area.
 // We're using a rectangle, declared right above
 // in the top of the structure.
 
@@ -675,9 +689,8 @@ struct gws_window_d
     int clientarea_style;
     int clientareaUsed;
 
-// =========================================================
-// 9
-// Scrollbar
+// ================
+// 9 - Scrollbar
 // vertical scrollbar
 // The wm will call the window server to create this kind of control.
 
@@ -694,52 +707,48 @@ struct gws_window_d
     int scrollbar_style;
     int scrollbarUsed;
 
-// =========================================================
-// 10
-// Statusbar
+// ================
+// 10 - Statusbar
 
     struct gws_window_d *statusbar;
     unsigned int statusbar_color;
     unsigned long statusbar_height;
     int statusbar_style;
     int statusbarUsed;
-
     // ...
 
 // =========================================================
-// 12
-
-// Menu da janela.
-    struct gws_menu_d *contextmenu;          // Menu da janela.
+// Context menu. It belongs to a window.
+    struct gws_menu_d *contextmenu;
 
 //==================================
+// Menu item
 
-// Seleção  de item de menu.
-// No caso dessa janela ser um ítem de menu.
+// The text when the window is a menu item.
+// Maybe we need more information about this text.
+    char *menuitem_text;
+
+// The windows is a menuitem and it's selected.
     int selected;
 
-// Menuitem text.
-// Texto no caso dessa janela ser um ítem de menu.
-// #?? Why is it const?
-    const char *menuitem_text;
-
 // ======================================================
-// Flag par indicar se a janela é um item de menu ou um botão.
-// Isso ajuda na pintura de janelas.
+// Flags to tell us if the window is a button, a bar or anything else.
+// It helps when we are painting.
+// #bugbug
+// What if we set as TRUE more than one flat at the same time?
+
 
     int isTitleBar;
     int isIcon;
-    int isControl;   
-    int isMenu;   
+    int isControl;
+    int isMenu;
     int isMenuItem;
     int isButton;
     int isEditBox;
     int isCheckBox;
-    int isStatusBar; 
+    int isStatusBar;
     int isTaskBar;
     // ...
-
-//==================================================	
 
 //
 // == Buffers =========================================
@@ -769,56 +778,31 @@ struct gws_window_d
 // We do not have this memory yet.
     unsigned int *depth_buf;
 
-//==================================================
+// ==================================================
+// z-order
+// Ordem na pilha de janelas do eixo z.
+// A janela mais ao topo é a janela foreground.
+    int zIndex;
+
+// ==================================================
 // Desktop support.
 // A que desktop a janela pertence??
 // Temos um estrutura de desktop dentro do kernel,
 // faz parte do subsistema de segurança e gerenciamento de memoria.
     int desktop_id;
 
-// ?
+// ==================================================
 // Seu status de relacionamento com outras janelas.
-    unsigned long relationship_status;   
+    unsigned long relationship_status;
 
-//
-// == z-order ==========================
-//
-
-// Ordem na pilha de janelas do eixo z.
-// A janela mais ao topo é a janela foreground.
-    int zIndex;
-
-//z-order global.
-//Sua ordem em relação a janela gui->main.    
-// suspenso .... isso é muito importante.
-    // struct zorder_d *zorder;
-
-//
-// == Text buffers support =========================
-//
-
-// Um ponteiro para um array de ponteiros de estruturas de linhas
-// Explicando: Nesse endereço teremos um array. 
-// Cada ponteiro armazenado nesse array é um ponteiro para uma 
-// estrutura de linha.
-// Obs: @todo: Todos esses elementos podem formar uma estrutura e 
-// ficaria aqui apenas um ponteiro para ela.
-
-    void *LineArray;
-    int LineArrayIndexTotal;    //Total de índices presentes nesse array.
-    int LineArrayIndexMax;      //Número máximo de índices permitidos no array de linhas.
-    int LineArrayTopLineIndex;  //Indice para a linha que ficará no topo da página.
-    int LineArrayPointerX;      //Em qual linha o ponteiro está. 	
-    int LineArrayPointerY;      //em qual coluna o ponteiro está.
-
-    // ...
-
+// ==================================================
 // Actions
 
     int draw;
     int redraw;
-    int show;    //se precisa ou não mostrar a janela.
-    // Continua ...
+    int show_when_creating;    // Se precisa ou não mostrar a janela.
+    // ...
+
 
 //
 // Text Cursor support.

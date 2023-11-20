@@ -1083,7 +1083,7 @@ void *doCreateWindow (
 // Actions
     window->draw = FALSE;  // #todo: Cuidado com isso.
     window->redraw = FALSE;
-    window->show = TRUE;   // Inicialmente presumimos que precisamos mostrar essa janela.
+    window->show_when_creating = TRUE;   // Inicialmente presumimos que precisamos mostrar essa janela.
 
     // Continua ...
 
@@ -1319,7 +1319,7 @@ void *doCreateWindow (
     if (window->state == WINDOW_STATE_NULL)
     {
         //#bugbug: fail.
-        //window->show = 0;
+        //window->show_when_creating = FALSE;
         //window->redraw = 0;
         //return (void*) window;
     }
@@ -1345,7 +1345,7 @@ void *doCreateWindow (
     if (Minimized == 1)
     {
         //window->draw = 1; //Devemos pintála no buffer dedicado.
-        window->show = 0;
+        window->show_when_creating = FALSE;
         window->redraw = 0;
         //...
         //@todo: Não retornar. 
