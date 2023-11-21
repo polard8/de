@@ -34,9 +34,9 @@ struct gws_screen_d
 
     unsigned long font_size;
 
-    unsigned long char_width; 
+    unsigned long char_width;
     unsigned long char_height;
-    
+
     void *backbuffer;
     void *frontbuffer;
 

@@ -8,9 +8,13 @@
 #include "../gwsint.h"
 
 
+struct char_initialization_d  CharInitialization;
+
 // Draw char support
 int gcharWidth=0;
 int gcharHeight=0;
+
+// ================================================
 
 
 // IN: left, right, top, bottom.
@@ -129,10 +133,20 @@ int char_initialize(void)
 {
 // Called by gwsInitGUI() in gws.c.
 
+    CharInitialization.initialized = FALSE;
+
+
 // Char width and height.
-    gcharWidth = 8;   //gde_get_system_metrics(7);
-    gcharHeight = 8;  //gde_get_system_metrics(8);
+    CharInitialization.width = DEFAULT_FONT_WIDTH;
+    CharInitialization.height = DEFAULT_FONT_HEIGHT;
+
+    gcharWidth = DEFAULT_FONT_WIDTH;
+    gcharHeight = DEFAULT_FONT_HEIGHT;
+    //gcharWidth = 8;   //gde_get_system_metrics(7);
+    //gcharHeight = 8;  //gde_get_system_metrics(8);
     //...
+
+    CharInitialization.initialized = TRUE;
 
     return 0;
 }

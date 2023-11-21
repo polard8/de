@@ -4,7 +4,12 @@
 
 #include "../gwsint.h"
 
+
+struct font_initialization_d FontInitialization;
+
+// #bugbug: We need two values, w and h.
 int gfontSize=0;
+
 // As fontes usadas pelo servidor gws.
 unsigned long gws_currentfont_address=0;  // fonte atual.
 unsigned long g8x8fontAddress=0;          // 8×8, 80×25,CGA, EGA
@@ -3021,24 +3026,44 @@ int font_initialize(void)
 {
 // Called by gwsInitGUI() in gws.c.
 
+// #todo
+// #test
+// Maybe we need a structure to handle the font initialization.
+
+    FontInitialization.initialized = FALSE;
+
+
+// =========================================
+// 8x8 (default)
+
+    FontInitialization.width = DEFAULT_FONT_WIDTH;
+    FontInitialization.height = DEFAULT_FONT_HEIGHT;
+
 // Font size
+// #bugbug: 
+// It doesn't mean anything.
+// We need two values, w and h.
     gfontSize = 8;
 
 // Linux font.
 // This is the current.
+    FontInitialization.address = (unsigned long) font_lin8x8;
     gws_currentfont_address = (unsigned long) font_lin8x8;
 
 // Losethos font.
 // We need to invert the data.
     font_lt8x8 = (char *) __initialize_lt8x8_font();
-    if ( (void*) font_lt8x8 == NULL ){
-        printf("font_initialize: Initialization fail\n");
+    if ((void*) font_lt8x8 == NULL){
+        printf("font_initialize: on __initialize_lt8x8_font\n");
         goto fail;
     }
 
 // done:
+    FontInitialization.initialized = TRUE;
     return 0;
+
 fail:
+    FontInitialization.initialized = FALSE;
     return -1;
 }
 

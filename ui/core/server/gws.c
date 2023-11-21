@@ -74,7 +74,7 @@ void ____test_threads (void)
 	//apiCreateThread((unsigned long)&shellThread, 0x004FFFF0,"TestShellThread3");
 	//apiCreateThread((unsigned long)&shellThread, 0x004FFFF0,"TestShellThread4");
 	//...
-	
+
 	//
 	// # Criar e executar #
 	//
@@ -402,7 +402,7 @@ int gwsInitGUI(void)
     }
     memset( CurrentDisplay, 0, sizeof(struct gws_display_d) );
 
-    CurrentDisplay->used  = TRUE;
+    CurrentDisplay->used = TRUE;
     CurrentDisplay->magic = 1234;
     CurrentDisplay->id = 0;
     
@@ -414,7 +414,6 @@ int gwsInitGUI(void)
 
     //...
 
-
 // ===================================================
 // Screen
 
@@ -423,14 +422,14 @@ int gwsInitGUI(void)
 //
 
     DeviceScreen  = (void *) malloc (sizeof(struct gws_screen_d));
-    if ( (void*) DeviceScreen == NULL ){
+    if ((void*) DeviceScreen == NULL){
         debug_print("gwsInitGUI: [FAIL] DeviceScreen\n");
         printf     ("gwsInitGUI: [FAIL] DeviceScreen\n");
         exit(1);
     }
     memset( DeviceScreen, 0, sizeof(struct gws_screen_d) );
 
-    DeviceScreen->id = 0; 
+    DeviceScreen->id = 0;
     DeviceScreen->flags = 0;
 
 // #test
@@ -456,8 +455,13 @@ int gwsInitGUI(void)
 // #todo: 
 // Cuidado, não queremos divisão por zero.
 
-    DeviceScreen->font_size   = 0;    //todo
-    DeviceScreen->char_width  = 0;    //todo
+    // #bugbug
+    // We need two values, w and h.
+    DeviceScreen->font_size = 0;    //todo
+
+// #test
+// We're gonna set this values right below in this routine.
+    DeviceScreen->char_width = 0;    //todo
     DeviceScreen->char_height = 0;    //todo
 
 // #?
@@ -522,13 +526,13 @@ int gwsInitGUI(void)
     gr_dc->depth_buf = NULL;
 
     gr_dc->flags = 0;
-    
+
     // hardware info: w,h,bpp
     gr_dc->device_width = DeviceScreen->width;
     gr_dc->device_height = DeviceScreen->height;
     gr_dc->bpp = DeviceScreen->bpp;
-    
-    // virtual window.
+
+    // virtual window
     gr_dc->absolute_x = 0;
     gr_dc->absolute_y = 0;
     gr_dc->width  = gr_dc->device_width;
@@ -568,18 +572,25 @@ int gwsInitGUI(void)
 // see: char.c
     char_initialize();
 
+    if (CharInitialization.initialized == TRUE)
+    {
+        DeviceScreen->char_width = 
+            (unsigned long) (CharInitialization.width & 0xFFFF);
+        DeviceScreen->char_height = 
+            (unsigned long) (CharInitialization.height & 0xFFFF);
+    }
+
 // -----------------------------------------------
 // Initialize window support.
 // Initialize some basic variables and the window list.
-
     window_initialize();
 
 // -----------------------------------------------
 // gui structure
 // First level structure for the GUI.
 
-    gui = (void *) malloc( sizeof( struct gui_d) );
-    if ( (void *) gui == NULL ){
+    gui = (void *) malloc( sizeof(struct gui_d) );
+    if ((void *) gui == NULL){
         debug_print("gwsInitGUI: gui\n");
         printf     ("gwsInitGUI: gui\n");
         exit(1);
@@ -656,7 +667,7 @@ int gwsInitGUI(void)
     }
 
 // Display a string in the background.
-    if ( (void*) gui->screen_window != NULL ){
+    if ((void*) gui->screen_window != NULL){
         dtextDrawText ( 
             (struct gws_window_d *) gui->screen_window,
             8, 8, COLOR_RED, "gwsInitGUI: gui ok" );

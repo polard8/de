@@ -10,6 +10,19 @@ extern int gcharWidth;
 extern int gcharHeight;
 
 
+struct char_initialization_d
+{
+    int initialized;
+
+    int width;
+    int height;
+};
+extern struct char_initialization_d  CharInitialization;
+
+
+// ========================================
+
+
 void
 DrawBorder( 
     unsigned long l, 
@@ -69,17 +82,7 @@ int char_initialize(void);
 
 #endif
 
-
 //
-// End.
+// End
 //
-
-
-
-
-
-
-
-  
-
 
