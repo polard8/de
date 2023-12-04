@@ -7,6 +7,7 @@
 ----------------------------------
 Lê duas entradas e coloca numa estrutura.
 No fim teremos muitas estruturas.
+
 Podemos usar isso como arquivo de configuração
 no estilo xml / html-meta.
 

@@ -3,7 +3,7 @@
 
 all:
 
-# The libraries, drivers and servers.
+# The libraries
 	make -C alpha/
 
 	make -C browser/
@@ -34,9 +34,6 @@ all:
 clean:
 	-rm bin/*.BIN
 clean-all:
-
-	-rm alpha/drivers/bin/*.BIN
-	-rm alpha/servers/bin/*.BIN
 
 	#-rm -f alpha/libs/libcpp/obj/*.o
 	-rm -f alpha/libs/libdisp/obj/*.o
