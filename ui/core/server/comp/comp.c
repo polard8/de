@@ -389,11 +389,11 @@ void compose(void)
 // Backgroud
 // If the background is marked as dirty, 
 // we flush it, validate it, show the cursor and return.
-    Dirty = (int) is_background_dirty();
+    Dirty = (int) isdirty();
     if (Dirty == TRUE)
     {
         gws_show_backbuffer();
-        validate_background();
+        validate();
         return;
     }
 
@@ -413,9 +413,9 @@ void compose(void)
         __display_mouse_cursor();
     }
 
-// Validate the frame.
-    validate_background();
+// Validate the whole screen.
     validate();
+
 // fps
     //__update_fps();
 }

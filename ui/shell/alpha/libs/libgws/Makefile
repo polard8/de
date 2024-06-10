@@ -45,6 +45,8 @@ finalize:
 	-cp *.o obj/
 clean:
 	-rm *.o
-	
-	
+clean-all:
+	-rm *.o
+	-rm obj/*.o
+
 

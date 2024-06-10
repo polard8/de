@@ -2259,12 +2259,12 @@ struct gws_window_d *do_create_titlebar(
         TitleBarWidth = (parent->width - parent->border_size - parent->border_size);
     }
 
-// Save
+    // Saving
     parent->titlebar_height = TitleBarHeight;
     parent->titlebar_width = TitleBarWidth;
     parent->titlebar_color = (unsigned int) TitleBarColor;
-    parent->titlebar_text_color = 
-        (unsigned int) get_color(csiSystemFontColor);
+    parent->titlebar_text_color = (unsigned int) get_color(csiTitleBarTextColor);
+    // ...
 
 // Herda o rop.
     rop = parent->rop;
@@ -2400,8 +2400,8 @@ struct gws_window_d *do_create_titlebar(
 //
     // #todo
     // We already did that before.
-    parent->titlebar_text_color = 
-        (unsigned int) get_color(csiTitleBarTextColor);
+    //parent->titlebar_text_color = 
+        //(unsigned int) get_color(csiTitleBarTextColor);
 
 // #todo
 // Temos que gerenciar o posicionamento da string.
@@ -3257,7 +3257,6 @@ fail:
 void wm_update_desktop(int tile, int show)
 {
     struct gws_window_d *w;  // tmp
-
 // Lion: Last of the stack.
     struct gws_window_d *l;
 
@@ -3316,6 +3315,7 @@ void wm_update_desktop(int tile, int show)
         first_window = NULL;
         //swamp_update_taskbar("DESKTOP",FALSE);
         flush_window(__root_window);
+        // Go to the end to draw the taskbar.
         goto end;
         return;
     }
@@ -3327,6 +3327,8 @@ void wm_update_desktop(int tile, int show)
         first_window = NULL;
         //swamp_update_taskbar("DESKTOP",FALSE);
         flush_window(__root_window);
+        // Go to the end to draw the taskbar.
+        goto end;
         return;
     }
 
@@ -3470,12 +3472,13 @@ void wm_update_desktop(int tile, int show)
 
 end:
 
-//#test
+// #test
 //------------------------
 // Show the taskbar created by the user.
     if ((void*)taskbar2_window != NULL)
     {
-        redraw_window(taskbar2_window,FALSE);
+        //redraw_window(taskbar2_window,FALSE);
+        redraw_window(taskbar2_window,TRUE);
         // #todo: Send message to update the client area of tb.
         on_update_window(taskbar2_window,GWS_Paint);
     }
@@ -5323,7 +5326,8 @@ static int wmProcessCombinationEvent(int msg_code)
 {
 // Handle combination code.
 
-    if (msg_code<0){
+// Invalid code.
+    if (msg_code < 0){
         goto fail;
     }
 
@@ -5331,8 +5335,7 @@ static int wmProcessCombinationEvent(int msg_code)
 // z, x, c, v
 //
 
-// Control + z
-// Undo
+// Control + z. (Undo)
     if (msg_code == GWS_Undo)
     {
         //printf("ws: undo\n");
@@ -5342,7 +5345,7 @@ static int wmProcessCombinationEvent(int msg_code)
         return 0;
     }
 
-// Control + x
+// Control + x. (Cut)
     if (msg_code == GWS_Cut)
     {
         //printf("ws: cut\n"); 
@@ -5366,7 +5369,7 @@ static int wmProcessCombinationEvent(int msg_code)
         return 0;
     }
 
-// Control + c
+// Control + c. (Copy)
     if (msg_code == GWS_Copy)
     {
         //printf("ws: copy\n");
@@ -5381,7 +5384,7 @@ static int wmProcessCombinationEvent(int msg_code)
         return 0;
     }
 
-// Control + v
+// Control + v. (Paste)
     if (msg_code == GWS_Paste){
         //printf("ws: paste\n");
         yellow_status("Paste");
@@ -5401,6 +5404,7 @@ static int wmProcessCombinationEvent(int msg_code)
         // Sending the wrong message.  
         // This is just a test for now.
         gwssrv_broadcast_close();
+
         return 0;
     }
 
@@ -5619,10 +5623,9 @@ ProcessEvent:
     int ComStatus = -1;
     if (IsCombination)
     {
+        // Process the combination and
+        // we're done if it's ok.
         ComStatus = (int) wmProcessCombinationEvent(msg);
-        // #todo
-        // Can we return right here?
-        // #test
         if (ComStatus == 0){
             return 0;
         }
@@ -6803,12 +6806,14 @@ gwssrv_change_window_position (
 // Nesse momento, podemos checar, quais janelas possuem essa janela
 // como janela mãe, e ... ?
 
+    struct gws_window_d *p;
     struct gws_window_d *tmp_window;
     int tmp_wid = -1;
 
+
     if ((void *) window == NULL){
         gwssrv_debug_print("gwssrv_change_window_position: window\n");
-        return -1;
+        goto fail;
     }
 
 // #todo
@@ -6831,7 +6836,6 @@ gwssrv_change_window_position (
 
 // -------------
 
-
     if (window->type == WT_OVERLAPPED)
     {
         window->absolute_x = (unsigned long) x;
@@ -6840,18 +6844,23 @@ gwssrv_change_window_position (
             (unsigned long) (x + window->width);
         window->absolute_bottom = 
             (unsigned long) (y + window->height );
-    }   
+    }
 
     if (window->type != WT_OVERLAPPED)
     {
-        window->absolute_x = 
-            (unsigned long) (window->parent->absolute_x + x);
-        window->absolute_y = 
-            (unsigned long) (window->parent->absolute_y + y);
-        window->absolute_right = 
-            (unsigned long) (window->absolute_x + window->width);
-        window->absolute_bottom = 
-            (unsigned long) (window->absolute_y + window->height );
+        p = window->parent;
+        if ( (void*) p != NULL )
+        {
+            if (p->magic == 1234)
+            {
+                window->absolute_x = (unsigned long) (p->absolute_x + x);
+                window->absolute_y = (unsigned long) (p->absolute_y + y);
+                window->absolute_right = 
+                    (unsigned long) (window->absolute_x + window->width);
+                window->absolute_bottom = 
+                    (unsigned long) (window->absolute_y + window->height );
+            }
+        }
     }
 
 // -------------
@@ -6860,6 +6869,8 @@ gwssrv_change_window_position (
     window->left = x;
     window->top = y;
 
+// -----------------------------------
+// Titlebar:
 // Se overlapped:
 // Muda também as posições da titlebar.
 // Muda também as posições do área de cliente.
@@ -6872,8 +6883,8 @@ gwssrv_change_window_position (
                 ( window->absolute_x + window->border_size );
             window->titlebar->absolute_y = 
                 ( window->absolute_y  + window->border_size );
-        
-            
+
+            // Controls 
             if (window->titlebar->Controls.initialized == TRUE)
             {
                 // get pointer from id.
@@ -6882,8 +6893,8 @@ gwssrv_change_window_position (
                 // #todo
                 // We need a worker for that job.
 
-                //===============
-                // Change position for minimize.
+                // ===============
+                // MINIMIZE: Change position for minimize.
                 tmp_wid = 
                     (int) window->titlebar->Controls.minimize_wid;
                 tmp_window = 
@@ -6896,11 +6907,13 @@ gwssrv_change_window_position (
                             ( window->titlebar->absolute_x + tmp_window->left );
                         tmp_window->absolute_y = 
                             ( window->titlebar->absolute_y + tmp_window->top );
+                        tmp_window->absolute_right  = tmp_window->absolute_x + tmp_window->width; 
+                        tmp_window->absolute_bottom = tmp_window->absolute_y + tmp_window->height; 
                     }
                 }
 
-                //===============
-                // Change position for maximize.
+                // ===============
+                // MAXIMIZE: Change position for maximize.
                 tmp_wid = 
                     (int) window->titlebar->Controls.maximize_wid;
                 tmp_window = 
@@ -6913,11 +6926,13 @@ gwssrv_change_window_position (
                             ( window->titlebar->absolute_x + tmp_window->left );
                         tmp_window->absolute_y = 
                             ( window->titlebar->absolute_y + tmp_window->top );
+                        tmp_window->absolute_right  = tmp_window->absolute_x + tmp_window->width; 
+                        tmp_window->absolute_bottom = tmp_window->absolute_y + tmp_window->height; 
                     }
                 }
 
-                //===============
-                // Change position for close.
+                // ===============
+                // CLOSE: Change position for close.
                 tmp_wid = 
                     (int) window->titlebar->Controls.close_wid;
                 tmp_window = 
@@ -6930,18 +6945,21 @@ gwssrv_change_window_position (
                             ( window->titlebar->absolute_x + tmp_window->left );
                         tmp_window->absolute_y = 
                             ( window->titlebar->absolute_y + tmp_window->top );
+                        tmp_window->absolute_right  = tmp_window->absolute_x + tmp_window->width; 
+                        tmp_window->absolute_bottom = tmp_window->absolute_y + tmp_window->height; 
                     }
                 }
             }
         }
-        // Client area . (rectangle).
+        // Client area. (rectangle).
         // Esses valores são relativos, então não mudam.
     }
 
-
+// ----------------------------------
+// Client-area
 // Se nossa parent é overlapped.
 // Entao estamos dentro da area de cliente.
-    struct gws_window_d *p;
+    // struct gws_window_d *p;
     p = window->parent;
     if ( (void*) p != NULL )
     {
@@ -6958,6 +6976,11 @@ gwssrv_change_window_position (
                    p->absolute_y +
                    p->rcClient.top +
                    window->top;
+            
+                // #test: 
+                // right and bottom.
+                window->absolute_right  = window->absolute_y + window->width;
+                window->absolute_bottom = window->absolute_y + window->height;
             }
         }
     }
@@ -6966,7 +6989,11 @@ gwssrv_change_window_position (
 // Precisa mesmo pinta toda vez que mudar a posiçao?
     //invalidate_window(window);
     return 0;
+
+fail:
+    return (int) -1;
 }
+
 
 /*
 // #deprecated

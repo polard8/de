@@ -4,31 +4,36 @@
 all:
 
 # The libraries
+
 	make -C alpha/
 
-	make -C browser/
+#
+# External shell 
+#
 
-# First client (GWS.BIN)
-	make -C client/
+	# Gramado Desktop Manager
+	make -C desktop/gdm/
+	# Taskbar (The launcher)
+	make -C desktop/taskbar/
 
-	make -C cmdline/
-	make -C doc/
-	make -C editor/
-	make -C gdm/
-	#make -C setup/
+#
+# Internal shell 
+#
 
-# Virtual terminal connected with the child.
-# It launches the child shell.
-	make -C pubterm/
-
-
-# The taskbar application
-# important
-	make -C taskbar/
-
-# Virtual terminal 
-# with an embedded command line interpreter.
-	make -C terminal/
+	make -C programs/browser/
+	# First client (GWS.BIN)
+	make -C programs/client/
+	make -C programs/cmdline/
+	make -C programs/doc/
+	make -C programs/editor/
+	# Virtual terminal connected with the child.
+	# It launches the child shell.
+	make -C programs/pubterm/
+	# Setup programs to install the o.s.
+	#make -C desktop/setup/ 
+	# Virtual terminal 
+	# with an embedded command line interpreter.
+	make -C programs/terminal/
 
 
 clean:

@@ -13,6 +13,7 @@
 int main(int argc, char *argv[])
 {
     unsigned char count=0;
+    unsigned char number_of_columns = 8;
     unsigned char standard_ascii_max = STANDARD_ASCII_MAX;
 
 // #todo
@@ -30,8 +31,7 @@ int main(int argc, char *argv[])
             printf(" [%d:%c]", count, count);
         }
         
-        if ( count % 8 == 0 )
-        {
+        if ((count % number_of_columns) == 0){
             printf("\n");
         }
     };

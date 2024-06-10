@@ -9,7 +9,7 @@
 // just enough features to allow self-compilation and a bit more
 // Written by Robert Swierczek
 // fetch, decode and execute instructions.
-
+// #todo: Usage?
 
 // rtl
 #include <stdio.h>

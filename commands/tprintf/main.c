@@ -13,10 +13,9 @@ static int printf_test(void);
 
 // ----------------------------
 
-
 /*
  * printf_test:
- *     Essa fun��o testa a fun��o printf() e seus recursos.
+ *     This function test the printf function.
  *     Obs: We can implement this test in user mode.
  * Obs:
  *     If you compile this file with
@@ -45,8 +44,7 @@ static int printf_test(void);
  * -3: -3   left justif.
  * -3:   -3 right justif.
  */
-//testando 
-//n�o tradicional, mas funciona.
+// It's not a standard implementation, but it is working.
 
 static int printf_test(void)
 {
@@ -120,6 +118,9 @@ int main (int argc, char *argv[])
 {
 // Testing printf() function.
 
+    if ((void*)stdout == NULL)
+        goto fail;
+
     // #debug
     printf("TPRINTF.BIN: initializing ...");
     fflush(stdout);
@@ -133,9 +134,7 @@ int main (int argc, char *argv[])
 
     return EXIT_SUCCESS;
 
-//fail:
-    //return EXIT_FAILURE;
+fail:
+    return EXIT_FAILURE;
 }
-
-
 

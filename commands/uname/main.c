@@ -21,11 +21,9 @@ char  machine[]  Name of the hardware type on which the system is running.
 // See:
 // https://man7.org/linux/man-pages/man2/uname.2.html
 
-
 // ==========================
 
 static void usage(void);
-
 
 /*
 static int is_64_kernel(void);
@@ -122,17 +120,15 @@ display_info:
     if (fVersion==TRUE) { printf ("version:  %s\n", un.version  ); }
     if (fRelease==TRUE) { printf ("release:  %s\n", un.release  ); }
     if (fMachine==TRUE) { printf ("machine:  %s\n", un.machine  ); }
+    // ...
 
 // The node name
-    if (fNodeName==TRUE)
-    {
-        printf ("nodename: {%s}\n", 
-            un.nodename ); 
+    if (fNodeName == TRUE){
+        printf ("nodename: {%s}\n", un.nodename ); 
     }
 
 //#todo: Domain name
-    printf ("domainname: {%s}\n", 
-        un.domainname ); 
+    printf ("domainname: {%s}\n", un.domainname ); 
 
     return EXIT_SUCCESS;
 

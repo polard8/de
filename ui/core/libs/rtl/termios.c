@@ -32,15 +32,14 @@ int tcgetattr (int fd, struct termios *termios_p)
     }
 
     value = (int) ioctl(fd, TCGETS, termios_p);
-
-    if(value<0)
+    if (value<0)
     {
         errno = (-value);
         return (int) (-1);
     }
+
     return (int) value;
 }
-
 
 // Set attributes.
 int 
@@ -58,21 +57,16 @@ tcsetattr (
     }
 
     switch (optional_actions){
-
     case TCSANOW:
         value = (int) ioctl(fd, TCSETS , termios_p);
         break;
-
     case TCSADRAIN:  
         value = (int) ioctl(fd, TCSETSW, termios_p);
         break;
-
     case TCSAFLUSH:  
         value = (int) ioctl(fd, TCSETSF, termios_p);
         break;
-
     // ...
-
     default:
         //debug_print ("tcsetattr: [FAIL] default\n");
         errno = EINVAL;
@@ -80,7 +74,7 @@ tcsetattr (
         break;
     };
 
-    if(value<0)
+    if (value<0)
     {
         errno=(-value);
         return (int) (-1);
@@ -89,8 +83,8 @@ tcsetattr (
     return (int) value;
 }
 
-
 // Send break.
+// #todo: Not implemented yet.
 int tcsendbreak (int fd, int duration)
 {
     debug_print ("tcsendbreak: [TODO]\n");
@@ -101,6 +95,7 @@ int tcsendbreak (int fd, int duration)
         return (int) -1;
     }
 
+    // #todo: Not implemented yet.
 
     return -1; 
 }
@@ -118,18 +113,17 @@ int tcdrain (int fd)
     }
 
     value = (int) ioctl(fd, TIOCDRAIN, 0);
-
-    if(value<0)
+    if (value<0)
     {
         errno = (-value);
         return (int) -1;
     }
-    
+
     return (int) value;
 }
 
-
 // Flush
+// #todo: Not implemented yet.
 int tcflush (int fd, int queue_selector)
 {
     debug_print ("tcflush: [TODO]\n"); 
@@ -165,8 +159,8 @@ int tcflush (int fd, int queue_selector)
 	*/
 }
 
-
 // Flow
+// #todo: Not implemented yet.
 int tcflow (int fd, int action)
 {
     debug_print ("tcflow: [TODO]\n");  
@@ -180,11 +174,10 @@ int tcflow (int fd, int action)
     return -1; 
 }
 
-
 // Make raw
 void cfmakeraw (struct termios *termios_p)
 {
-    if ( (void *) termios_p == NULL ){
+    if ((void *) termios_p == NULL){
         debug_print ("cfmakeraw: termios_p\n");
         errno = EINVAL;
         return;
@@ -204,11 +197,10 @@ void cfmakeraw (struct termios *termios_p)
     termios_p->c_cc[VTIME] = 0;
 }
 
-
 // Get i speed.
 speed_t cfgetispeed (const struct termios* tp)
 {
-    if ( (void *) tp == NULL )
+    if ((void *) tp == NULL)
     {
         debug_print ("cfgetispeed: tp\n");
         errno = EINVAL;
@@ -222,7 +214,7 @@ speed_t cfgetispeed (const struct termios* tp)
 // Get o speed.
 speed_t cfgetospeed (const struct termios* tp)
 {
-    if ( (void *) tp == NULL ){
+    if ((void *) tp == NULL){
         debug_print ("cfgetospeed: tp\n");
         return 0;
     }
@@ -230,8 +222,8 @@ speed_t cfgetospeed (const struct termios* tp)
     return (speed_t) tp->c_ospeed;
 }
 
-
 // Set i speed.
+// #todo: Not implemented yet.
 int cfsetispeed (struct termios *termios_p, speed_t speed)
 {
     if ( (void *) termios_p == NULL )
@@ -243,7 +235,6 @@ int cfsetispeed (struct termios *termios_p, speed_t speed)
 
     return -1;
 }
-
 
 // Set o speed.
 int cfsetospeed (struct termios *termios_p, speed_t speed)
@@ -258,7 +249,6 @@ int cfsetospeed (struct termios *termios_p, speed_t speed)
     return -1;
 }
 
-
 // Set speed.
 int cfsetspeed(struct termios *termios_p, speed_t speed)
 {
@@ -271,5 +261,4 @@ int cfsetspeed(struct termios *termios_p, speed_t speed)
 
     return -1;
 }
-
 

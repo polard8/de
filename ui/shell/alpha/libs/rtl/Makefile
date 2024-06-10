@@ -111,7 +111,7 @@ libc-footer:
 # + rtl.c - The core toolkit for this library.
 # todo: Actually we need to remove the syscalls(lowlevel) 
 # from this file and put it in os/xxxsyscalls.c.
-	gcc -c  toolkits/rtl.c  $(CFLAGS) -I. -I include/ -o rtl.o
+	gcc -c  osrtl/rtl.c  $(CFLAGS) -I. -I include/ -o rtl.o
 
 # create 'ar'
 # #todo: 

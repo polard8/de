@@ -1,8 +1,5 @@
-# Gramado B1 - Commands 
+# commands - Programs to run on terminals.
 
-# Quote
-
-
-
-
-
+```
+   These programs will run on terminals. 
+```

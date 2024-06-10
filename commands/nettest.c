@@ -1,4 +1,4 @@
-
+// nettest.c
 
 #include <sys/ioctl.h>
 #include <sys/ioctls.h>
@@ -12,15 +12,10 @@
 #include <termios.h>
 #include <sys/socket.h>
 
-
 #include <netinet/if_ether.h>
 #include <netinet/in.h>
 #include <netinet/ip.h>
 #include <netinet/tcp.h>
-
-
-
-
 
 // internal
 struct gdeshell_ether_header 
@@ -41,10 +36,13 @@ struct gdeshell_ether_header
 
 
 
+#define gdeshell_FromNetByteOrder16(v) \
+    ((v >> 8) | (v << 8))
 
 
-#define gdeshell_FromNetByteOrder16(v) ((v >> 8) | (v << 8))
-
+//
+// ----------------------
+//
 
 //interna
 void 
@@ -52,11 +50,11 @@ print_ethernet_header (
     const unsigned char *Buffer, 
     int Size )
 {
-    struct gdeshell_ether_header *eth = (struct gdeshell_ether_header *) Buffer;
+    struct gdeshell_ether_header *eth = 
+        (struct gdeshell_ether_header *) Buffer;
 
     printf("\n");
     printf ("Ethernet Header\n");
-
     // Destination
     printf ("   |-Destination Address : %.2X-%.2X-%.2X-%.2X-%.2X-%.2X \n", 
         eth->dst[0] , 
@@ -65,7 +63,6 @@ print_ethernet_header (
         eth->dst[3] , 
         eth->dst[4] , 
         eth->dst[5] );
-    
     // Source
     printf ("   |-Source Address      : %.2X-%.2X-%.2X-%.2X-%.2X-%.2X \n", 
         eth->src[0] , 
@@ -74,14 +71,11 @@ print_ethernet_header (
         eth->src[3] , 
         eth->src[4] , 
         eth->src[5] );
-    
     // Protocol type.
     // ARP, IP ... ?
     printf ("   |-Protocol            : %u \n",
         (unsigned short)eth->type);
 }
-
-
 
 // ETHERNET + ARP
 uint8_t test_packet[] = 
@@ -100,7 +94,6 @@ uint8_t test_packet[] =
     192, 168, 0, 137,                    /* ARP pdst */
 };
 
-
 /*
 //interna
 void
@@ -115,9 +108,7 @@ gdeshell_send_packet(void)
 }
 */
 
-
 /*
- ***************** 
  * nettest_decode_buffer:
  *     Decode a buffer with a network packet.
  */
@@ -125,7 +116,6 @@ gdeshell_send_packet(void)
 int 
 nettest_decode_buffer ( unsigned long buffer_address )
 {
-
     // The ethernet header.
     struct gdeshell_ether_header *eh;
     
@@ -137,14 +127,11 @@ nettest_decode_buffer ( unsigned long buffer_address )
     //struct udphdr       *__udp;
     // ...
 
-
     //#debug
     debug_print ("nettest_decode_buffer:\n");
     //printf ("network_decode_buffer:\n");
 
-
-    if ( buffer_address == 0 )
-    {
+    if (buffer_address == 0){
         printf ("nettest_decode_buffer: [FAIL] null buffer address\n");
         return -1;
     }
@@ -162,9 +149,7 @@ nettest_decode_buffer ( unsigned long buffer_address )
     {
         printf ("nettest_decode_buffer: [FAIL] Ethernet header\n");
         return -1;
-
     }else{
-
 
         //
         // Print
@@ -176,27 +161,25 @@ nettest_decode_buffer ( unsigned long buffer_address )
         //printf("type={%x} ",eh->type);
     };
 
+// #importante
+// Provavelmente o buffer seja enviado para um
+// servidor de protocolos.
+// Um servidor só para todos os protocolos.
+// See: 
+// https://en.wikipedia.org/wiki/EtherType
+// http://www.networksorcery.com/enp/protocol/802/ethertypes.htm
+// https://www.iana.org/assignments/ieee-802-numbers/ieee-802-numbers.xhtml
+// ...
 
-    // #importante
-    // Provavelmente o buffer seja enviado para um
-    // servidor de protocolos.
-    // Um servidor só para todos os protocolos.
-    // See: 
-    // https://en.wikipedia.org/wiki/EtherType
-    // http://www.networksorcery.com/enp/protocol/802/ethertypes.htm
-    // https://www.iana.org/assignments/ieee-802-numbers/ieee-802-numbers.xhtml
-    // ...
-
-    // Ethertype
-    // See: https://en.wikipedia.org/wiki/EtherType
-    // 0x0800 	Internet Protocol version 4 (IPv4) 
-    // 0x0806 	Address Resolution Protocol (ARP) 
-    // ... 
-
+// Ethertype
+// See: https://en.wikipedia.org/wiki/EtherType
+// 0x0800 	Internet Protocol version 4 (IPv4) 
+// 0x0806 	Address Resolution Protocol (ARP) 
+// ... 
     
     uint16_t Type = gdeshell_FromNetByteOrder16(eh->type);
     
-    switch ( (uint16_t) Type)
+    switch ((uint16_t) Type)
     {
         // ::: IPV4
         // 0x0800	Internet Protocol version 4 (IPv4)
@@ -271,16 +254,10 @@ nettest_decode_buffer ( unsigned long buffer_address )
             break;
     }
 
-
     return -1;
 }
 
-
-
-
-
 /*
- **************************** 
  * network_test_buffer:
  *     Loop to read the buffers.
  *     Called by the builting command "network"
@@ -293,20 +270,16 @@ void network_test_buffer(void)
 
     debug_print("network_test_buffer:\n");
     printf("\n");
-    printf("\n");
     printf("=========================\n");
     printf("network_test_buffer: [LOOP] Reading the buffers in ring3\n");
-    
-    
-    for (i=0; i<4096; i++)
+
+    for (i=0; i<4096; i++){
         buf[i] = 0;
+    };
 
-    //
-    // Loop.
-    //
-
-    // Get the packet.
-    // Decode the buffer.
+// Loop:
+// Get the packet.
+// Decode the buffer.
 
     while (1)
     {
@@ -322,16 +295,11 @@ void network_test_buffer(void)
         //envia um pacote
         //gdeshell_send_packet();
     };
-    
-    //Exit
-    
+
+// Exit 
     debug_print("network_test_buffer: Done\n");
     printf     ("network_test_buffer: Done\n");
 }
-
-
-
-
 
 void network_initialize(void)
 {
@@ -340,17 +308,12 @@ void network_initialize(void)
     gramado_system_call(968,0,0,0);
 }
 
-
-
-
+// 
 int main(void)
 {
-
     network_initialize();
-
     network_test_buffer();
-
+    // ...
     return 0;
 }
-
 

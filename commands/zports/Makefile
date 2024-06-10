@@ -13,7 +13,7 @@ clean:
 	-rm cat
 	-rm c4
 	-rm cmp
-#	-rm jackpot
+	-rm jackpot
 	-rm showfun
 	-rm unknown
 	-rm sum  

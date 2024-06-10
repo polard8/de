@@ -7,8 +7,8 @@
 
 #include "gwsint.h"
 
-int dirty=0;
-int background=0;
+// Flag for the whole screen.
+static int __dirty = FALSE;
 
 struct gws_graphics_d *Currentgraphics;
 struct engine_d  Engine;
@@ -604,27 +604,28 @@ int gwsInitGUI(void)
 // See:
 // wm.c
 
-    struct gws_window_d  *tmpRootWindow;
-    wid_t root_wid = -1;
-    unsigned int rootwindow_color = (unsigned int) get_color(csiDesktop);
+    // Pointer, id and color. 
+    struct gws_window_d  *rw;
+    wid_t rw_wid = -1;
+    unsigned int rw_color = (unsigned int) get_color(csiDesktop);
 
-    tmpRootWindow = (struct gws_window_d *) wmCreateRootWindow(rootwindow_color);
-    if ((void*) tmpRootWindow == NULL){
-        debug_print("gwsInitGUI: tmpRootWindow\n");
-        printf     ("gwsInitGUI: tmpRootWindow\n");
+    rw = (struct gws_window_d *) wmCreateRootWindow(rw_color);
+    if ((void*) rw == NULL){
+        debug_print("gwsInitGUI: rw\n");
+        printf     ("gwsInitGUI: rw\n");
         exit(1);
     }
-    if ( tmpRootWindow->used != TRUE || tmpRootWindow->magic != 1234 ){
-        debug_print("gwsInitGUI: tmpRootWindow validation\n");
-        printf     ("gwsInitGUI: tmpRootWindow validation\n");
+    if ( rw->used != TRUE || rw->magic != 1234 ){
+        debug_print("gwsInitGUI: rw validation\n");
+        printf     ("gwsInitGUI: rw validation\n");
         exit(1);
     }
 
 // Register
-    root_wid = RegisterWindow(tmpRootWindow);
-    if (root_wid<0 || root_wid >= WINDOW_COUNT_MAX){
-        debug_print("gwsInitGUI: Couldn't register tmpRootWindow\n");
-        printf     ("gwsInitGUI: Couldn't register tmpRootWindow\n");
+    rw_wid = RegisterWindow(rw);
+    if (rw_wid<0 || rw_wid >= WINDOW_COUNT_MAX){
+        debug_print("gwsInitGUI: Couldn't register rw\n");
+        printf     ("gwsInitGUI: Couldn't register rw\n");
         exit(1);
     }
 
@@ -662,8 +663,8 @@ int gwsInitGUI(void)
     {
         gui->_display      = (struct gws_display_d *) CurrentDisplay;
         gui->_screen       = (struct gws_screen_d *)  DeviceScreen;
-        gui->screen_window = (struct gws_window_d *)  tmpRootWindow;
-        gui->main_window   = (struct gws_window_d *)  tmpRootWindow;
+        gui->screen_window = (struct gws_window_d *)  rw;
+        gui->main_window   = (struct gws_window_d *)  rw;
     }
 
 // Display a string in the background.
@@ -685,39 +686,36 @@ int gwsInitGUI(void)
 // Invalidate the whole frame.
 void invalidate(void)
 {
-    dirty = TRUE;
+    __dirty = TRUE;
 }
 
 // Validate the whole frame.
 void validate(void)
 {
-    dirty = FALSE;
+    __dirty = FALSE;
 }
 
 // Check the frame validation
 int isdirty(void)
 {
-    return (int) dirty;
+    return (int) __dirty;
 }
 
-// invalidate all the background.
-// #bugbug: Use background_dirty ??
+// Invalidate all the background.
 void invalidate_background(void)
 {
-    background = TRUE;
-    //invalidate();
+    invalidate();
 }
 
 void validate_background(void)
 {
-    background = FALSE;
-    //validate();
+    validate();
 }
 
 // Check the background validation.
 int is_background_dirty(void)
 {
-    return (int) background;
+    return (int) isdirty();
 }
 
 void gwssrv_set_keyboard_focus(int window)

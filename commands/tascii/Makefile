@@ -1,5 +1,5 @@
 
-# tascii
+# tascii - Print an ascii table.
 # 2019 - Created by Fred Nora.
 
 VERSION = 0

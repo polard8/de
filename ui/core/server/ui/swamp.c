@@ -1,4 +1,8 @@
 
+// #todo
+// This file contains some kind of outdated taskbar support.
+// Change the name of this file.
+
 #include "../gwsint.h"
 
 //struct taskbar_d  TaskBar;
@@ -6,7 +10,6 @@
 //struct quick_launch_d QuickLaunch;
 
 //const char *startmenu_label = "Gramado";
-
 
 // Taskbar
 #define TB_BUTTON_PADDING  2

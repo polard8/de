@@ -1,4 +1,4 @@
-# cat for gde
+# cat command for Gramado OS.
 #history:
 #2019 - Created by Fred Nora.
 

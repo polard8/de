@@ -5,7 +5,6 @@
 
 #include "gramcnf.h"
 
-
 // ## current ##
 // Usado pelo lexer pra saber qual lugar na lista 
 // colocar o lexeme.
@@ -43,7 +42,6 @@ int constant_type_found=0;
 int constant_base_found=0;
 int return_found=0;
 int main_found=0;
-
 
 //
 // Return support
@@ -165,13 +163,9 @@ int check_newline ()
 			//};
 		};
 		
-		
-		
 	};//while
-	
 };
 */
-
 
 //------------------------------------------------
 // Skipping white spaces.
@@ -677,7 +671,7 @@ again:
 
                 while (1)
                 {
-                     c = getc(finput);
+                    c = getc(finput);
 
                     // se não é digito.
                     if ( isdigit( c ) == 0 )
@@ -853,8 +847,9 @@ done:
 }
 
 /*
- * lexerInit:
- *     Inicializando o lexer.
+ * __lexerInit:
+ *     The routine initializes the lexer.
+ *     This is a worker, called by lexer_initialize().
  */
 static int __lexerInit(void)
 {
@@ -938,10 +933,7 @@ void error(char *msg)
     printf ("error: %s\n", msg );
 }
 
-
 //
 // End
 //
-
-
 

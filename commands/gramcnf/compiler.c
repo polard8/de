@@ -10,15 +10,14 @@
 #include "gramcnf.h"
 
 
-// OUT: The output pointer.
-FILE *compiler (int dump_output)
-{
 // Called by main().
 // Routine:
 // + Initialize the lexer.
 // + Parse the tokens.
 // + Return a pointer to the output file.
-
+// OUT: The output pointer.
+FILE *compiler (int dump_output)
+{
     int lexer_return = -1;
     int parser_return = -1;
 

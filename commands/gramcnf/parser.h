@@ -126,7 +126,7 @@ struct function_d
 
     //struct function_d *next;
 };
-struct function_d  *function_main;
+//struct function_d  *function_main;
 
 
 // Estrutura para gerenciar o programa.
@@ -140,9 +140,11 @@ struct program_d
 
     struct function_d *function_list;
 };
-struct program_d  program;
-// #todo: Maybe use this one.
-//struct program_d  Program;
+
+// See: main.c
+extern struct program_d  program;
+
+
 
 /* frw[i] is index in rw of the first word whose length is i. */
 // Credits: GCC 0.9

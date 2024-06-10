@@ -2236,19 +2236,25 @@ int destroy_window_by_wid(int wid)
 
 // No!
 // The client can't destroy the root window.
-    if (window == __root_window)
+// #todo: And in the case we're shutting off the server?
+    if (window == __root_window){
         goto fail;
+    }
 
 // --------------------------------------
 // Not an overlapped window.
+
     if (window->type != WT_OVERLAPPED)
     {
         if ( window->isMinimizeControl == TRUE ||
              window->isMaximizeControl == TRUE ||
              window->isCloseControl == TRUE )
         {
+            // #todo:
+            // Yes, we also need to destroy this kind of window.
             goto fail;
         }
+
         window->magic = 0;
         window->used = FALSE;
         window = NULL;
@@ -2259,7 +2265,8 @@ int destroy_window_by_wid(int wid)
 
 // --------------------------------------
 // Overlapped
-    
+// In this case we need to rebuild the list of window frames 
+// and update the desktop.
     if (window->type == WT_OVERLAPPED)
     {
         fRebuildList = TRUE;
@@ -2341,7 +2348,9 @@ int destroy_window_by_wid(int wid)
     if (fRebuildList == TRUE){
         wm_rebuild_list();
     }
-    if (fUpdateDesktop == TRUE){
+    if (fUpdateDesktop == TRUE)
+    {
+        // IN: tile, show
         wm_update_desktop(TRUE,TRUE);
     }
 // Done

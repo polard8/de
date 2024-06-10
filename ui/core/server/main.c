@@ -3630,7 +3630,6 @@ static int ServerInitialization(int launch_tb)
 // Invalidate the frame.
 // Invalidate all the background.
 // See: gws.c
-    invalidate();
     invalidate_background();
 
 // #todo:
@@ -3676,14 +3675,12 @@ static int ServerInitialization(int launch_tb)
 // See: connect.c
 
     _status = (int) register_ws();
-    if (_status<0){
+    if (_status < 0){
         gwssrv_debug_print("gramland: Couldn't register the server\n");
         printf            ("gramland: Couldn't register the server\n");
-        return -1;
-        //exit(1);
+        goto fail;
     }
     display_server->registration_status = TRUE;
-
 
 // ====================================================
 
@@ -3714,7 +3711,7 @@ static int ServerInitialization(int launch_tb)
     if (server_fd<0){
         gwssrv_debug_print("gramland: on socket()\n");
         printf            ("gramland: on socket()\n");
-        return -1;
+        goto fail;
         //exit(1);
     }
 // Display server structure.
@@ -3749,7 +3746,7 @@ static int ServerInitialization(int launch_tb)
     if (bind_status < 0){
         gwssrv_debug_print("gramland: on bind()\n");
         printf            ("gramland: on bind()\n");
-        return -1;
+        goto fail;
     }
 
     // #debug Breakpoint
@@ -3776,18 +3773,18 @@ static int ServerInitialization(int launch_tb)
 
     int gui_status = -1;
     gui_status = (int) initGUI();
-    if (gui_status<0){
+    if (gui_status < 0){
         printf("ServerInitialization: initGUI failed\n");
-        return (int) -1;
+        goto fail;
     }
 
 // ==================================================
 // Init Graphics
 
     int graphics_status = (int) initGraphics();
-    if (graphics_status<0){
+    if (graphics_status < 0){
         printf("ServerInitialization: initGraphics failed\n");
-        return (int) -1;
+        goto fail;
     }
     Initialization.setup_graphics_interface_checkpoint = TRUE;
 
@@ -3800,14 +3797,14 @@ static int ServerInitialization(int launch_tb)
        // Ohhhh
     }
 
-    if( (void*) WindowManager.root == NULL ){
+    if ( (void*) WindowManager.root == NULL ){
         gwssrv_debug_print("gwssrv: WindowManager.root fail\n");
                     printf("gwssrv: WindowManager.root fail\n");
-        return -1;
+        goto fail;
         //exit(0);
     }
     /*
-    if( (void*) WindowManager.taskbar == NULL )
+    if ( (void*) WindowManager.taskbar == NULL )
     {
         gwssrv_debug_print("WindowManager.taskbar fail\n");
         printf("WindowManager.taskbar fail\n");
@@ -4043,7 +4040,7 @@ static int ServerInitialization(int launch_tb)
 
     if (IsTimeToQuit != TRUE){
         printf("gramland: Invalid IsTimeToQuit\n");
-        return -1;
+        goto fail;
     }
 
 // #todo
@@ -4061,8 +4058,11 @@ static int ServerInitialization(int launch_tb)
         close(server_fd);
     }
 
-// Teturn to main() in main.c
-    return 0; 
+// Return to main().
+    return 0;
+// If something goes wrong, we jump down here and return to main().
+fail:
+    return (int) -1;
 }
 
 // main: 

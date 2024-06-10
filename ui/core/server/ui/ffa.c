@@ -1,5 +1,9 @@
 
-// ffa.c
+// ffa.c (far far away)
+// Draw and update the notification bar. (yellow bar) (status bar).
+// #todo 
+// Change the name of this file.
+
 
 #include "../gwsint.h"
 

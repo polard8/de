@@ -58,30 +58,25 @@ PlotSprite3D (
     int number_of_elements = sprite_list_size;
     int Max = SPRITE_MAX_NUMBER;
 
-
     gwssrv_debug_print("PlotSprite3D: [TODO] \n");
  
-    // invalid address
-    if ( sprite_list_address == 0 )
-    {
+    // Invalid address
+    if (sprite_list_address == 0){
         gwssrv_debug_print("PlotSprite3D: [FAIL] sprite_list_address\n");
-        return -1;
+        goto fail;
     }
 
-    // no elements
-    if ( number_of_elements <= 0 )
-    {
+    // No elements
+    if (number_of_elements <= 0){
         gwssrv_debug_print("PlotSprite3D: [FAIL] no elements\n");
-        return -1;
+        goto fail;
     }
 
-    // too much elements
-    if ( number_of_elements >= SPRITE_MAX_NUMBER )
-    {
+    // Too much elements
+    if (number_of_elements >= SPRITE_MAX_NUMBER){
         gwssrv_debug_print("PlotSprite3D: [FAIL] number_of_elements\n");
-        return -1;
+        goto fail;
     }
-
 
     // Loop: 
     // todos os elementos da lista.
@@ -164,8 +159,9 @@ PlotSprite3D (
     // Restaura para o padrao os elemento da estrutura display.
     // device context
     
-    gwssrv_debug_print("PlotSprite3D: done \n");
-    
+    gwssrv_debug_print("PlotSprite3D: done\n");
     return 0;
+fail:
+    return -1;
 }
 

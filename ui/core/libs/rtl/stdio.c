@@ -100,17 +100,16 @@ const char *errno_list[32] = {
 // Internas.
 // Estamos falando do posicionamento do cursor dentro da janela 
 // e não dentro do terminal. 
-void stdioSetCursor( unsigned long x, unsigned long y );
+void stdioSetCursor(unsigned long x, unsigned long y);
 unsigned long stdioGetCursorX(void); 
 unsigned long stdioGetCursorY(void); 
-static size_t stdio_strlen (const char *s);
+static size_t stdio_strlen(const char *s);
 static char *_vsputs_r(char *dest, char *src);
 //--
 
 //
 // =========================================================
 //
-
 
 /*
 char *out_char(char *dst,char ch);
@@ -123,7 +122,6 @@ char *out_char(char *dst,char ch)
   return dst;
 }
 */
-
 
 /*
 char terry_toupper(char ch);
@@ -154,6 +152,10 @@ int rtl_y_or_n(void)
             return FALSE;
         };
     };
+
+// #todo
+// We need a return value here?
+
     // return (int) -1;
 }
 
@@ -203,16 +205,15 @@ int stdio_atoi (char *s)
     // return (sign ? -rv : rv);
 }
 
-
 // stdio_fntos:
-// rotina interna de support.
-// isso deve ir para bibliotecas depois.
-// não tem protótipo ainda.
-// Credits: Luiz Felipe
-
+// Convert 'File Name' To 'String'.
+// This is a worker, i guess.
+// Intermal (local) routine.
+// No prototype yet, i guess.
+// Credits: Luiz Felipe.
 void stdio_fntos (char *name)
 {
-    int i=0;
+    int i=0;  // #todo: Use 'register'.
     int ns=0;
     char ext[4];
     //const char ext[4];
@@ -295,7 +296,6 @@ void __init_FILE (FILE *fp, int fd, unsigned char *buffer, int flags )
 }
 */
 
-
 /*
  # todo
 FILE *__make_FILE (int fd)
@@ -320,21 +320,20 @@ FILE *__make_FILE (int fd)
 */
 
 /*
- * remove:
- *     It removes a file from the file system.
- */
-// It calls unlink(2) for files, and rmdir(2) for directories. 
-// But here in ring3 we do not know if the file is a diretory or a file.
-// Maybe we need to call a function to tell us if the file is a file
-// or a diretory ... or simply call the the remove() system call 
-// and the kernel will do all the job.
-// #todo
-// https://linux.die.net/man/3/remove
-
+remove:
+    It removes a file from the file system.
+    It calls unlink(2) for files, and rmdir(2) for directories. 
+    But here in ring3 we do not know if the file is a diretory or a file.
+    Maybe we need to call a function to tell us if the file is a file
+or a diretory ... or simply call the the remove() system call 
+and the kernel will do all the job.
+https://linux.die.net/man/3/remove
+*/
+// #todo: Not implemented yet.
 int remove (const char *pathname)
 {
     debug_print ("remove: [TODO] It removes a file from the file system\n");
-    if( (void*) pathname == NULL){
+    if ((void*) pathname == NULL){
         goto fail;
     }
     if (*pathname == 0){
@@ -371,7 +370,7 @@ _strout (
         adjust++;
     };
 
-    while (--count>=0){
+    while (--count >= 0){
         putc (*string++, file);
     };
 
@@ -655,7 +654,7 @@ int ____bfill (FILE *stream)
         goto fail;
     }
     // Enchemos o buffer
-    if ( n_read >= (BUFSIZ-1) )
+    if (n_read >= (BUFSIZ-1))
     {
         stream->_fsize = BUFSIZ;
         stream->_cnt = 0;  // Nao ha mais espaco.
@@ -678,7 +677,7 @@ int ____bfill (FILE *stream)
     stream->_w = 0;
     stream->_r = 0;
 
-//done:
+// done:
 // Retornamos a quantidade disponível para leitura.
 // Isso será usado por __getc.
 // Retorna a quantidade de bytes carregados no buffer.
@@ -701,6 +700,7 @@ fail:
 // Isso vale para arquivos criados com fopen cujo buffer ja começa vazio.
 // Vamos ler do buffer da stream, em ring3.
 
+// This is a worker for getc().
 int __getc(FILE *stream)
 {
 // Get a byte from a ring3 local buffer.
@@ -851,6 +851,7 @@ fail:
     return (int) EOF;
 }
 
+// This is a worker for putc().
 int __putc(int ch, FILE *stream)
 {
 
@@ -1038,7 +1039,6 @@ int fputs( const char *s, FILE *stream )
     return (r);
 }
 
-
 //
 // Root 5
 //
@@ -1056,11 +1056,11 @@ int getw (FILE *stream)
 	//if (stream->_flags&_IOEOF)
 		//return(-1);
 
-    if (stream->eof == 1 ){
+    if (stream->eof == 1){
         return EOF;
     }
 
-    return (i | (getc(stream)<<8));
+    return (i | (getc(stream) << 8));
 }
 
 //#test
@@ -1302,8 +1302,11 @@ FILE *fopen2 ( const char *filename, const char *mode )
 
 // Size
 
-    stdio_fntos( (char *) filename);
-// get file size
+    stdio_fntos((char *) filename);
+// Get file size
+// #todo: 
+// Use systemcall definition instead of number.
+// Maybe another function. (The other symbol).
     size_t s = 
         (size_t) gramado_system_call ( 
                      178, 
@@ -1329,6 +1332,9 @@ FILE *fopen2 ( const char *filename, const char *mode )
 // load the file into the address.
 // Vai retornar o fd.
 // IN: service, name, address, 0, 0 
+// #todo: 
+// Use systemcall definition instead of number.
+// Maybe another function. (The other symbol).
     fd = 
         (int) gramado_system_call ( 
                   3, 
@@ -1362,7 +1368,8 @@ FILE *fopen2 ( const char *filename, const char *mode )
     __stream->_lbfsize = (int) s;
     //__stream->_fsize = 0;
     __stream->_cnt = __stream->_lbfsize;
-// Retornar a stream que criamos aqui.
+
+// Return the base address of the stream we just created.
     return (FILE *) __stream;
 }
 
@@ -1612,7 +1619,6 @@ error0:
     return (size_t) EOF;   
 }
 
-
 // O prompt precisa ser inicializado pelo crt0 e
 // quando ele sobre flush.
 int prompt_putchar ( int c, int con_id )
@@ -1641,7 +1647,6 @@ int prompt_putchar ( int c, int con_id )
 // #bugbug: We need a return here.
     return 0;  //??
 } 
-
 
 int prompt_put_string (char *string)
 {
@@ -1672,8 +1677,8 @@ int prompt_flush (int con_id)
         return -1;
     }
 
-//finaliza.
-    input ('\0'); 
+// Finalize.
+    input('\0'); 
     len = strlen( (const char *) prompt );  
     gramado_system_call ( 66, (unsigned long) prompt, con_id, len );  
     prompt_clean();
@@ -1681,7 +1686,7 @@ int prompt_flush (int con_id)
     return 0;
 }
 
-// Linpando o buffer de entrada.
+// Cleanning the input buffer.
 void prompt_clean (void)
 {
     register int i=0;
@@ -1746,12 +1751,14 @@ prints (
         };
     }
 
+    // ?
     for ( ; *string ; ++string )
     {
         printchar (out, *string);
         ++pc;
     };
 
+    // ?
     for ( ; width > 0; --width )
     {
         printchar (out,padchar);
@@ -1783,13 +1790,11 @@ printi (
 
     char print_buf[PRINT_BUF_LEN];
 
-
     if (i == 0){
         print_buf[0] = '0';
         print_buf[1] = '\0';
         return prints (out, print_buf, width, pad);
     }
-
 
     if ( sg && b == 10 && i < 0) 
     {
@@ -1809,7 +1814,6 @@ printi (
         *--s = t + '0';
         u /= b;
     };
-
 
     if (neg) 
     {
@@ -1926,7 +1930,6 @@ int print ( char **out, int *varg )
 
     return (int) pc;
 }
-
 
 /* 
  ****************************************************
@@ -2161,7 +2164,6 @@ static char *__utoa_r (unsigned long val, char *str)
     return str;
 }
 
-
 //local
 char *kinguio_utoa(
     unsigned long val, 
@@ -2171,15 +2173,14 @@ char *kinguio_utoa(
     char *cp = (char *) dst;
     unsigned long lu = (unsigned long)val;
 
-    if(radix == 16)
+// #todo: Include the braces.
+    if (radix == 16)
         kinguio_i2hex_versao2(lu, cp, 16);
     else 
         __utoa_r(lu, cp);
+
     return dst;
-
-    return dst;  //#bugbug
 }
-
 
 char *kinguio_itoa (int val, char *str) 
 {
@@ -2192,7 +2193,7 @@ char *kinguio_itoa (int val, char *str)
     if (0 > value)
     {
         *valuestring++ = '-';
-        value = -____INT_MAX> value ? min_flag = ____INT_MAX : -value;
+        value = -____INT_MAX > value ? min_flag = ____INT_MAX : -value;
     }
 
     p = valuestring;
@@ -2220,8 +2221,7 @@ char *kinguio_itoa (int val, char *str)
     return str;
 }
 
-
-// printf
+// Worker for printf().
 // Credits: Nelson Cole. Project Sirius/Kinguio.
 int kinguio_printf(const char *fmt, ...)
 {
@@ -2240,7 +2240,6 @@ int kinguio_printf(const char *fmt, ...)
 
     return (int) ret;
 }
-
 
 int printf(const char *fmt, ...)
 {
@@ -2334,10 +2333,10 @@ kinguio_vsprintf(
             case 's':
             case 'S':
                 s = va_arg(ap, char*);
-                if( (void*) s != NULL ){
+                if ((void *) s != NULL){
                     str_tmp = _vsputs_r(str_tmp,s);
                 }
-                if( (void*) s == NULL ){
+                if ((void *) s == NULL){
                     str_tmp = _vsputs_r(str_tmp,"(null)");
                 }
                 break;
@@ -2475,8 +2474,6 @@ void printf_i2hex (uint32_t val, char *dest, int len)
     dest[len+1] = '\0';
 }
 
-
-
 // #test 
 // tentando implementar a printf do nelson cole.
 // padrão tradicional, incompleta, não funciona ainda,
@@ -2495,7 +2492,6 @@ int printf2 ( const char *format, ... )
     char c, *s;
 
     char buffer[256];
-
 
     while ( format[index] )
     {
@@ -2565,9 +2561,8 @@ int printf2 ( const char *format, ... )
 }
 */
 
-
 //
-//=============================================================
+// =============================================================
 //
 
 //find next line
@@ -2575,9 +2570,10 @@ char *stdio_nextline (char *string)
 {
     char *p;
 
-    p = (char *) strchr (string, '\n');
-
-    if (p==NULL){ return (p); }
+    p = (char *) strchr(string,'\n');
+    if (p == NULL){
+        return (p);
+    }
 
     ++p;
 
@@ -2624,8 +2620,7 @@ int sprintf ( char *out, const char *format, ... )
     return (int) print( &out, varg );
 }
 
-
-void printchar ( char **str, int c )
+void printchar (char **str, int c)
 {
     if (str) 
     {
@@ -2633,7 +2628,6 @@ void printchar ( char **str, int c )
         ++(*str);
     } else (void) putchar(c);
 }
-
 
 // Setup libc mode.
 void libc_set_output_mode(int mode)
@@ -2653,7 +2647,6 @@ void libc_set_output_mode(int mode)
 }
 
 /*
- **********
  * outbyte:
  * @todo: Colocar no buffer de arquivo.
  * #obs: essa função chamará _outbyte.
@@ -2663,8 +2656,8 @@ void libc_set_output_mode(int mode)
  
 void outbyte (int c)
 {
-// Copy.
-    register int Ch=c;
+// Copy
+    register int Ch = c;
     static char prev = 0;
 
 // spaces
@@ -2687,7 +2680,7 @@ void outbyte (int c)
 
 // carriege return 
 // Volta ao início da linha.
-    if ( Ch == '\r' )
+    if (Ch == '\r')
     {
         g_cursor_x = 0;
         prev = Ch;
@@ -2720,8 +2713,8 @@ void outbyte (int c)
         return;   
     }
 
-//Space 
-//#todo:
+// Space 
+// #todo:
 // ?? talvez devêssemos imprimir o caractere espaço. ??    
     if ( Ch == ' ' )  
     {
@@ -2730,8 +2723,8 @@ void outbyte (int c)
         return; 
     }
 
-//Delete
-    if ( Ch == 8 )  
+// Delete
+    if (Ch == 8) 
     {
         g_cursor_x--; 
         prev = Ch;
@@ -2740,45 +2733,45 @@ void outbyte (int c)
 
 // Filtra as dimensões da janela onde esta pintando.
  
-//checkLimits:
+// checkLimits:
 
-//Colunas
-//Definindo a largura que usaremos.
-//A largura precisa ser maior que '0' e menor que o limite máximo.
-//Obs: @todo: Essa rotina de definição pode ir para o momento da inicialização
-//da biblioteca. Ela contunua aqui porque está funcionando como um filtro.
+// Colunas
+// Definindo a largura que usaremos.
+// A largura precisa ser maior que '0' e menor que o limite máximo.
+// Obs: @todo: Essa rotina de definição pode ir para o momento da inicialização
+// da biblioteca. Ela contunua aqui porque está funcionando como um filtro.
 
     if ( g_columns == 0 || g_columns >= SCREEN_MAX_WIDTH )
     {
         g_columns = COLUMNS;
     }
 
-	//O cursor não pode ultrapassar a largura definida.
+	// O cursor não pode ultrapassar a largura definida.
     if ( g_cursor_x > g_columns )
     {
         g_cursor_x = 0;
         g_cursor_y++;  
     }else{
-		//Se não alcançamos o limite, apenas incrementa o x.
+		// Se não alcançamos o limite, apenas incrementa o x.
         g_cursor_x++;    
     };
 
 // Linhas
 
-//Definindo a altura que usaremos.
-//A altura precisa ser maior que '0' e menor que o limite máximo.
+// Definindo a altura que usaremos.
+// A altura precisa ser maior que '0' e menor que o limite máximo.
     if ( g_rows == 0 || g_rows >= SCREEN_MAX_HEIGHT )
     {
         g_rows = ROWS;
     }
 
-//O cursor não pode ultrapassar a altura definida.
-//se ultrapassar, chamaremos o scroll.
-//Obs: O scroll ainda não está implementado.
-//O scroll será feito depois que implementarmos o array de ponteiros
-//para estruturas de linha.
+// O cursor não pode ultrapassar a altura definida.
+// se ultrapassar, chamaremos o scroll.
+// Obs: O scroll ainda não está implementado.
+// O scroll será feito depois que implementarmos o array de ponteiros
+// para estruturas de linha.
 	
-    if ( g_cursor_y > g_rows )
+    if (g_cursor_y > g_rows)
     { 
         scroll();
         g_cursor_x = 0;             //O cursor deve fica na primeira coluna.
@@ -2786,11 +2779,10 @@ void outbyte (int c)
     }
 
 // Imprime os caracteres normais.
-    _outbyte (Ch);
+    _outbyte(Ch);
 //Atualisa o prev.
     prev = Ch; 
 }
-
 
 /*
  * _outbyte:
@@ -2829,7 +2821,6 @@ void _outbyte (int c)
     //putc ( ch, stdout );
 }
 
-
 /*
 int gramado_input ( const char *string, va_list arglist );
 int gramado_input ( const char *string, va_list arglist )
@@ -2838,7 +2829,6 @@ int gramado_input ( const char *string, va_list arglist )
    return -1;
 }
 */
-
 
 /*
  ************************************************************
@@ -2932,7 +2922,6 @@ input_done:
     return VK_RETURN;
 }
 
-
 /*
  * #opção.
 int fprintf(FILE *fp, const char *fmt, ...);
@@ -2952,7 +2941,6 @@ int fprintf(FILE *fp, const char *fmt, ...)
 }
 */
 
-
 /*
  ********************************
  * fprintf:     
@@ -2962,6 +2950,9 @@ int fprintf(FILE *fp, const char *fmt, ...)
 // The file was loaded in ring0 by fopen(), using open()
 // So, for now, we simply can't access the data of the file.
 // The only way is using read() and the fd given by open().
+
+// #todo
+// Not implemented yet.
 
 int fprintf ( FILE *stream, const char *format, ... )
 {
@@ -2993,10 +2984,8 @@ int fprintf ( FILE *stream, const char *format, ... )
     return 0;
 }
 
-
-
-//#todo: testar.
-//Credits: Sombra OS.
+// #todo: testar.
+// Credits: Sombra OS.
 void nputs (char *cp, int len)
 {
     register int i=len;
@@ -3042,7 +3031,6 @@ char *uclib_gets (char *str)
     return (char *) fgets (str, INT_MAX, stdin);
 }
 
-
 /*
 //unix v32 like
 char *unixv32_gets (char *s);
@@ -3062,7 +3050,6 @@ char *unixv32_gets (char *s)
     return (s);
 }
 */
-
 
 // glibc
 /* Read a newline-terminated string from stdin into S,
@@ -3106,14 +3093,12 @@ char *glibc_gets (char *s)
 }
 */
 
-
 /*
 ssize_t getline(char** lineptr, size_t* n, FILE* stream)
 {
     return getdelim(lineptr, n, '\n', stream);
 }
 */
-
 
 /*
  *********************************
@@ -3173,7 +3158,7 @@ static __inline__ off_t ftell(FILE *__f)
 
 long ftell (FILE *stream)
 {
-    int fd=-1;    
+    int fd = -1; 
     int offset=0;
     long file_pos=0;
     int rCount=0;
@@ -3184,12 +3169,11 @@ long ftell (FILE *stream)
     }else{
 
         fd = fileno(stream);
-        
-        if (fd<0){
+        if (fd < 0){
             printf("ftell: [FAIL] fd\n");
             return 0;
         }
-        
+
         // Corrigir overflow.
         // local. (ring3)
         if (stream->_cnt < 0){
@@ -3197,10 +3181,9 @@ long ftell (FILE *stream)
         }
         
         //fflush (stream);
-        
+
         // Pegamos o valor, assim podemos atualizar a estrutura local.
-        
-        file_pos = (long) lseek ( fd, 0, SEEK_CUR); 
+        file_pos = (long) lseek(fd, 0, SEEK_CUR);
         
         // offset
         // offset = stream->_ptr - stream->_base;
@@ -3223,11 +3206,9 @@ long ftell (FILE *stream)
     return 0;
 }
 
-
 // fileno: 
 // Gets the file id.
 // The kernel gets this value from the local stream struct.
-
 int fileno(FILE *stream)
 {
     if ( (void *) stream == NULL ){
@@ -3235,7 +3216,6 @@ int fileno(FILE *stream)
     } 
     return (int) stream->_file;
 }
-
 
 // linux klibc style.
 // Isso vai ler no arquivo que está em ring0.
@@ -3250,7 +3230,6 @@ int linux_fgetc (FILE *f)
 
     return ( fread (&ch, 1, 1, f) == 1) ? (int) ch : EOF;
 }
-
 
 /*uClib style*/
 char *fgets2 (char *s, int count, FILE *fp)
@@ -3287,26 +3266,34 @@ char *fgets2 (char *s, int count, FILE *fp)
     return (char *) s;
 }
 
-
 /*
  * fputs2: 
  */
-
 int fputs2 ( const char *str, FILE *stream )
 {
-    if ( (void *) stream == NULL ){ return EOF; }
-// ugly
+    int rc=0;
+
+    if ((void *) stream == NULL){
+        return EOF;
+    }
+
+// #bugbug
+// Check the validation of 'str'?
+
+// #ugly
     for (; *str; ++str) 
     {
-        int rc = putc (*str, stream);
+        rc = putc(*str, stream);
+        if (rc == EOF){
+            return EOF;
+        }
+    };
 
-        if (rc == EOF){ return EOF; }
-    }
-    return 1;
+    return (int) 1;
 }
 
 /*
- * gets:
+ * gets2:
  *     gets() devolve um ponteiro para string
  */
 // #todo
@@ -3324,6 +3311,7 @@ char *gets2 (char *s)
     //salva
     p = s; 
 
+// Loop forever.
     while (1)
     {
         ch = (int) getchar();
@@ -3356,7 +3344,7 @@ char *gets2 (char *s)
 
             s[t] = (char) ch;
             t++;
-        };
+        }
  
         // #bugbug
         // IF X86
@@ -3368,28 +3356,22 @@ done:
     return (char *) p;
 }
 
-
 /*
- ***********************
- * puts:
+ puts2:
+ #bugbug
+ Isso deve escrever no arquivo, assim como tudo em libc.
+ ??
  */
-// #bugbug
-// isso deve escrever no arquivo, assim como tudo em libc.
-// ??
-
-int puts2 ( const char *str )
+int puts2(const char *str)
 {
     return (int) printf ("%s",str);
 }
 
-
 /*
- *************************************
  * getchar2:
  * O kernel pega no stdin que é a fila do teclado.
  * Isso funciona.
  */
-
 int getchar2 (void)
 {
     int Ret=0;
@@ -3467,8 +3449,6 @@ int getchar6(FILE *input_stream,FILE *output_stream)
     return EOF;
 }
 */
-
-
 
 int
 rtl_GetS(
@@ -3554,10 +3534,8 @@ void clearerr(FILE *fp)
 
 
 /*
- *********************************
  * ferror:
  */
-
 int ferror (FILE *stream)
 {
     if ( (void *) stream == NULL ){
@@ -3579,15 +3557,13 @@ static __inline__ int fseek(FILE *__f, off_t __o, int __w)
 }
 */
 	
-	
 /*
- **************************************
  * fseek:
  *     offset argument is the position that you want to seek to,
  *     and whence is what that offset is relative to.
  */
-// The fseek function is used to change the file position of the stream stream. 
- 
+// The fseek function is used to change the file position 
+// of the stream stream. 
 int fseek ( FILE *stream, long offset, int whence )
 {
 // #bugbug:
@@ -3672,7 +3648,6 @@ int putw (int w, FILE *stream)
 }
 */
 
-
 /*
 ssize_t getline (char **lineptr, size_t *n, FILE *stream); 
 ssize_t getline (char **lineptr, size_t *n, FILE *stream)
@@ -3684,12 +3659,11 @@ ssize_t getline (char **lineptr, size_t *n, FILE *stream)
 }  
 */
 
-
 // interna
 // #todo: criar essa rotina na libc.
 void debug_print (char *string)
 {
-    if( (void*) string == NULL )
+    if ((void*) string == NULL)
         return;
 
     gramado_system_call ( 
@@ -3699,19 +3673,17 @@ void debug_print (char *string)
         (unsigned long) string );
 }
 
-
 /*
  * stdioSetCursor:
  * Estamos falando do posicionamento do cursor dentro da janela
  * e não dentro do terminal.
  */
-//34 - set cursor.
+// 34 - set cursor.
 
 void stdioSetCursor ( unsigned long x, unsigned long y )
 {
     gramado_system_call ( 34, x, y, 0 );
 }
-
 
 /*
  * stdioGetCursorX:
@@ -3725,14 +3697,12 @@ unsigned long stdioGetCursorX (void)
     return (unsigned long) gramado_system_call ( 240, 0, 0, 0 );
 }
 
-
 /*
  * stdioGetCursorY:
  *     Get cursor y.
  *     estamos falando do posicionamento do cursor dentro da janela
  *     e não dentro do terminal. 
  */
-
 unsigned long stdioGetCursorY (void)
 {
     return (unsigned long) gramado_system_call ( 241, 0, 0, 0 );
@@ -4804,7 +4774,7 @@ void rewind(FILE *stream)
     //clearerr(stream);
 
     fd = fileno(stream);
-    if(fd<0){
+    if (fd < 0){
         printf("rewind: [ERROR] fd\n");
         return;
     }
@@ -4844,8 +4814,6 @@ void rewind(FILE* stream)
 }
 */
 
-
-
 /*
 void rewind2(FILE *f);
 void rewind2(FILE *f)
@@ -4863,15 +4831,12 @@ void rewind2(FILE *f)
 }
 */
 
-
-
 /*
 static void buffer_putch(char*& bufptr, char ch)
 {
     *bufptr++ = ch;
 }
 */
-
 
 /*
 static size_t __vsnprintf_space_remaining;
@@ -4884,38 +4849,33 @@ static void sized_buffer_putch(char*& bufptr, char ch)
 }
 */
 
-
-
 /*
  * snprintf:
- *     #todo
+ *     #todo: Not implemented yet.
  */
-
 int snprintf ( char *str, size_t count, const char *fmt, ... )
 {
+    size_t ret=0;
+
     va_list ap;
     va_start (ap, fmt);
 
-    size_t ret=0;
-
     debug_print ("snprintf: [TODO]\n");
 
-    if ( count <= 0 )
+    if (count <= 0)
         return EOF;
 
+// #todo 
+// Isso parece fácil
 
-	//#todo 
-	//Isso parece fácil
 	//ret = vsnprintf(str, count, fmt, ap);
-
 
     va_end (ap);
     
     return ret;
 }
 
-
-//?? #todo
+// ?? #todo
 // inicializa o fluxo padrão para o processo.
 int stdio_initialize_standard_streams (void)
 {
@@ -4926,7 +4886,6 @@ int stdio_initialize_standard_streams (void)
                      (unsigned long) stdout, 
                      (unsigned long) stderr ); 
 }
-
 
 // wtf ... it looks so cool!
 /*
@@ -5217,14 +5176,11 @@ setvbuf (
         return -1;
     }
 
-
     //size
     if (size <= 0){
         debug_print ("setvbuf: size fail\n");
         return (-1);
     }
-
-
 
     /*
     if (mode == _IONBF)
@@ -5236,9 +5192,7 @@ setvbuf (
 
     // #todo size limits.
 
-
     //if (mode == _IOFBF || mode == _IOLBF){
-
 
     // Valid buffer.
     // Se foi passado um buffer válido.
@@ -5258,8 +5212,6 @@ setvbuf (
     }
 
     //}
-
-
 
     // #bugbug
     // E se nesse momento ainda temos um ponteiro nulo para buffer?
@@ -5297,13 +5249,12 @@ unsigned int filesize(FILE *fp)
 // We worked a little bit in these routines.
 // It is getting better.
 
-    fseek(fp, 0, SEEK_END);         //#bugbug
+    fseek(fp, 0, SEEK_END);          //#bugbug
     ret = (unsigned int) ftell(fp);  //#bugbug
-    rewind(fp);                     //#bugbug
+    rewind(fp);                      //#bugbug
 
     return (unsigned int) ret;
 }
-
 
 char *fileread (FILE *fp)
 {
@@ -5319,7 +5270,6 @@ char *fileread (FILE *fp)
     buffer_size = filesize(fp);
 
     buff = (char *) malloc (buffer_size);
-    
     if (!buff){ 
         debug_print ("fileread: [FAIL] buff\n");
         return (char *) 0;
@@ -5355,6 +5305,7 @@ int vdprintf (int fd, const char *format, va_list ap)
 /* we use this so that we can do without the ctype library */
 #define __is_digit(c)	((c) >= '0' && (c) <= '9')
 
+// #todo: ugly
 static int skip_atoi(const char **s)
 {
     int i=0;
@@ -5612,11 +5563,8 @@ Wirzenius_Torvalds_vsprintf (
 }
 */
 
-
-
 // It's used by printf ?
 //static char __printbuf[1024];
-
 
 // It was taken from linux 0.01. gpl
 // It works yet.
@@ -5735,7 +5683,6 @@ FILE *tmpfile (void)
     return (FILE *) 0;
 }
 
-
 //tmpnam(): 
 //SVr4, 4.3BSD, C89, C99, POSIX.1-2001.  
 //POSIX.1-2008 marks tmpnam() as obsolete.
@@ -5748,7 +5695,6 @@ char *tmpnam (char *s)
     return NULL; 
 }
 
-
 //tmpnam_r() is a nonstandard extension that is 
 //also available on a few other systems.
 char *tmpnam_r (char *s)
@@ -5760,7 +5706,6 @@ char *tmpnam_r (char *s)
     return NULL; 
 }
 
-
 char *tempnam (const char *dir, const char *pfx)
 {
     debug_print ("tempnam: [TODO]\n"); 
@@ -5769,7 +5714,6 @@ char *tempnam (const char *dir, const char *pfx)
  
     return NULL; 
 }
-
 
 
 /*
@@ -5811,9 +5755,8 @@ FILE *stdio_make_file( int fd, const char *mode )
     //}
 
 
-    __file = (FILE *) malloc ( sizeof(FILE) );
-
-    if ( (void *) __file == NULL )
+    __file = (FILE *) malloc( sizeof(FILE) );
+    if ((void *) __file == NULL)
     {
         // debug_print(...)
         return NULL;
@@ -5847,7 +5790,6 @@ FILE *stdio_make_file( int fd, const char *mode )
     }
     */
 
-
     /*
 	if (mode[1] == '+') {
 		__file->_flags &= ~(_IOREAD|_IOWRT);
@@ -5867,7 +5809,6 @@ FILE *stdio_make_file( int fd, const char *mode )
     return (FILE *) __file;
 }
 
-
 // #test
 // Cria uma nova stream para o fd.
 // O fd foi obtido anteriormente
@@ -5880,7 +5821,6 @@ FILE *fdopen (int fd, const char *mode)
     }
     return (FILE *) stdio_make_file( fd, (const char *) mode);
 }
-
 
 /*
  * freopen:
@@ -5990,7 +5930,6 @@ int fgetpos (FILE *stream, fpos_t *pos )
     }
     
     *pos = ftell(stream);
-
     if (*pos < 0L)
     {
         return (-1);
@@ -5998,7 +5937,6 @@ int fgetpos (FILE *stream, fpos_t *pos )
  
     return 0;
 }
-
 
 int fsetpos (FILE *stream, const fpos_t *pos)
 {
@@ -6011,7 +5949,6 @@ int fsetpos (FILE *stream, const fpos_t *pos)
     return (int) fseek (stream, (long) *pos, SEEK_SET);
 }
 
-
 int fpurge (FILE *stream)
 {
     debug_print ("fpurge: [TODO] \n");
@@ -6022,8 +5959,6 @@ int fpurge (FILE *stream)
  
     return -1; 
 }
-
-
 
 //#todo: esse protótipo pertence à stdio_ext.h
 void __fpurge (FILE *stream)
@@ -6256,7 +6191,9 @@ void stdioInitialize(void)
  *******************************
  * unix_get:
  */
-
+// #bugbug: 
+// Is this enough space?
+//  Is this a wast of space?
 char __unix_get_buf[512];
 int __unix_get_nread = 1;
 
@@ -6472,5 +6409,4 @@ void data_putc (int ch,FILE *_stream)
 //
 // End
 //
-
 

@@ -75,7 +75,6 @@ int main(int argc, char *argv[])
     register int i=0;
     int fSilent = FALSE;
 
-
     for (i=1; i<argc; i++)
     {
         if ( strncmp(argv[i],"--silent",8) == 0 )
@@ -126,13 +125,10 @@ int main(int argc, char *argv[])
     //}
 
 fail:
-
     printf("shutdown.bin: Failed\n");
-    if (isTCG != TRUE)
-    {
+    if (isTCG != TRUE){
         printf("Not running on qemu with TCG\n");
     }
-
     return EXIT_FAILURE;
 }
 

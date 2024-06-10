@@ -14,24 +14,30 @@
 #include <fcntl.h>
 #include <errno.h>
 
+
 #define FALSE  0
 #define TRUE   1
 
 //4KB
 #define __BufferSize  (4*1024)
 
+const char *VersionString = "Version 1.0";
+const char *HelpString = "options: --help, --version, --number";
+//...
+
+//-----------------------------
 static void doHelp(void);
 static void doVersion(void);
-
+// ...
 //-----------------------------
 
 static void doHelp(void)
 {
-    printf("~Help\n");
+    printf("%s\n",HelpString);
 }
 static void doVersion(void)
 {
-    printf("~Version\n");
+    printf("%s\n",VersionString);
 }
 
 int main(int argc, char *argv[])

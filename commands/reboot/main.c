@@ -34,6 +34,9 @@ int main( int argc, char *argv[] )
     char *env_user;
     unsigned char good=0;
 
+    // #debug
+    //rtl_reboot();
+
     //gramado_system_call(65,'3',0,0);
     //printf ("REBOOT.BIN: This is a test\n");
 
@@ -88,6 +91,10 @@ int main( int argc, char *argv[] )
 
 // Testing serial port.
 // ok isso funcionou.
+    
+    /*
+    // #bugbug
+    // This function is not working on Virtualbox.
     serial_write_char('r');
     serial_write_char('e');
     serial_write_char('b');
@@ -100,13 +107,19 @@ int main( int argc, char *argv[] )
     serial_write_char('.');
     serial_write_char('.');
     serial_write_char('.');
+    */
 
     puts       ("\n");
     printf     ("REBOOT.BIN: Rebooting ...\n");
     debug_print("REBOOT.BIN: Rebooting ...\n");
 
-    // #test
-    // using the stadard method.
+//
+// Switch method
+//
+
+// #test
+// using the stadard method.
+
     goto via_rtl;
     //goto via_libio;
 

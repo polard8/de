@@ -1,15 +1,16 @@
 
 // main.c
-// c-like interpreter.
+// GRAMCNF.BIN - c-like interpreter.
 // Ported from Gramado 32bit.
 // 2022 - Fred Nora
 
 #include "gramcnf.h"
 
 
+// See: parser.h
+struct program_d  program;
 
-//#define __VERSION__ "0.1"
-//const char copyright[] = "Copyright (c) Fred Nora";
+const char *VersionString = "1.0";
 
 //default name.
 char program_name[] = "[Default program name]";
@@ -18,7 +19,7 @@ char *compiler_name;
 int running = 1;
 //Para o caso de não precisarmos produzir 
 //nenhum arquivo de output. 
-int no_output;
+int no_output=0;
 
 /* While POSIX defines isblank(), it's not ANSI C. */
 //#define IS_BLANK(c) ((c) == ' ' || (c) == '\t')
@@ -28,19 +29,25 @@ int no_output;
 
 
 // =====================================================
-static void usage(char **argv);
+static void doUsage(char **argv);
+static void doVersion(char **argv);
 static int gramcnf_initialize(void);
 static void debugShowStat(void);
 // =====================================================
 
-static void usage(char **argv)
+static void doUsage(char **argv)
+{
+    printf ("\n");
+    printf("#todo: %s doUsage\n",argv[0]);
+}
+
+static void doVersion(char **argv)
 {
     printf ("\n");
     printf ("====================\n");
-    printf ("%s version %s \n", 
-        argv[0], 
-        __VERSION__ );
+    printf ("%s version %s \n", argv[0], VersionString );
 }
+
 
 /*
 int is_letter(char c);
@@ -267,6 +274,16 @@ int main(int argc, char *argv[])
         if ( strncmp( argv[i], "--dumpo", 7) == 0 ){
             fDumpOutput = TRUE;
         }
+        // help
+        if ( strncmp( argv[i], "--help", 6) == 0 ){
+            doUsage(argv);
+            return EXIT_SUCCESS;
+        }
+        // version
+        if ( strncmp( argv[i], "--version", 9) == 0 ){
+            doVersion(argv);
+            return EXIT_SUCCESS;
+        }
         //...
     };
 
@@ -287,7 +304,7 @@ int main(int argc, char *argv[])
     if (fp == NULL)
     {
         printf("gramcnf: Couldn't open the input file\n");
-        usage(argv);
+        doUsage(argv);
         goto fail;
     }
 
@@ -344,10 +361,4 @@ fail:
 //
 // End
 //
-
-
-
-
-
-
 

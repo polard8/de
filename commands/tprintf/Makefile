@@ -1,5 +1,5 @@
 
-# tprintf
+# tprintf - Testing the 'printf' function.
 # 2019 - Created by Fred Nora.
 
 VERSION = 0
