@@ -3,7 +3,6 @@ all:
 	make -C commands/
 	make -C ui/
 	make -C user3d/
-#	make -C usernet/
 clean:
 	-rm -f *.o 
 clean-all:
