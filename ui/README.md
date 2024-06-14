@@ -9,4 +9,4 @@ Display server and client-side GUI applications.
 
 ## Here are some screenshots of Gramado Operating System.
 
-![Screenshot](https://raw.githubusercontent.com/gramado/screenshots/main/gramado-8.png)
+![Screenshot](https://raw.githubusercontent.com/igapo/screenshots/main/gramado-8.png)
