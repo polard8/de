@@ -13,10 +13,9 @@ folder ui/core/server/.
 ```
 
 ```
-  * commands/     - Unix-like commands to run on virtual terminals.
-  * ui/           - The graphical user interface, GUI.
-                    Display server and client-side GUI applications. 
-  * user3d/       - 3D demos. Full engines running in ring3.
-  * usernet/docs/ - Documentation for the Desktop Environment.
+  * commands/   - Unix-like commands to run on virtual terminals.
+  * ui/         - The graphical user interface, GUI.
+                  Display server and client-side GUI applications. 
+  * user3d/     - 3D demos. Full engines running in ring3.
+  * your/docs/  - Documentation for the Desktop Environment.
 ```
-

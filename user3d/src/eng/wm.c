@@ -3814,16 +3814,17 @@ static int is_combination(int msg_code)
     return FALSE;
 }
 
-int wmInputReader(void)
-{
 // Get the messages in the queue,
 // respecting the circular queue.
-
+// Called by on_execute() in main.c
+int wmInputReader(void)
+{
     int status=0;
 
     register long i=0;
     long extra_attempts=10;
 
+    // Input event structure.
     int msg=0;
     unsigned long long1=0;
     unsigned long long2=0;
@@ -3846,7 +3847,6 @@ new_event:
     msg = (int) (RTLEventBuffer[1] & 0xFFFFFFFF);
     long1 = (unsigned long) RTLEventBuffer[2];
     long2 = (unsigned long) RTLEventBuffer[3];
-
 
 // MOUSE events
     if ( msg == GWS_MouseMove || 
@@ -3902,9 +3902,8 @@ new_event:
 //Unknown:
     return 0;
 fail:
-    return -1;
+    return (int) -1;
 }
-
 
 // ------------------------------------------------
 // This is basically the low level input support 

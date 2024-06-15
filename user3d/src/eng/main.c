@@ -243,14 +243,11 @@ void callback1(void)
     }
 }
 
-// #todo: maybe we can have some parameters here.
+// #todo: 
+// Maybe we can have some parameters here.
 void gramado_terminate(void)
 {
-//#todo:
-// clean up all the mess before finishing the program.
     IsTimeToQuit = TRUE;
-    //wm_Update_TaskBar("Exit",TRUE);
-    //demoCat();
 }
 
 // Print a simple string in the serial port.
@@ -502,7 +499,7 @@ static int __send_response(int fd, int type)
 // 1:
 // Type of reply.
 
-    switch(type){
+    switch (type){
     case 1:  // normal reply
         message_buffer[1] = SERVER_PACKET_TYPE_REPLY;
         break;
@@ -670,11 +667,12 @@ void Compositor_Thread(void)
     wmRefreshDirtyRectangles();
 }
 
-
 // dispacher:
-// Get client's request from socket.
-// Messages sent via socket.
-// obs: read and write use the buffer '__buffer'
+// + Get client's request from socket.
+// + Process the request.
+// + Send the response to the client.
+// #ps: 
+// read and write use the buffer '__buffer'
 // in the top of this file.
 // #todo:
 // No loop precisamos de accept() read() e write();
@@ -732,8 +730,7 @@ static void dispacher(int fd)
 // Drop it!
 
     int value = (int) rtl_get_file_sync( fd, SYNC_REQUEST_GET_ACTION );
-    if ( value != ACTION_REQUEST )
-    {
+    if (value != ACTION_REQUEST){
         goto exit2;
     }
 
@@ -749,27 +746,22 @@ static void dispacher(int fd)
 //
 
 // We can't read our own socket.
-
-    if ( fd == ____saved_server_fd ){
-        printf("dispacher: fd == ____saved_server_fd\n");
-        printf("The server can't read on your own socket\n");
+    if (fd == ____saved_server_fd){
+        printf("dispacher: The server can't read on your own socket\n");
         while(1){}
     }
 
-// accept() always return 31 when
+// For now, accept() always return 31 when
 // getting the next client.
-
     if (fd != 31){
         printf("dispacher: fd != 31\n");
         while(1){}
     }
 
 // Read
-
     n_reads = (ssize_t) read( fd, __buffer, sizeof(__buffer) );
-
     if (n_reads <= 0){
-        gwssrv_debug_print ("dispacher: read fail\n");
+        gwssrv_debug_print("dispacher: read fail\n");
         goto exit2;
     }
 
@@ -780,29 +772,24 @@ static void dispacher(int fd)
 // Invalid request. 
 // Clean and yield.
 
-    if (message_buffer[1] == 0 ){
+    if (message_buffer[1] == 0){
         gwssrv_debug_print ("dispacher: Invalid request\n");
         goto exit2;
     }
 
+// The response is an EVENT, not a REPLY.
 // Um cliente solicitou um evento.
 // Vamos sinalizar o tipo de resposta que temos que enviar,
 // caso nenhum erro aconteça.
-
     int doSendEvent = FALSE;
-    if ( message_buffer[1] == GWS_GetNextEvent )
-    {
-        doSendEvent = TRUE;  // The response is an EVENT, not a REPLY.
+    if ( message_buffer[1] == GWS_GetNextEvent ){
+        doSendEvent = TRUE;
     }
 
 // Process request.
 // Do the service.
-
+// OUT: <0 or error 
     debug_print ("dispacher: Process request\n");
-
-// OUT
-// <0 : error 
-
     Status = 
         (int) gwsProcedure (
                   (int) fd,
@@ -814,9 +801,8 @@ static void dispacher(int fd)
 // Como o serviço não pode ser prestado corretamente.
 // Então logo abaixo mandaremos uma resposta de erro
 // e não uma resposta normal.
-
-    if(Status < 0){
-         SendErrorResponse = TRUE;
+    if (Status < 0){
+        SendErrorResponse = TRUE;
     }
 
 //
@@ -838,7 +824,6 @@ static void dispacher(int fd)
             fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
         goto exit0;
     }
-
 
 //
 // == reponse ================
@@ -900,7 +885,6 @@ exit0:
 }
 
 
-
 /*
  //#test
 void ____get_system_message( unsigned long buffer );
@@ -916,7 +900,6 @@ void ____get_system_message( unsigned long buffer )
 }
 */
 
-
 #define wsMSG_KEYDOWN     20
 #define wsMSG_KEYUP       21
 #define wsMSG_SYSKEYDOWN  22
@@ -927,7 +910,6 @@ void ____get_system_message( unsigned long buffer )
 #define wsVK_F3    0x3D  //61 
 #define wsVK_F4    0x3E  //62 
 
-
 #define wsVK_RETURN    0x1C
 #define wsVK_TAB       0x0F
 
@@ -935,7 +917,8 @@ void ____get_system_message( unsigned long buffer )
 #define wsCOLOR_GRAY     0x808080 
 
 
-
+// #deprecated ?
+// We already have input support in wm.c
 int 
 wsInputProcedure ( 
     struct gws_window_d *window, 
@@ -3321,7 +3304,6 @@ static int on_execute(void)
 {
     //int ShowDemo=FALSE;
     int ShowDemo=TRUE;
-
     int flagUseClient = FALSE;
     //int flagUseClient = TRUE;
     int UseCompositor = TRUE;  // #debug flags
@@ -3396,24 +3378,19 @@ static int on_execute(void)
 // ex: OsInit();
 
     // #debug
-    gwssrv_debug_print ("GWSSRV.BIN: Initializing\n");
+    gwssrv_debug_print("ENG.BIN: Initializing\n");
 
 // Initialize the client list support.
     initClientSupport();
 
 // The server is also a client.
-    if ((void*) serverClient == NULL)
-    {
+    if ((void*) serverClient == NULL){
         printf("eng.bin: serverClient\n");
-        while (1){
-        };
-        //exit(0);
+        goto fail;
     }
     if ( serverClient->used != TRUE || serverClient->magic != 1234 ){
         printf("eng.bin: serverClient validation\n");
-        while (1){
-        };
-        //exit(0);
+        goto fail;
     } 
 
 // Register
@@ -3429,21 +3406,20 @@ static int on_execute(void)
 // Precisamos a opcao de desregistrar, para tentarmos 
 // mais de um window server.
 // See: connect.c
+
     _status = (int) register_ws();
-    if (_status<0)
-    {
-        gwssrv_debug_print("eng.bin: Couldn't register the server\n");
-        printf            ("eng.bin: Couldn't register the server\n");
-        return -1;
-        //exit(1);
+    if (_status < 0){
+        printf ("eng.bin: Couldn't register the server\n");
+        goto fail;
     }
     window_server->registration_status = TRUE;
 
+// #bugbug: Suspended.
 // Setup callback
 // Pra isso o ws precisa estar registrado.
     //printf("WS: Register callback\n");
 
-    if( gUseCallback == TRUE )
+    if (gUseCallback == TRUE)
     {
         /*
         //#bugbug: Check parameters.
@@ -3465,24 +3441,21 @@ static int on_execute(void)
 // pelo servidor.
 // ex: CreateWellKnownSockets ();
 
-
-// Socket:
-// + Creating the socket for the server.
-// + Saving the socket fd.
+// Socket: Creating the socket for the server.
     server_fd = (int) socket(AF_GRAMADO, SOCK_STREAM, 0);
-    if (server_fd < 0)
-    {
-        gwssrv_debug_print("eng.bin: on socket()\n");
-        printf            ("eng.bin: on socket()\n");
-        return -1;
-        //exit(1);
+    if (server_fd < 0){
+        printf ("eng.bin: on socket()\n");
+        goto fail;
     }
-// Window server structure.
+// Global variable
+    ____saved_server_fd = (int) server_fd;
+// Window server structure
+// #todo: 
+// We need to create the 'display server' structure,
+// we're not using the term window server anymore.
     window_server->socket = (int) server_fd;
 // The server itself has its own client structure.
     serverClient->fd = (int) server_fd;
-// Global variable.
-    ____saved_server_fd = (int) server_fd;
 
     // #debug
     //printf ("fd: %d\n", serverClient->fd);
@@ -3495,12 +3468,9 @@ static int on_execute(void)
                   (struct sockaddr *) &server_address, 
                   addrlen );
 
-    if (bind_status < 0)
-    {
-        gwssrv_debug_print("eng.bin: in bind()\n");
-        printf            ("eng.bin: in bind()\n");
-        return -1;
-        //exit(1);
+    if (bind_status < 0){
+        printf ("eng.bin: on bind()\n");
+        goto fail;
     }
 
     // #debug
@@ -3518,17 +3488,19 @@ static int on_execute(void)
 // o servidor vai perder muito tempo no accept();
 // Pois nosso accept() ainda eh pouco eficiente.
 
+// #test: This application do not need any connection.
     listen(server_fd,4);
 
 // Init Hot
 // The graphics interface.
-// #todo: maybe a flag in the parameters.
+// #todo: Maybe a flag in the parameters.
+// #todo: Change the name of this function.
 
     int graphics_status = -1;
     graphics_status = (int) InitHot();
     if (graphics_status < 0){
-        printf("on_execute: InitHot failed\n");
-        return -1;
+        printf("eng.bin: InitHot failed\n");
+        goto fail;
     }
 
 //
@@ -3538,33 +3510,26 @@ static int on_execute(void)
 // ===============
 
 // No root window.
-    if ((void*) WindowManager.root == NULL)
-    {
-        gwssrv_debug_print("eng.bin: WindowManager.root fail\n");
-                    printf("eng.bin: WindowManager.root fail\n");
-        return -1;
-        //exit(0);
+    if ((void*) WindowManager.root == NULL){
+        printf("eng.bin: WindowManager.root fail\n");
+        goto fail;
     }
 // No taskbar.
     if ((void*) WindowManager.taskbar == NULL)
     {
-        gwssrv_debug_print("eng.bin: WindowManager.taskbar fail\n");
-                    printf("eng.bin: WindowManager.taskbar fail\n");
-        return -1;
-        //exit(0);
+        printf("eng.bin: WindowManager.taskbar fail\n");
+        goto fail;
     }
 
 // The working area.
     
     WindowManager.wa_left = 0;
     WindowManager.wa_top = 0;
-
 // #danger
     WindowManager.wa_width = 
         WindowManager.root->width;
     WindowManager.wa_height =
         (WindowManager.root->height - WindowManager.taskbar->height);
-
     WindowManager.initialized = TRUE;
 
     //#debug
@@ -3695,6 +3660,7 @@ static int on_execute(void)
             break;
         }
 
+        // See: wm.c
         wmInputReader();
 
         if (IsAcceptingConnections == TRUE)
@@ -3704,23 +3670,21 @@ static int on_execute(void)
                 (struct sockaddr *) &server_address, 
                 (socklen_t *) addrlen );
 
-             // sys_accept() pega na fila e coloca em fd=31.
-             if (newconn == 31){
-                 dispacher(newconn);
-             }
+            // sys_accept() pega na fila e coloca em fd=31.
+            if (newconn == 31){
+                dispacher(newconn);
+            }
 
             //if (newconn <= 0){
                 //gwssrv_debug_print("gwssrv: accept returned FAIL\n");
             //}
 
             //#debug
-            if ( newconn == ____saved_server_fd )
+            if (newconn == ____saved_server_fd)
             {
                 printf("eng.bin: Invalid connection\n");
-                while (1){
-                };
+                goto fail;
             }
-            
             //close(newconn);
         }
 
@@ -3764,7 +3728,9 @@ static int on_execute(void)
     }
 
 // Return to main()
-    return 0; 
+    return 0;
+fail:
+    return (int) -1;
 }
 
 // yield thread.
@@ -3793,7 +3759,7 @@ static inline void __outb(uint16_t port, uint8_t val)
 // see: gramado.h
 int main(int argc, char **argv)
 {
-    int Status=-1;
+    int Status = -1;
 
 // #todo
 // Parse the parameters and select the flags.
@@ -3802,42 +3768,23 @@ int main(int argc, char **argv)
 // We can't use callback here in this project,
 // because the callback are not saving and restoring
 // the fpu context.
-
     //gUseCallback = TRUE;
     gUseCallback = FALSE;
-
 // Stating time.
     starting_tick = (unsigned long) rtl_jiffies();
 
 //0 = Time to quit.
     Status = (int) on_execute();
-    if (Status == 0)
-    {
-        //gwssrv_debug_print ("GWSSRV.BIN: exit(0)\n");
-        //printf             ("GWSSRV.BIN: exit(0)\n");
-        // #bugbug
-        // The thread state didn't change.
-        // We are still in RUNNING state.
-        // It probably hang in the exit function.
-        printf("ENG: exit(0)\n");
-        exit(0);
+    if (Status != 0){
+        goto fail;
     }
-
-// fail
-// hang
-// Page fault when exiting ... 
-// #fixme
-
     // Wrong time to quit the server.
-    if (IsTimeToQuit != TRUE)
-    {
-        gwssrv_debug_print("ENG.BIN: Hang on exit\n");
-        printf            ("ENG.BIN: Hang on exit\n");
-        while (1){
-        };
+    if (IsTimeToQuit != TRUE){
+        goto fail;
     }
-
-    return 0;
+    return EXIT_SUCCESS;
+fail:
+    return EXIT_FAILURE;
 }
 
 //
