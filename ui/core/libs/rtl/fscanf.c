@@ -1,7 +1,7 @@
 /*
  * fscanf.c
  * scan formatted input
- * credits: minix 3
+ * credits: minix 3, BSD license
  */
 
 #include <stdio.h>
