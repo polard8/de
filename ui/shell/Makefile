@@ -3,21 +3,25 @@
 
 all:
 
-# The libraries
+#
+# API: 
+# Libraries and toolkits.
+#
 
-	make -C alpha/
+	make -C api/
 
 #
-# External shell 
+# External shell: The desktop. 
 #
 
 	# Gramado Desktop Manager
 	make -C desktop/gdm/
+
 	# Taskbar (The launcher)
 	make -C desktop/taskbar/
 
 #
-# Internal shell 
+# Internal shell: The applications.
 #
 
 	make -C programs/browser/
@@ -39,15 +43,13 @@ all:
 clean:
 	-rm bin/*.BIN
 clean-all:
-
-	#-rm -f alpha/libs/libcpp/obj/*.o
-	-rm -f alpha/libs/libdisp/obj/*.o
-	-rm -f alpha/libs/libgr/obj/*.o
-	-rm -f alpha/libs/libgr3d/obj/*.o
-	-rm -f alpha/libs/libgws/obj/*.o
-	-rm -f alpha/libs/libio01/obj/*.o
-	-rm -f alpha/libs/rtl/obj/*.o
+	#-rm -f api/libs/libcpp/obj/*.o
+	-rm -f api/libs/libdisp/obj/*.o
+	-rm -f api/libs/libgr/obj/*.o
+	-rm -f api/libs/libgr3d/obj/*.o
+	-rm -f api/libs/libgws/obj/*.o
+	-rm -f api/libs/libio01/obj/*.o
+	-rm -f api/libs/rtl/obj/*.o
 
 	-rm bin/*.BIN
-
 

@@ -47,11 +47,11 @@ CFLAGS += -fno-pie
 CFLAGS += -fno-omit-frame-pointer
 CFLAGS += -fno-optimize-sibling-calls    
 
-LIBC      = ../../alpha/libs/rtl/include/
-LIBCOBJ   = ../../alpha/libs/rtl/obj
-
-LIBGWS    = ../../alpha/libs/libgws/include/
-LIBGWSOBJ = ../../alpha/libs/libgws/obj
+# API
+LIBC      = ../../api/libs/rtl/include/
+LIBCOBJ   = ../../api/libs/rtl/obj
+LIBGWS    = ../../api/libs/libgws/include/
+LIBGWSOBJ = ../../api/libs/libgws/obj
 
 # Objects
 myObjects = crt0.o main.o rtl.o \
