@@ -41,7 +41,7 @@ struct initialization_d
 // Checkpoints
     int ws_struct_checkpoint;
     int wm_struct_checkpoint;
-    int register_ws_checkpoint;
+    int register_ds_checkpoint;  // display server.
     int setup_callback_checkpoint;
     int setup_connection_checkpoint;
     int setup_graphics_interface_checkpoint;

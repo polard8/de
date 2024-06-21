@@ -3678,7 +3678,7 @@ static int ServerInitialization(int launch_tb)
 // mais de um display server.
 // See: connect.c
 
-    _status = (int) register_ws();
+    _status = (int) registerDS();
     if (_status < 0){
         gwssrv_debug_print("gramland: Couldn't register the server\n");
         printf            ("gramland: Couldn't register the server\n");
@@ -4146,7 +4146,7 @@ int main (int argc, char **argv)
     Initialization.current_phase = 0;
     Initialization.ws_struct_checkpoint = FALSE;
     Initialization.wm_struct_checkpoint = FALSE;
-    Initialization.register_ws_checkpoint = FALSE;
+    Initialization.register_ds_checkpoint = FALSE;
     Initialization.setup_callback_checkpoint = FALSE;
     Initialization.setup_connection_checkpoint = FALSE;
     Initialization.setup_graphics_interface_checkpoint = FALSE;
