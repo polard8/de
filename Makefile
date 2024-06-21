@@ -10,4 +10,4 @@ clean-all:
 	-rm -f commands/bin/*.BIN
 	-rm -f ui/core/server/bin/*.BIN
 	-rm -f ui/shell/bin/*.BIN
-	-rm -f 3ddemos/bin/*.BIN
+	-rm -f user3d/bin/*.BIN

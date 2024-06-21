@@ -1,36 +1,28 @@
 // connect.c
 // Register the window server in the system.
-
+// Created by Fred Nora.
 
 #include "gram3d.h"
 
-
-// Registered ?
-int __ws_registered = -1;
-
-// Destop structure.
-// Essa estrutura é válida??
-// Talvez a gente nem tenha isso para o servidor.
-//struct desktop_d *__ws_desktop;
-void *__ws_desktop;
-
+// Flag: The display server is registered.
+static int __ds_registered = FALSE;
+// This is a pointer for the current cgroup.
+// It's a ring0 address. hahaha.
+static void * __p_cgroup;
 // Our PID.
-int __ws_pid;
-
+static pid_t __pid=0;
 
 /*
- * register_ws:
+ * registerDS:
  *     This routine is gonna register this window server.
  *     It's gonna change the kernel input mode.
  *     Service 519: Get the current desktop structure pointer.
  *     Service 513: Register this window server.
  */
-
 // OUT:
 // 0   = Ok   
 // < 0 =  fail.
-
-int register_ws(void)
+int registerDS(void)
 {
 
     // Desktop
@@ -41,20 +33,17 @@ int register_ws(void)
     // desktop.
 
 //
-// == Desktop ==================
+// == cgroup ==================
 //
 
-    // Desktop 
-    // Getting the current desktop structure pointer.
-
-    __ws_desktop = (void *) gramado_system_call (519,0,0,0);
-
-    if ( (void *) __ws_desktop == NULL )
+    // cgroup 
+    // Getting pointer for the current cgroup.
+    __p_cgroup = (void *) gramado_system_call (519,0,0,0);
+    if ((void *) __p_cgroup == NULL)
     {
-        gwssrv_debug_print ("register_ws: [FAIL] __ws_desktop fail\n");
-        
         // #debug
-        printf ("register_ws: [FAIL] __ws_desktop fail\n");
+        gwssrv_debug_print ("registerDS: [FAIL] __p_cgroup\n");
+        printf             ("registerDS: [FAIL] __p_cgroup\n");
         exit(1);
         
         return (int) (-1);
@@ -66,20 +55,18 @@ int register_ws(void)
 
     // PID
     // Get the PID of the server.
-    __ws_pid = (int) getpid();
-    if ( __ws_pid < 0 )
+    __pid = (int) getpid();
+    if ( __pid < 0 )
     {
-        gwssrv_debug_print ("register_ws: [FAIL] __ws_pid fail \n");
-
         // #debug
-        printf ("register_ws: [FAIL] __ws_pid fail \n");
+        gwssrv_debug_print ("registerDS: [FAIL] __pid\n");
+        printf             ("registerDS: [FAIL] __pid\n");
         exit(1);
 
         return (int) (-1);
     }
 
-
-// Register this PID of the current window server.
+// Register this PID of the display server into the cgroup structure.
 // #todo
 // #bugbug
 // We need to check the return value.
@@ -87,12 +74,12 @@ int register_ws(void)
 
     gramado_system_call ( 
         513, 
-        __ws_desktop, 
-        __ws_pid, 
-        __ws_pid );
+        __p_cgroup, 
+        __pid, 
+        __pid );
 
     // flag.
-    __ws_registered = TRUE;
+    __ds_registered = TRUE;
 
     // O = OK.
     return 0;

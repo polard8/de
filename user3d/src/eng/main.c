@@ -11,7 +11,7 @@
 // not only 'gws'.
 /*
  * File: main.c
- *    Main file for the Gramado Window Server.
+ *    Main file for the Gramado Display Server.
  *    History:
  *        2020 - Created by Fred Nora.
  */
@@ -1081,8 +1081,8 @@ gwsProcedure (
                 dtextDrawText ( 
                     (struct gws_window_d *) gui->screen_window,
                     long1, long2, COLOR_GREEN,
-                    "gwssrv: Hello friend. This is the Gramado Window Server!");
-                
+                    "eng: Hello friend. This is the Gramado Display Server!");
+
                 gws_show_backbuffer();
             //}
         }
@@ -3404,10 +3404,10 @@ static int on_execute(void)
 // Se tentarmos reiniciar o servidor, talvez
 // nao consigamos registrar novamente, pois ja tem um registrado.
 // Precisamos a opcao de desregistrar, para tentarmos 
-// mais de um window server.
+// mais de um display server.
 // See: connect.c
 
-    _status = (int) register_ws();
+    _status = (int) registerDS();
     if (_status < 0){
         printf ("eng.bin: Couldn't register the server\n");
         goto fail;
