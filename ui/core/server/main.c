@@ -191,6 +191,10 @@ static int initGraphics(void);
 static void initBackground(void);
 
 
+//
+// == Functions ======================================================
+//
+
 // This way the module is able to know
 // if the server is accepting input or not.
 int is_accepting_input(void)
@@ -622,231 +626,6 @@ void Compositor_Thread(void)
     wmReactToPaintEvents();
 }
 
-// dispacher:
-// Get client's request from socket.
-// Messages sent via socket.
-// obs: read and write use the buffer '__buffer'
-// in the top of this file.
-// #todo:
-// No loop precisamos de accept() read() e write();
-// Get client's request from socket.
-
-static void dispacher(int fd)
-{
-// Getting requests from clients via socket file.
-// + Read the request.
-// + Process the request.
-// + Write a response, or not.
-
-    unsigned long *message_buffer = (unsigned long *) &__buffer[0];
-    ssize_t n_reads=0;
-    int Status = -1;
-    int SendErrorResponse=FALSE;
-    int SendEvent=FALSE;
-
-    dispatch_counter++;  //#todo: Delete this.
-    ServerProfiler.dispatch_counter++;
-
-// #todo:
-// No loop precisamos de accept() read() e write();
-//#atenção:
-// A função accept vai retornar o descritor do 
-// socket que usaremos ... por isso poderemos fecha-lo
-// para assim obtermos um novo da próxima vez.
-
-    //gwssrv_debug_print ("dispacher: \n");
-
-    // Fail, cleaning.
-    if (fd<0){
-        gwssrv_debug_print ("dispacher: fd\n");
-        goto exit2;
-    }
-
-
-//__loop:
-
-//
-// == Request ============================
-//
-
-// Requests may generate replies, events, and errors;
-// Request packets are numbered sequentially by the server 
-// as soon as it receives them.
-// See:
-// https://en.wikipedia.org/wiki/Round-trip_delay
-// If the request is (XNextEvent), so the reply will be the event.
-
-    /*
-    // Is current client connected.
-    if (currentClient->is_connected == 0)
-    {
-        // [FAIL] Not connected.
-        // close?
-    }
-    */
-
-// #important
-// We can handle only requests.
-// Drop it!
-
-    int value = (int) rtl_get_file_sync( fd, SYNC_REQUEST_GET_ACTION );
-    if (value != ACTION_REQUEST){
-        goto exit2;
-    }
-
-// #todo
-// Devemos escrever em nosso próprio
-// socket e o kernel copia??
-// o kernel copia para aquele arquivo ao qual esse estivere conectado.
-// olhando em accept[0]
-// Precisamos fechar o client se a leitura der errado?
-
-//
-// Recv
-//
-
-// We can't read our own socket.
-
-    if (fd == ____saved_server_fd){
-        printf("dispacher: fd == ____saved_server_fd\n");
-        printf("The server can't read on your own socket\n");
-        while (1){
-        };
-    }
-
-// accept() always return 31 when
-// getting the next client.
-
-    if (fd != 31){
-        printf("dispacher: fd != 31\n");
-        while (1){
-        };
-    }
-
-// Read
-// (Input port)
-    n_reads = (ssize_t) read( fd, __buffer, sizeof(__buffer) );
-    if (n_reads <= 0){
-        gwssrv_debug_print ("dispacher: read fail\n");
-        goto exit2;
-    }
-
-//
-// == Processing the request =============================
-//
-
-// Invalid request. 
-// Clean
-    if (message_buffer[1] == 0){
-        gwssrv_debug_print ("dispacher: Invalid request\n");
-        goto exit2;
-    }
-
-// Um cliente solicitou um evento.
-// Vamos sinalizar o tipo de resposta que temos que enviar,
-// caso nenhum erro aconteça.
-    if (message_buffer[1] == GWS_GetNextEvent){
-        SendEvent = TRUE;  // The response is an EVENT, not a REPLY.
-    }
-
-// Process request.
-// Do the service.
-    // #debug
-    // debug_print("dispacher: Process request\n");
-
-// OUT
-// <0 : error 
-
-    Status = 
-        (int) gwsProcedure (
-                  (int) fd,
-                  (int)           message_buffer[1],
-                  (unsigned long) message_buffer[2],
-                  (unsigned long) message_buffer[3] );
-
-// Como o serviço não pode ser prestado corretamente.
-// Então logo abaixo mandaremos uma resposta de erro
-// e não uma resposta normal.
-    if (Status < 0){
-        SendErrorResponse = TRUE;
-    }
-
-//
-// == Sending reply ==========
-//
-
-
-// First, check if we need a reply.
-// Alguns requests não exigem resposta.
-// Como é o caso das mensagens assíncronas.
-// Entao precisamos modificar a flag de sincronizaçao.
-// que ainda deve estar sinalizando um request.
-// #todo
-// O problema é que temos que conferir
-// na biblioteca client-side se o cliente espera ou não
-// por uma resposta para um dado tipo de mensagens.
-// No momento todos os requests esperam por reposta?
-
-    if (NoReply == TRUE){
-        rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-        goto exit0;
-    }
-
-//
-// == reponse ================
-//
-
-// Types of respose.
-// IN:
-// fd, 1=REPLY | 2=EVENT | 3=ERROR
-
-// ==========================================
-// ERROR: (3)
-// Se o serviço não pode ser prestado corretamente.
-// Error message.
-    if (SendErrorResponse == TRUE){
-        Status = (int) __send_response(fd,RESPONSE_IS_ERROR);
-        goto exit2;
-    }
-// ==========================================
-// EVENT: (2)
-// Se o serviço foi prestado corretamente.
-// Era uma solicitação de evento
-// Event.
-    if (SendEvent == TRUE){
-        Status = (int) __send_response(fd,RESPONSE_IS_EVENT);
-        goto exit2;
-    }
-// ==========================================
-// REPLY: (1)
-// Se o serviço foi prestado corretamente.
-// Era uma solicitação de serviço normal,
-// então vamos enviar um reponse normal. Um REPLY.
-// Normal reply.
-    if (SendEvent != TRUE){
-        Status = (int) __send_response(fd,RESPONSE_IS_REPLY);
-        goto exit2;
-    }
-// A mensagem foi enviada normalmente,
-// Vamos sair normalmente.
-
-    //if(Status >= 0)
-        //goto exit0;
-
-// Fall
-
-exit2:
-    message_buffer[0] = 0;
-    message_buffer[1] = 0;
-    message_buffer[2] = 0;
-    message_buffer[3] = 0;
-    message_buffer[4] = 0;
-    message_buffer[5] = 0;
-exit1:
-exit0:
-    return;
-}
-
 /*
  * ==============================
  * gwsProcedure:
@@ -1139,6 +918,231 @@ gwsProcedure (
     return (int) Status;
 fail:
     return (int) -1;
+}
+
+// dispacher:
+// Get client's request from socket.
+// Messages sent via socket.
+// obs: read and write use the buffer '__buffer'
+// in the top of this file.
+// #todo:
+// No loop precisamos de accept() read() e write();
+// Get client's request from socket.
+
+static void dispacher(int fd)
+{
+// Getting requests from clients via socket file.
+// + Read the request.
+// + Process the request.
+// + Write a response, or not.
+
+    unsigned long *message_buffer = (unsigned long *) &__buffer[0];
+    ssize_t n_reads=0;
+    int Status = -1;
+    int SendErrorResponse=FALSE;
+    int SendEvent=FALSE;
+
+    dispatch_counter++;  //#todo: Delete this.
+    ServerProfiler.dispatch_counter++;
+
+// #todo:
+// No loop precisamos de accept() read() e write();
+//#atenção:
+// A função accept vai retornar o descritor do 
+// socket que usaremos ... por isso poderemos fecha-lo
+// para assim obtermos um novo da próxima vez.
+
+    //gwssrv_debug_print ("dispacher: \n");
+
+    // Fail, cleaning.
+    if (fd<0){
+        gwssrv_debug_print ("dispacher: fd\n");
+        goto exit2;
+    }
+
+
+//__loop:
+
+//
+// == Request ============================
+//
+
+// Requests may generate replies, events, and errors;
+// Request packets are numbered sequentially by the server 
+// as soon as it receives them.
+// See:
+// https://en.wikipedia.org/wiki/Round-trip_delay
+// If the request is (XNextEvent), so the reply will be the event.
+
+    /*
+    // Is current client connected.
+    if (currentClient->is_connected == 0)
+    {
+        // [FAIL] Not connected.
+        // close?
+    }
+    */
+
+// #important
+// We can handle only requests.
+// Drop it!
+
+    int value = (int) rtl_get_file_sync( fd, SYNC_REQUEST_GET_ACTION );
+    if (value != ACTION_REQUEST){
+        goto exit2;
+    }
+
+// #todo
+// Devemos escrever em nosso próprio
+// socket e o kernel copia??
+// o kernel copia para aquele arquivo ao qual esse estivere conectado.
+// olhando em accept[0]
+// Precisamos fechar o client se a leitura der errado?
+
+//
+// Recv
+//
+
+// We can't read our own socket.
+
+    if (fd == ____saved_server_fd){
+        printf("dispacher: fd == ____saved_server_fd\n");
+        printf("The server can't read on your own socket\n");
+        while (1){
+        };
+    }
+
+// accept() always return 31 when
+// getting the next client.
+
+    if (fd != 31){
+        printf("dispacher: fd != 31\n");
+        while (1){
+        };
+    }
+
+// Read
+// (Input port)
+    n_reads = (ssize_t) read( fd, __buffer, sizeof(__buffer) );
+    if (n_reads <= 0){
+        gwssrv_debug_print ("dispacher: read fail\n");
+        goto exit2;
+    }
+
+//
+// == Processing the request =============================
+//
+
+// Invalid request. 
+// Clean
+    if (message_buffer[1] == 0){
+        gwssrv_debug_print ("dispacher: Invalid request\n");
+        goto exit2;
+    }
+
+// Um cliente solicitou um evento.
+// Vamos sinalizar o tipo de resposta que temos que enviar,
+// caso nenhum erro aconteça.
+    if (message_buffer[1] == GWS_GetNextEvent){
+        SendEvent = TRUE;  // The response is an EVENT, not a REPLY.
+    }
+
+// Process request.
+// Do the service.
+    // #debug
+    // debug_print("dispacher: Process request\n");
+
+// OUT
+// <0 : error 
+
+    Status = 
+        (int) gwsProcedure (
+                  (int) fd,
+                  (int)           message_buffer[1],
+                  (unsigned long) message_buffer[2],
+                  (unsigned long) message_buffer[3] );
+
+// Como o serviço não pode ser prestado corretamente.
+// Então logo abaixo mandaremos uma resposta de erro
+// e não uma resposta normal.
+    if (Status < 0){
+        SendErrorResponse = TRUE;
+    }
+
+//
+// == Sending reply ==========
+//
+
+
+// First, check if we need a reply.
+// Alguns requests não exigem resposta.
+// Como é o caso das mensagens assíncronas.
+// Entao precisamos modificar a flag de sincronizaçao.
+// que ainda deve estar sinalizando um request.
+// #todo
+// O problema é que temos que conferir
+// na biblioteca client-side se o cliente espera ou não
+// por uma resposta para um dado tipo de mensagens.
+// No momento todos os requests esperam por reposta?
+
+    if (NoReply == TRUE){
+        rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
+        goto exit0;
+    }
+
+//
+// == reponse ================
+//
+
+// Types of respose.
+// IN:
+// fd, 1=REPLY | 2=EVENT | 3=ERROR
+
+// ==========================================
+// ERROR: (3)
+// Se o serviço não pode ser prestado corretamente.
+// Error message.
+    if (SendErrorResponse == TRUE){
+        Status = (int) __send_response(fd,RESPONSE_IS_ERROR);
+        goto exit2;
+    }
+// ==========================================
+// EVENT: (2)
+// Se o serviço foi prestado corretamente.
+// Era uma solicitação de evento
+// Event.
+    if (SendEvent == TRUE){
+        Status = (int) __send_response(fd,RESPONSE_IS_EVENT);
+        goto exit2;
+    }
+// ==========================================
+// REPLY: (1)
+// Se o serviço foi prestado corretamente.
+// Era uma solicitação de serviço normal,
+// então vamos enviar um reponse normal. Um REPLY.
+// Normal reply.
+    if (SendEvent != TRUE){
+        Status = (int) __send_response(fd,RESPONSE_IS_REPLY);
+        goto exit2;
+    }
+// A mensagem foi enviada normalmente,
+// Vamos sair normalmente.
+
+    //if(Status >= 0)
+        //goto exit0;
+
+// Fall
+
+exit2:
+    message_buffer[0] = 0;
+    message_buffer[1] = 0;
+    message_buffer[2] = 0;
+    message_buffer[3] = 0;
+    message_buffer[4] = 0;
+    message_buffer[5] = 0;
+exit1:
+exit0:
+    return;
 }
 
 static void initBackground(void)
