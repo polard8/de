@@ -39,8 +39,8 @@ struct initialization_d
 // Initialization phase
     int current_phase;
 // Checkpoints
-    int ws_struct_checkpoint;
-    int wm_struct_checkpoint;
+    int ds_struct_checkpoint;  // display server structure
+    int wm_struct_checkpoint;   // window manager structure
     int register_ds_checkpoint;  // display server.
     int setup_callback_checkpoint;
     int setup_connection_checkpoint;

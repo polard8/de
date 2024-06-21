@@ -1,7 +1,8 @@
 
 // comp.c
+// Created by Fred Nora.
 
-// window server routines.
+// Display server routines.
 #include "gram3d.h"
 
 //global
@@ -71,9 +72,9 @@ long comp_get_mouse_y_position(void)
 // + Pinta o novo cursor diretamente no lfb.
 void __display_mouse_cursor(void)
 {
-    if ( (void*) window_server == NULL )
+    if ((void *) display_server == NULL)
         return;
-    if (window_server->initialized != TRUE )
+    if (display_server->initialized != TRUE)
         return;
 
 // #todo Limits

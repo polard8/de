@@ -128,8 +128,8 @@ struct initialization_d  Initialization;
 struct server_profiler_d  ServerProfiler;
 struct server_state_d ServerState;
 
-
-//see: gws.h
+//
+// see: gwsint.h
 struct display_server_d  *display_server;
 
 static int IsAcceptingInput = FALSE;
@@ -3336,13 +3336,12 @@ static void __init_ws_structure(void)
 // The display server structure.
     display_server = 
         (struct display_server_d *) malloc ( sizeof(struct display_server_d) );
-    if ( (void*) display_server == NULL ){
+    if ((void*) display_server == NULL){
         gwssrv_debug_print("__init_ws_structure: [FAIL] display_server\n");
         printf            ("__init_ws_structure: [FAIL] display_server\n");
         exit(1);
     }
     memset( display_server, 0, sizeof(struct display_server_d) );
-
     display_server->initialized = FALSE;
     display_server->version_major = VERSION_MAJOR;
     display_server->version_minor = VERSION_MINOR;
@@ -3956,7 +3955,7 @@ static int ServerInitialization(int launch_tb)
 // Finalize the ws structure initialization.
     display_server->status = STATUS_RUNNING;
     display_server->initialized = TRUE;
-    Initialization.ws_struct_checkpoint = TRUE;
+    Initialization.ds_struct_checkpoint = TRUE;
 
 // ==========================================
 // Main loop.
@@ -4144,7 +4143,7 @@ int main (int argc, char **argv)
     gUseCallback = FALSE;
 
     Initialization.current_phase = 0;
-    Initialization.ws_struct_checkpoint = FALSE;
+    Initialization.ds_struct_checkpoint = FALSE;  // display server
     Initialization.wm_struct_checkpoint = FALSE;
     Initialization.register_ds_checkpoint = FALSE;
     Initialization.setup_callback_checkpoint = FALSE;

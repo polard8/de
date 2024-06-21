@@ -99,8 +99,10 @@ See: https://wiki.osdev.org/Graphics_stack
 #define LONGSTRING_SIZE        256
 // ...
 
-//see: gws.h
-struct gws_d  *window_server;
+// see: gws.h
+// The main structure for the display server.
+// This engine register itself as the current display server.
+struct gws_d  *display_server;
 
 static int IsAcceptingConnections = FALSE;
 static int connection_status = 0;
@@ -196,9 +198,9 @@ void callback1(void)
     //printf("WS: Callback\n");
     callback_counter++;
 
-    if ( (void*) window_server == NULL )
+    if ((void *) display_server == NULL)
         do_restorer();
-    if (window_server->initialized != TRUE)
+    if (display_server->initialized != TRUE)
         do_restorer();
 
 //#test1
@@ -216,16 +218,13 @@ void callback1(void)
     if ( (void*) gui == NULL ){
         do_restorer();
     }
-
-    if ( (void*) window_server == NULL ){
+    if ((void*) display_server == NULL){
         do_restorer();
     }
-
-    if (window_server->graphics_initialization_status != TRUE)
+    if (display_server->graphics_initialization_status != TRUE)
     {
         do_restorer();
     }
-
     if (WindowManager.initialized != TRUE){
         do_restorer();
     }
@@ -1409,7 +1408,7 @@ static int initGraphics(void)
     //debug_print("initGraphics\n");
     //printf("initGraphics: \n");
 
-    window_server->graphics_initialization_status = FALSE;
+    display_server->graphics_initialization_status = FALSE;
 
 // gwsInit
 // Initialize the window server infrastructure.
@@ -1495,10 +1494,10 @@ static int initGraphics(void)
     // asm("int $3");
     // while(1){}
 
-    window_server->graphics_initialization_status = TRUE;
+    display_server->graphics_initialization_status = TRUE;
     return 0;
 fail:
-    window_server->graphics_initialization_status = FALSE;
+    display_server->graphics_initialization_status = FALSE;
     return (int) -1;
 }
 
@@ -3179,52 +3178,48 @@ char *gwssrv_get_version(void)
     return VERSION;
 }
 
-
 // The window server's main struture.
 // See: gws.h
 void __init_ws_structure(void)
 {
-    window_server = 
-        (struct gws_d *) malloc ( sizeof( struct gws_d) );
-
-    if ( (void*) window_server == NULL )
+    // The gws_d structure. (display server)
+    display_server = (struct gws_d *) malloc ( sizeof(struct gws_d) );
+    if ((void*) display_server == NULL)
     {
-        gwssrv_debug_print("__init_ws_structure: [FAIL] window_server\n");
-        printf            ("__init_ws_structure: [FAIL] window_server\n");
+        gwssrv_debug_print("__init_ws_structure: [FAIL] display_server\n");
+        printf            ("__init_ws_structure: [FAIL] display_server\n");
         exit(1);
     }
-
-    memset( window_server, 0, sizeof(struct gws_d) );
-
-    window_server->initialized = FALSE;
+    memset( display_server, 0, sizeof(struct gws_d) );
+    display_server->initialized = FALSE;
 
 // Version
-    window_server->version_major = VERSION_MAJOR;
-    window_server->version_minor = VERSION_MINOR;
+    display_server->version_major = VERSION_MAJOR;
+    display_server->version_minor = VERSION_MINOR;
 
     // strings
     // #todo: we need to finalize these strings?
 
 // name
-    sprintf( window_server->name, "Gramado Window Server" );
-    strcat(window_server->name,"\0");
+    sprintf( display_server->name, "Gramado Window Server" );
+    strcat(display_server->name,"\0");
 // edition name
-    sprintf( window_server->edition_name, "Presence" );
-    strcat(window_server->edition_name,"\0");
+    sprintf( display_server->edition_name, "Presence" );
+    strcat(display_server->edition_name,"\0");
 // version string
-    sprintf( window_server->version_string, "0.1" );
-    strcat(window_server->version_string,"\0");
+    sprintf( display_server->version_string, "0.1" );
+    strcat(display_server->version_string,"\0");
 // We need to register the server in the host system.
-    window_server->registration_status = FALSE;
+    display_server->registration_status = FALSE;
 // graphics initialization status.
-    window_server->graphics_initialization_status = FALSE;
+    display_server->graphics_initialization_status = FALSE;
 // Se devemos ou não lançarmos o primeiro client.
 // #todo: Pegaremos essa informação dos parâmetros.
-    window_server->launch_first_client = TRUE;
+    display_server->launch_first_client = TRUE;
 // When to quit the window server.
-    window_server->quit = FALSE;
+    display_server->quit = FALSE;
  // #todo
-    window_server->status = 0;
+    display_server->status = 0;
 
 // Not initialized yet.
 }
@@ -3412,7 +3407,7 @@ static int on_execute(void)
         printf ("eng.bin: Couldn't register the server\n");
         goto fail;
     }
-    window_server->registration_status = TRUE;
+    display_server->registration_status = TRUE;
 
 // #bugbug: Suspended.
 // Setup callback
@@ -3453,7 +3448,7 @@ static int on_execute(void)
 // #todo: 
 // We need to create the 'display server' structure,
 // we're not using the term window server anymore.
-    window_server->socket = (int) server_fd;
+    display_server->socket = (int) server_fd;
 // The server itself has its own client structure.
     serverClient->fd = (int) server_fd;
 
@@ -3553,7 +3548,7 @@ static int on_execute(void)
 // Child
 
     /*
-    if ( window_server->launch_first_client == TRUE )
+    if ( display_server->launch_first_client == TRUE )
     {
         // #bugbug
         // We can't use this function in ring0.
@@ -3635,8 +3630,8 @@ static int on_execute(void)
     rtl_focus_on_this_thread();
     running = TRUE;
 
-    window_server->status = STATUS_RUNNING;
-    window_server->initialized = TRUE;
+    display_server->status = STATUS_RUNNING;
+    display_server->initialized = TRUE;
 
 // Testing demos.
     //demoCat();

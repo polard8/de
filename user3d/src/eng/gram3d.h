@@ -1,5 +1,6 @@
 
 // gram3d.h 
+// Created by Fred Nora.
 
 // ...
 extern int current_mode;
@@ -163,7 +164,7 @@ struct gws_d
 };
 
 //see: main.c
-extern struct gws_d  *window_server;
+extern struct gws_d  *display_server;
 
 #define STATUS_RUNNING    1   
 
