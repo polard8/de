@@ -126,11 +126,12 @@ See: https://wiki.osdev.org/Graphics_stack
 // see: globals.h
 struct initialization_d  Initialization;
 struct server_profiler_d  ServerProfiler;
-struct server_state_d ServerState;
+struct server_state_d  ServerState;
 
-//
 // see: gwsint.h
 struct display_server_d  *display_server;
+
+#define SERVER_BACKLOG  8
 
 static int IsAcceptingInput = FALSE;
 static int IsAcceptingConnections = FALSE;
@@ -145,7 +146,7 @@ static int IsTimeToQuit = FALSE;
 static int NoReply = FALSE;
 static int Notify_PongClient=FALSE;
 static int ____saved_server_fd = -1;
-#define SERVER_BACKLOG  8
+
 static int ____saved_wm_magic_pid = -1;  // ?? The wm sends us its pid
 static int __saved_sync_id = -1;
 
@@ -154,16 +155,16 @@ static int running = FALSE;
 static unsigned long last_dx = 0;
 static unsigned long last_dy = 0;
 
+// Commands.
+const char *cmd_shutdown = "shutdown.bin";  // Shutdown command.
 
-const char *dm_image_name = "gdm.bin";  // display manager.
-const char *tb_image_name = "taskbar.bin";  // taskbar.
-
-const char *app_shutdown = "shutdown.bin";
+// Client-side GUI applications.
+const char *app_gdm = "gdm.bin";          // Display manager GUI app.
+const char *app_taskbar = "taskbar.bin";  // Taskbar GUI app.
 
 //
 // == Private functions: Prototypes ========
 //
-
 
 
 // Worker
@@ -989,7 +990,7 @@ int serviceAsyncCommand(void)
     // Launch the shutdown application.
     // Power off, qemu only.
     case ASYNC_REQUEST_LAUNCH_SHUTDOWN:
-        rtl_clone_and_execute(app_shutdown);
+        rtl_clone_and_execute(cmd_shutdown);
         goto done;
         break;
 
@@ -3880,9 +3881,8 @@ static int ServerInitialization(int launch_tb)
 // com muitas janelas filhas.
 
     int tb_status = -1;
-    if (launch_tb == TRUE)
-    {
-        tb_status = (int) rtl_clone_and_execute(tb_image_name);
+    if (launch_tb == TRUE){
+        tb_status = (int) rtl_clone_and_execute(app_taskbar);
         //#todo: Check
     }
 
