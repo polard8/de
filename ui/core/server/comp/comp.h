@@ -1,7 +1,7 @@
-
 // comp.h
 // The purpose of these routines is compose the final frame
 // into the backbuffer and display it into the frontbuffer.
+// Created by Fred Nora.
 
 #ifndef __COMP_H
 #define __COMP_H    1
@@ -20,7 +20,7 @@ int flush_window_by_id(int wid);
 
 
 //
-// Flush backbuffer.
+// Flush backbuffer
 //
 
 void gwssrv_show_backbuffer (void);
@@ -43,7 +43,7 @@ wmCompose(
 
 
 //
-// Mouse support.
+// Mouse support
 //
 
 long comp_get_mouse_x_position(void);

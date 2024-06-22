@@ -2,6 +2,7 @@
 // comp.c
 // The purpose of these routines is compose the final frame
 // into the backbuffer and display it into the frontbuffer.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 

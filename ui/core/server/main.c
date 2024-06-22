@@ -164,32 +164,32 @@ const char *app_shutdown = "shutdown.bin";
 // == Private functions: Prototypes ========
 //
 
-static void __initialize_kernel_module(void);
-static int ServerInitialization(int launch_tb);
 
 
 // Worker
 // There is a vetor with values for the next response.
 // Called by dispatcher().
-static int __send_response(int fd, int is_error);
-
-static int initGUI(void);
-static void dispacher(int fd);
-
-static void __init_ws_structure(void);
-static void __initialize_server_profiler(void);
-static void __initialize_server_state(void);
+static int dsSendResponse(int fd, int is_error);
 
 static int
-gwsProcedure (
+dsProcedure (
     int client_fd,
     int msg,
     unsigned long long1,
     unsigned long long2 );
 
-static int initGraphics(void);
-static void initBackground(void);
+static void dispacher(int fd);
 
+// Initializations
+
+static int __initialize_gui(void);
+static void __initialize_ds_structure(void);
+static void __initialize_server_profiler(void);
+static void __initialize_server_state(void);
+static int __initializeGraphics(void);
+static void __initializeBackground(void);
+static void __initialize_kernel_module(void);
+static int ServerInitialization(int launch_tb);
 
 //
 // == Functions ======================================================
@@ -215,7 +215,7 @@ void set_input_status(int is_accepting)
 // Print a simple string in the serial port.
 void gwssrv_debug_print(char *string)
 {
-    if ( (void*) string == NULL ){
+    if ((void*) string == NULL){
         return;
     }
     gramado_system_call ( 
@@ -257,7 +257,7 @@ void gwssrv_enter_critical_section (void)
     while (1){
         S = (int) gramado_system_call ( 226, 0, 0, 0 );
 
-        if ( S == 1 ){ goto done; }
+        if (S == 1){ goto done; }
     };
 
 // Close the gate. turn FALSE.
@@ -272,6 +272,29 @@ void gwssrv_exit_critical_section (void)
 {
     gramado_system_call ( 228, 0, 0, 0 );
 }
+
+void gwssrv_quit(void)
+{
+    IsTimeToQuit = TRUE;
+}
+
+//#ugly
+char *gwssrv_get_version(void)
+{
+    // ??
+    return VERSION;
+}
+
+/*
+ //Send the message in the buffer to all the clients.
+ //This is a great opportunity to shutdown the clients
+ //if it is not connected.
+
+void gwssrv_message_all_clients(void);
+void gwssrv_message_all_clients(void)
+{
+}
+*/
 
 
 //
@@ -426,197 +449,6 @@ __again:
 }
 */
 
-
-// Worker
-// There is a vetor with values for the next response.
-// Called by dispatcher().
-// IN:
-// fd, 1=REPLY | 2=EVENT | 3=ERROR
-static int __send_response(int fd, int type)
-{
-// Reusing the same buffer from the request.
-    unsigned long *message_buffer = (unsigned long *) &__buffer[0];
-    int n_writes=0;
-    int Status=0;
-    register int i=0;
-
-/*
-// #bugbug
-// We gotta select a standard offset for strings.
-    char *m = (char *) (&__buffer[0] + 16); //#wrong
-    char *m = (char *) (&__buffer[8]);  //use this one?
-    sprintf( m, "~ Response from gwssrv \n");
-*/
-
-//
-// Primeiros longs do buffer.
-//
-
-// 0:
-// wid
-    message_buffer[0] = (unsigned long) next_response[0];
-    //message_buffer[0] = (unsigned long) (next_response[0] & 0xFFFFFFFF);
-
-// 1:
-// Types of reply.
-
-    switch(type){
-    // 1 - Normal reply
-    case RESPONSE_IS_REPLY:
-        message_buffer[1] = SERVER_PACKET_TYPE_REPLY;
-        break;
-    // 2 - Event
-    case RESPONSE_IS_EVENT:
-        message_buffer[1] = SERVER_PACKET_TYPE_EVENT;
-        break;
-    // 3 - Error
-    case RESPONSE_IS_ERROR:
-    default:
-        message_buffer[1] = SERVER_PACKET_TYPE_ERROR;
-        break;
-    };
-
-// 2 and 3:
-// Signature in some cases.
-// Can we deliver values here?
-    message_buffer[2] = (unsigned long) next_response[2];  // long1
-    message_buffer[3] = (unsigned long) next_response[3];  // long2
-// 4,5,6,7
-// Data
-    message_buffer[4] = (unsigned long) next_response[4];
-    message_buffer[5] = (unsigned long) next_response[5];
-    message_buffer[6] = (unsigned long) next_response[6];
-    message_buffer[7] = (unsigned long) next_response[7];
-// 8,9,10,11
-// Data
-    message_buffer[8]  = (unsigned long) next_response[8];
-    message_buffer[9]  = (unsigned long) next_response[9];
-    message_buffer[10] = (unsigned long) next_response[10];
-    message_buffer[11] = (unsigned long) next_response[11];
-// 12,13,14,15
-// Data
-    message_buffer[12] = (unsigned long) next_response[12];
-    message_buffer[13] = (unsigned long) next_response[13];
-    message_buffer[14] = (unsigned long) next_response[14];
-    message_buffer[15] = (unsigned long) next_response[15];
-// more
-    message_buffer[16] = (unsigned long) next_response[16];
-    message_buffer[17] = (unsigned long) next_response[17];
-    message_buffer[18] = (unsigned long) next_response[18];
-    message_buffer[19] = (unsigned long) next_response[19];
-    // ...
-//__again:
-
-//
-// == Response ============================
-//
-
-    // #debug
-    //gwssrv_debug_print ("__send_response: Sending response ...\n");
-
-    // #todo:
-    // while(1){...}
-
-    /*
-    // Is current client connected.
-    if (currentClient->is_connected == 0)
-    {
-        // [FAIL] Not connected.
-        // close?
-    }
-    */
-
-//
-// Send
-//
-
-// Limits
-    if (fd<0 || fd>31)
-    {
-        Status = -1;
-        goto exit1;
-    }
-
-// We can't write on our own socket.
-    if (fd == ____saved_server_fd){
-        printf("__send_response: fd == ____saved_server_fd\n");
-        printf("The server can't write on your own socket\n");
-        while (1){
-        };
-    }
-
-// #test
-// For now, the only valid fd is 31.
-    if (fd != 31){
-        printf("__send_response: fd != 31\n");
-        while (1){
-        };
-    }
-
-// Write
-    for (i=0; i<8; i++){
-
-    n_writes = write( fd, __buffer, sizeof(__buffer) );
-    //n_writes = send ( fd, __buffer, sizeof(__buffer), 0 );
-
-// No. 
-// We couldn't send a response.
-// O que acontece se nao conseguirmos enviar uma resposta?
-// Certamente o cliente tentara ler e tera problemas.
-// Deveriamos fechar a conexao?
-// Deveriamos enviar um alerta
-
-    if (n_writes <= 0)
-    {
-        //#debug
-        gwssrv_debug_print ("__send_response: response fail\n");
-        printf             ("__send_response: Couldn't send reply\n");
-        //close(fd);
-        Status = -1;
-        //goto exit1;
-    }
-
-// YES, We sent the response.
-    if (n_writes > 0)
-    {
-        Status = 0; //OK
-        //goto exit0;
-        break;
-    }
-
-    };
-
-    if (Status < 0)
-        goto exit0;
-
-// Cleaning
-// Limpa se a resposta der certo ou se der errado.
-// If the sizes are equal, we can do both at the same time.
-    for (i=0; i<MSG_BUFFER_SIZE; ++i){
-        __buffer[i] = 0;
-    };
-    for (i=0; i<NEXTRESPONSE_BUFFER_SIZE; ++i){
-        next_response[i] = 0;
-    };
-
-
-    // Fall through.
-
-// Fail
-exit1:
-    message_buffer[0] = 0;
-    message_buffer[1] = 0;
-    message_buffer[2] = 0;
-    message_buffer[3] = 0;
-    message_buffer[4] = 0;
-    message_buffer[5] = 0;
-exit0:
-// Sync. Set response.
-    rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_REPLY );
-    return (int) Status;
-}
-
-
 // Not used for now!
 // Maybe in the future with smp.
 void Compositor_Thread(void)
@@ -626,690 +458,13 @@ void Compositor_Thread(void)
     wmReactToPaintEvents();
 }
 
-/*
- * ==============================
- * gwsProcedure:
- *     Main dialog.
- */
-// Called by dispacher().
-// #todo
-// Dependendo do tipo de request, então construiremos
-// a resposta ou prestatemos os serviço.
-// Para cada tipo de request o servidor precisa construir
-// uma resposta diferente.
-// O request afeta os campos da mensagem.
-// Esses campos estão em um buffer, mas poderiam estar
-// em um arquivo json.
-// Types:
-// + Null: fail.
-// + Identify: The server needs to identify itself.
-// + Get all objects:
-// + Set inspected object:
-// + Set property: Probably setting a property of an object.
-// + Disconnect:
-// ...
-// See:
-// globals.h
-// OUT
-// <0 : error 
-
-static int
-gwsProcedure ( 
-    int client_fd,
-    int msg, 
-    unsigned long long1, 
-    unsigned long long2 )
-{
-// Process the requests.
-// All the services are the 'Business Logic'.
-
-    int Status=0;  //ok
-    //int my_pid = -1;
-
-    // #debug
-    //debug_print ("gwssrv: gwsProcedure\n");
-    
-    switch (msg){
-
-    // Business Logic:
-    // + Asynchronous commands.
-    // + No response.
-    case GWS_AsyncCommand:
-        serviceAsyncCommand();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic:
-    // + Service: Create a window.
-    // + Response: Return the window ID.
-    case GWS_CreateWindow:
-        serviceCreateWindow(client_fd);
-        NoReply = FALSE;
-        break; 
-
-    // Business Logic: Paint a pixel in the backbuffer.
-    case GWS_BackbufferPutPixel:
-        servicepixelBackBufferPutpixel(); 
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: Paint a horizontal line in the backbuffer.
-    case GWS_DrawHorizontalLine:
-        servicelineBackbufferDrawHorizontalLine();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: 
-    // + Paint a char in the backbuffer.
-    // + No response.
-    case GWS_DrawChar:
-        serviceDrawChar();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic: 
-    // + Paint a text in the backbuffer.
-    // + No response.
-    case GWS_DrawText:
-        serviceDrawText();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic: 
-    // + Refresh a window.
-    // + No response.
-    case GWS_RefreshWindow:
-        serviceRefreshWindow();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic: 
-    // + Repaint a window.
-    // + No response.
-     case GWS_RedrawWindow:
-         serviceRedrawWindow();
-         NoReply = TRUE;
-         break;
-
-    // Business Logic: Resize a window.
-    case GWS_ResizeWindow:
-        serviceResizeWindow();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: Change the window position.
-    case GWS_ChangeWindowPosition:
-        serviceChangeWindowPosition();
-        NoReply = FALSE;
-        break;
-
-    // ...
-
-    // Business Logic: 
-    // Paint a pixel in the backbuffer. (Second implementation!)
-    // IN: Color, x, y,rop
-    case GWS_BackbufferPutPixel2:
-        libdisp_backbuffer_putpixel ( 
-            (unsigned long) COLOR_PINK, 
-            (unsigned long) long1, 
-            (unsigned long) long2,
-            (unsigned long) 0 );
-        NoReply = FALSE;
-        break;
-
-    // ...
-
-    // Business Logic: ?
-    // Disconnect.
-    // shutdown.
-    // Um cliente quer se desconectar.
-    case GWS_Disconnect:
-        gwssrv_debug_print ("gwssrv: [2010] Disconnect\n");
-        // DisconnectCurrentClient = TRUE;  // #todo
-        // NoReply = TRUE;  // #todo
-        break;
-
-    // Business Logic:
-    // #bugbug: NoReply?
-    case GWS_RefreshScreen:
-        gws_show_backbuffer();
-        // #test
-        // Handle incoming inputs right after a huge service routine.
-        //if ( is_accepting_input() == TRUE )
-        //    xx_wmInputReader();
-        //NoReply = FALSE;      // #todo
-        break;
-
-    // Business Logic: Refresh a rectangle.
-    case GWS_RefreshRectangle:
-        serviceRefreshRectangle();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: ?
-    // ?? #bugbug: The client only sends requests.
-    // GWS_GetSendEvent
-    case 2030:
-        gwssrv_debug_print ("gwssrv: [2030] serviceClientEvent\n");
-        //serviceClientEvent();
-        //NoReply = FALSE;  // #todo
-        break;
-
-    // Business Logic:
-    //  + The server will return an event 
-    //    from a queue in a given window.
-    case GWS_GetNextEvent:
-        serviceNextEvent();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: Plot a pixel. (Graphics)
-    // See: grprim.c
-    case GWS_GrPlot0:
-        serviceGrPlot0();
-        NoReply = FALSE;
-        break;
-
-    //#deprecated
-    case GWS_GrCubeZ:
-    case GWS_GrRectangle:
-        NoReply = FALSE;
-        break;
-
-    // Business Logic:
-    // #todo: Describe it here.
-    // No response.
-    case GWS_PutClientMessage:
-        servicePutClientMessage();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic:
-    // #todo: Describe it here.
-    case GWS_GetClientMessage:
-        serviceGetClientMessage();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic:
-    // + Set a text into a buffer in the window structure.
-    // No response.
-    case GWS_SetText:
-        serviceSetText();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic:
-    // + Get a text from a buffer in the window structure.
-    case GWS_GetText:
-        serviceGetText();
-        NoReply = FALSE;
-        return 0;
-        break;
-
-    // Business Logic:
-    // Let's get one event from the client's event queue.
-    // Send it as a response.
-    case GWS_DrainInput:
-        //gwssrv_debug_print("gwssrv: gwsProcedure 8080\n");
-        break;
-
-    // Business Logic: Get information about a given window.
-    case GWS_GetWindowInfo:
-        serviceGetWindowInfo();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic:
-    // + Clone this process and execute the child, 
-    //   given the image name.
-    // + NO response.
-    // Service 9099:
-    case GWS_CloneAndExecute:
-        serviceCloneAndExecute();
-        NoReply = FALSE;
-        return 0;
-        break;
-
-    // Hello!
-    // Draw text inside the root window.
-    // screen_window = __root_window
-    case GWS_Hello:
-        // #todo: Put this routine inside a worker.
-        gwssrv_debug_print ("gwssrv: Message number 1000\n");
-        //#bugbug: Esse endereço de estrutura esta mudando para um valor
-        //que nao podemos acessar em ring3.
-        //if ( (void*) gui == NULL){
-        //    NoReply = FALSE;
-        //    break;
-        //}
-        if ( (void*) gui->screen_window != NULL )
-        {
-            //if ( gui->screen->used == 1 && gui->screen->magic == 1234 ){
-                dtextDrawText ( 
-                    (struct gws_window_d *) gui->screen_window,
-                    long1, long2, COLOR_GREEN,
-                    "gramland.bin: Hello from Gramland!");
-
-                gws_show_backbuffer();
-            //}
-        }
-        NoReply = FALSE;  // The client-side library is waiting for response.
-        break;
-
-    // If we received the message GWS_Quit and
-    // there is no more windows, so quit the application.
-    case GWS_Quit:
-        if (windows_count == 0){
-            //#todo: Não pode ter janelas abertas.
-            IsTimeToQuit=TRUE;
-        }
-        break;
-
-
-    // ...
-
-    // Business Logic: Invalid request.
-    default:
-        goto fail;
-        break;
-    }
-// Done
-    return (int) Status;
-fail:
-    return (int) -1;
-}
-
-// dispacher:
-// Get client's request from socket.
-// Messages sent via socket.
-// obs: read and write use the buffer '__buffer'
-// in the top of this file.
-// #todo:
-// No loop precisamos de accept() read() e write();
-// Get client's request from socket.
-
-static void dispacher(int fd)
-{
-// Getting requests from clients via socket file.
-// + Read the request.
-// + Process the request.
-// + Write a response, or not.
-
-    unsigned long *message_buffer = (unsigned long *) &__buffer[0];
-    ssize_t n_reads=0;
-    int Status = -1;
-    int SendErrorResponse=FALSE;
-    int SendEvent=FALSE;
-
-    dispatch_counter++;  //#todo: Delete this.
-    ServerProfiler.dispatch_counter++;
-
-// #todo:
-// No loop precisamos de accept() read() e write();
-//#atenção:
-// A função accept vai retornar o descritor do 
-// socket que usaremos ... por isso poderemos fecha-lo
-// para assim obtermos um novo da próxima vez.
-
-    //gwssrv_debug_print ("dispacher: \n");
-
-    // Fail, cleaning.
-    if (fd<0){
-        gwssrv_debug_print ("dispacher: fd\n");
-        goto exit2;
-    }
-
-
-//__loop:
-
 //
-// == Request ============================
+// == Services ==============================================
 //
-
-// Requests may generate replies, events, and errors;
-// Request packets are numbered sequentially by the server 
-// as soon as it receives them.
-// See:
-// https://en.wikipedia.org/wiki/Round-trip_delay
-// If the request is (XNextEvent), so the reply will be the event.
-
-    /*
-    // Is current client connected.
-    if (currentClient->is_connected == 0)
-    {
-        // [FAIL] Not connected.
-        // close?
-    }
-    */
-
-// #important
-// We can handle only requests.
-// Drop it!
-
-    int value = (int) rtl_get_file_sync( fd, SYNC_REQUEST_GET_ACTION );
-    if (value != ACTION_REQUEST){
-        goto exit2;
-    }
-
-// #todo
-// Devemos escrever em nosso próprio
-// socket e o kernel copia??
-// o kernel copia para aquele arquivo ao qual esse estivere conectado.
-// olhando em accept[0]
-// Precisamos fechar o client se a leitura der errado?
-
-//
-// Recv
-//
-
-// We can't read our own socket.
-
-    if (fd == ____saved_server_fd){
-        printf("dispacher: fd == ____saved_server_fd\n");
-        printf("The server can't read on your own socket\n");
-        while (1){
-        };
-    }
-
-// accept() always return 31 when
-// getting the next client.
-
-    if (fd != 31){
-        printf("dispacher: fd != 31\n");
-        while (1){
-        };
-    }
-
-// Read
-// (Input port)
-    n_reads = (ssize_t) read( fd, __buffer, sizeof(__buffer) );
-    if (n_reads <= 0){
-        gwssrv_debug_print ("dispacher: read fail\n");
-        goto exit2;
-    }
-
-//
-// == Processing the request =============================
-//
-
-// Invalid request. 
-// Clean
-    if (message_buffer[1] == 0){
-        gwssrv_debug_print ("dispacher: Invalid request\n");
-        goto exit2;
-    }
-
-// Um cliente solicitou um evento.
-// Vamos sinalizar o tipo de resposta que temos que enviar,
-// caso nenhum erro aconteça.
-    if (message_buffer[1] == GWS_GetNextEvent){
-        SendEvent = TRUE;  // The response is an EVENT, not a REPLY.
-    }
-
-// Process request.
-// Do the service.
-    // #debug
-    // debug_print("dispacher: Process request\n");
-
-// OUT
-// <0 : error 
-
-    Status = 
-        (int) gwsProcedure (
-                  (int) fd,
-                  (int)           message_buffer[1],
-                  (unsigned long) message_buffer[2],
-                  (unsigned long) message_buffer[3] );
-
-// Como o serviço não pode ser prestado corretamente.
-// Então logo abaixo mandaremos uma resposta de erro
-// e não uma resposta normal.
-    if (Status < 0){
-        SendErrorResponse = TRUE;
-    }
-
-//
-// == Sending reply ==========
-//
-
-
-// First, check if we need a reply.
-// Alguns requests não exigem resposta.
-// Como é o caso das mensagens assíncronas.
-// Entao precisamos modificar a flag de sincronizaçao.
-// que ainda deve estar sinalizando um request.
-// #todo
-// O problema é que temos que conferir
-// na biblioteca client-side se o cliente espera ou não
-// por uma resposta para um dado tipo de mensagens.
-// No momento todos os requests esperam por reposta?
-
-    if (NoReply == TRUE){
-        rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-        goto exit0;
-    }
-
-//
-// == reponse ================
-//
-
-// Types of respose.
-// IN:
-// fd, 1=REPLY | 2=EVENT | 3=ERROR
-
-// ==========================================
-// ERROR: (3)
-// Se o serviço não pode ser prestado corretamente.
-// Error message.
-    if (SendErrorResponse == TRUE){
-        Status = (int) __send_response(fd,RESPONSE_IS_ERROR);
-        goto exit2;
-    }
-// ==========================================
-// EVENT: (2)
-// Se o serviço foi prestado corretamente.
-// Era uma solicitação de evento
-// Event.
-    if (SendEvent == TRUE){
-        Status = (int) __send_response(fd,RESPONSE_IS_EVENT);
-        goto exit2;
-    }
-// ==========================================
-// REPLY: (1)
-// Se o serviço foi prestado corretamente.
-// Era uma solicitação de serviço normal,
-// então vamos enviar um reponse normal. Um REPLY.
-// Normal reply.
-    if (SendEvent != TRUE){
-        Status = (int) __send_response(fd,RESPONSE_IS_REPLY);
-        goto exit2;
-    }
-// A mensagem foi enviada normalmente,
-// Vamos sair normalmente.
-
-    //if(Status >= 0)
-        //goto exit0;
-
-// Fall
-
-exit2:
-    message_buffer[0] = 0;
-    message_buffer[1] = 0;
-    message_buffer[2] = 0;
-    message_buffer[3] = 0;
-    message_buffer[4] = 0;
-    message_buffer[5] = 0;
-exit1:
-exit0:
-    return;
-}
-
-static void initBackground(void)
-{
-    int WindowId = -1;
-    unsigned long w = gws_get_device_width();
-    unsigned long h = gws_get_device_height();
-
-    // #debug
-    // gwssrv_debug_print ("gwssrv: initBackground\n");
-
-    if ( w==0 || h==0 ){
-        gwssrv_debug_print ("initBackground: w h\n");
-        printf             ("initBackground: w h\n");
-        exit(1);
-    }
-
-// The background window
-// #todo
-// Se estivermos em JAIL, podemos arriscar algum background melhor.
-// Talvez alguma imagem.
-
-    // COLOR_BACKGROUND = that green.
-    unsigned int bg_color = 
-        (unsigned int) get_color(csiDesktop);
-
-    __root_window = 
-        (struct gws_window_d *) CreateWindow ( 
-            WT_SIMPLE, 
-            0, //style
-            1, //status 
-            1, //view
-            "RootWindow", 
-            0, 0, w, h, 
-            gui->screen_window, 0, 
-            bg_color, bg_color );
-
-    // #debug
-    // asm ("int $3");
-
-    if ((void *) __root_window == NULL){
-        gwssrv_debug_print("initBackground: __root_window\n");
-        printf            ("initBackground: __root_window\n");
-        exit(1);
-    }
-    if ( __root_window->used != TRUE || __root_window->magic != 1234 ){
-        gwssrv_debug_print ("initBackground: __root_window validation\n");
-        printf             ("initBackground: __root_window validation\n");
-        exit(1);
-    }
-
-// #test
-    //__root_window->locked = TRUE;
-    //__root_window->enabled = FALSE;
-
-// Register the window.
-    WindowId = RegisterWindow(__root_window);
-    if (WindowId<0){
-        gwssrv_debug_print ("initBackground: Couldn't register window\n");
-        printf             ("initBackground: Couldn't register window\n");
-        exit(1);
-    }
-
-    //#debug
-    //asm ("int $3");
-
-// Testing bmp.
-// See: gramado/themes
-/*
-    if (current_mode == GRAMADO_JAIL){
-        gwssrv_display_system_icon ( 1, 8, 8 );
-    }else{
-        gwssrv_display_system_icon ( 2, 8, 8 );
-    };
-*/
-
-// See: 
-// gws.c
-
-    if (current_mode == GRAMADO_JAIL){
-        gwssrv_debug_print ("gwssrv: initBackground: Calling refresh_screen\n");
-        //refresh_screen();
-    }
-
-// #debug
-    //gwssrv_debug_print ("gwssrv: initBackground: done\n");
-    //refresh_screen();
-    //while(1){}
-}
-
-// initGraphics:
-// Initialize the graphics support.
-// Initialize the display server infrastructure.
-// The current display and the current screen.
-// Initialize the 3d support.
-
-static int initGraphics(void)
-{
-    int __init_status = -1;
-
-    //debug_print("initGraphics\n");
-    //printf("initGraphics: \n");
-
-    display_server->graphics_initialization_status = FALSE;
-
-
-//#debug
-    //gws_show_backbuffer();
-    //while(1){}
-
-// Initialize the graphics support.
-// Now we can use 3d routines.
-// See: grprim.c
-    
-    //gwssrv_debug_print ("initGraphics: Calling grInit() \n");
-    //printf ("initGraphics: Calling grInit() \n");
-    grInit();
-
-//#debug
-    //gws_show_backbuffer();
-    //while(1){}
-
-    // #debug
-    //gwssrv_debug_print ("initGraphics: :)\n");
-    //printf ("initGraphics: :)\n");
-    //asm("int $3");
-    //while(1){}
-
-//
-// Show surface.
-// 
-
-    //gws_show_backbuffer();
-// invalidate the surface in ring0.
-    invalidate_surface_retangle();
-
-    comp_initialize_mouse();
-
-    // #debug
-    // asm("int $3");
-    // while(1){}
-
-    display_server->graphics_initialization_status = TRUE;
-    return 0;
-fail:
-    display_server->graphics_initialization_status = FALSE;
-    return (int) -1;
-}
-
-/*
- //Send the message in the buffer to all the clients.
- //This is a great opportunity to shutdown the clients
- //if it is not connected.
-
-void gwssrv_message_all_clients(void);
-void gwssrv_message_all_clients(void)
-{
-}
-*/
 
 // When a client sent us an event
-// ??? mas o cliente envia as coisas via request, ???
 int serviceClientEvent(void)
 {
-// Business Logic:
-//
-
     // The buffer is a global variable.
     //unsigned long *message_address = (unsigned long *) &__buffer[0];
     //return 0;  //ok
@@ -1583,8 +738,6 @@ void serviceExitGWS(void)
 // Now we put messages only in the window structure's message queue.
 int servicePutClientMessage(void)
 {
-// Business Logic:
-
     debug_print("servicePutClientMessage: deprecated\n");
     return 0;
 }
@@ -1593,8 +746,6 @@ int servicePutClientMessage(void)
 // Now we get messages only in the window structure's message queue.
 int serviceGetClientMessage(void)
 {
-// Business Logic:
-
     debug_print("serviceGetClientMessage: deprecated\n");
     return 0;
 }
@@ -1951,7 +1102,7 @@ fail:
  *     Mostraremos a janela na tela ao fim dessa rotina.
  *     #todo: Mas poderíamos simplesmente marcar como 'dirty'.
  */
-// Called by gwsProcedure in main.c
+// Called by dsProcedure in main.c
 // #todo
 // Receive the tid of the client in the request packet.
 // Save it as an argument of the window structure.
@@ -2383,7 +1534,7 @@ fail:
 
 // Draw char.
 // Service 1004.
-int serviceDrawChar (void)
+int serviceDrawChar(void)
 {
 // Business Logic:
 // Draw a char into the screen.
@@ -3320,25 +2471,879 @@ servicelineBackbufferDrawHorizontalLine(void)
 
 //======================================
 
-//#ugly
-char *gwssrv_get_version(void)
+// dsSendResponse:
+// Worker
+// There is a vetor with values for the next response.
+// Called by dispatcher().
+// IN:
+// fd, 1=REPLY | 2=EVENT | 3=ERROR
+static int dsSendResponse(int fd, int type)
 {
-    // ??
-    return VERSION;
+// Reusing the same buffer from the request.
+    unsigned long *message_buffer = (unsigned long *) &__buffer[0];
+    int n_writes=0;
+    int Status=0;
+    register int i=0;
+
+/*
+// #bugbug
+// We gotta select a standard offset for strings.
+    char *m = (char *) (&__buffer[0] + 16); //#wrong
+    char *m = (char *) (&__buffer[8]);  //use this one?
+    sprintf( m, "~ Response from gwssrv \n");
+*/
+
+//
+// Primeiros longs do buffer.
+//
+
+// 0:
+// wid
+    message_buffer[0] = (unsigned long) next_response[0];
+    //message_buffer[0] = (unsigned long) (next_response[0] & 0xFFFFFFFF);
+
+// 1:
+// Types of reply.
+
+    switch(type){
+    // 1 - Normal reply
+    case RESPONSE_IS_REPLY:
+        message_buffer[1] = SERVER_PACKET_TYPE_REPLY;
+        break;
+    // 2 - Event
+    case RESPONSE_IS_EVENT:
+        message_buffer[1] = SERVER_PACKET_TYPE_EVENT;
+        break;
+    // 3 - Error
+    case RESPONSE_IS_ERROR:
+    default:
+        message_buffer[1] = SERVER_PACKET_TYPE_ERROR;
+        break;
+    };
+
+// 2 and 3:
+// Signature in some cases.
+// Can we deliver values here?
+    message_buffer[2] = (unsigned long) next_response[2];  // long1
+    message_buffer[3] = (unsigned long) next_response[3];  // long2
+// 4,5,6,7
+// Data
+    message_buffer[4] = (unsigned long) next_response[4];
+    message_buffer[5] = (unsigned long) next_response[5];
+    message_buffer[6] = (unsigned long) next_response[6];
+    message_buffer[7] = (unsigned long) next_response[7];
+// 8,9,10,11
+// Data
+    message_buffer[8]  = (unsigned long) next_response[8];
+    message_buffer[9]  = (unsigned long) next_response[9];
+    message_buffer[10] = (unsigned long) next_response[10];
+    message_buffer[11] = (unsigned long) next_response[11];
+// 12,13,14,15
+// Data
+    message_buffer[12] = (unsigned long) next_response[12];
+    message_buffer[13] = (unsigned long) next_response[13];
+    message_buffer[14] = (unsigned long) next_response[14];
+    message_buffer[15] = (unsigned long) next_response[15];
+// more
+    message_buffer[16] = (unsigned long) next_response[16];
+    message_buffer[17] = (unsigned long) next_response[17];
+    message_buffer[18] = (unsigned long) next_response[18];
+    message_buffer[19] = (unsigned long) next_response[19];
+    // ...
+//__again:
+
+//
+// == Response ============================
+//
+
+    // #debug
+    //gwssrv_debug_print ("dsSendResponse: Sending response ...\n");
+
+    // #todo:
+    // while(1){...}
+
+    /*
+    // Is current client connected.
+    if (currentClient->is_connected == 0)
+    {
+        // [FAIL] Not connected.
+        // close?
+    }
+    */
+
+//
+// Send
+//
+
+// Limits
+    if (fd<0 || fd>31)
+    {
+        Status = -1;
+        goto exit1;
+    }
+
+// We can't write on our own socket.
+    if (fd == ____saved_server_fd){
+        printf("dsSendResponse: fd == ____saved_server_fd\n");
+        printf("The server can't write on your own socket\n");
+        while (1){
+        };
+    }
+
+// #test
+// For now, the only valid fd is 31.
+    if (fd != 31){
+        printf("dsSendResponse: fd != 31\n");
+        while (1){
+        };
+    }
+
+// Write
+    for (i=0; i<8; i++){
+
+    n_writes = write( fd, __buffer, sizeof(__buffer) );
+    //n_writes = send ( fd, __buffer, sizeof(__buffer), 0 );
+
+// No. 
+// We couldn't send a response.
+// O que acontece se nao conseguirmos enviar uma resposta?
+// Certamente o cliente tentara ler e tera problemas.
+// Deveriamos fechar a conexao?
+// Deveriamos enviar um alerta
+
+    if (n_writes <= 0)
+    {
+        //#debug
+        gwssrv_debug_print ("dsSendResponse: response fail\n");
+        printf             ("dsSendResponse: Couldn't send reply\n");
+        //close(fd);
+        Status = -1;
+        //goto exit1;
+    }
+
+// YES, We sent the response.
+    if (n_writes > 0)
+    {
+        Status = 0; //OK
+        //goto exit0;
+        break;
+    }
+
+    };
+
+    if (Status < 0)
+        goto exit0;
+
+// Cleaning
+// Limpa se a resposta der certo ou se der errado.
+// If the sizes are equal, we can do both at the same time.
+    for (i=0; i<MSG_BUFFER_SIZE; ++i){
+        __buffer[i] = 0;
+    };
+    for (i=0; i<NEXTRESPONSE_BUFFER_SIZE; ++i){
+        next_response[i] = 0;
+    };
+
+
+    // Fall through.
+
+// Fail
+exit1:
+    message_buffer[0] = 0;
+    message_buffer[1] = 0;
+    message_buffer[2] = 0;
+    message_buffer[3] = 0;
+    message_buffer[4] = 0;
+    message_buffer[5] = 0;
+exit0:
+// Sync. Set response.
+    rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_REPLY );
+    return (int) Status;
 }
 
+/*
+ * ==============================
+ * dsProcedure:
+ *   Display server procedure.
+ *   This routine process the requests.
+ *   Main dialog.
+ */
+// Called by dispacher().
+// #todo
+// Dependendo do tipo de request, então construiremos
+// a resposta ou prestatemos os serviço.
+// Para cada tipo de request o servidor precisa construir
+// uma resposta diferente.
+// O request afeta os campos da mensagem.
+// Esses campos estão em um buffer, mas poderiam estar
+// em um arquivo json.
+// Types:
+// + Null: fail.
+// + Identify: The server needs to identify itself.
+// + Get all objects:
+// + Set inspected object:
+// + Set property: Probably setting a property of an object.
+// + Disconnect:
+// ...
+// See:
+// globals.h
+// OUT
+// <0 : error 
+
+static int
+dsProcedure ( 
+    int client_fd,
+    int msg, 
+    unsigned long long1, 
+    unsigned long long2 )
+{
+// Process the requests.
+// All the services are the 'Business Logic'.
+
+    int Status=0;  //ok
+    //int my_pid = -1;
+
+    // #debug
+    //debug_print ("dsProcedure\n");
+    
+    switch (msg){
+
+    // Business Logic:
+    // + Asynchronous commands.
+    // + No response.
+    case GWS_AsyncCommand:
+        serviceAsyncCommand();
+        NoReply = TRUE;
+        break;
+
+    // Business Logic:
+    // + Service: Create a window.
+    // + Response: Return the window ID.
+    case GWS_CreateWindow:
+        serviceCreateWindow(client_fd);
+        NoReply = FALSE;
+        break; 
+
+    // Business Logic: Paint a pixel in the backbuffer.
+    case GWS_BackbufferPutPixel:
+        servicepixelBackBufferPutpixel(); 
+        NoReply = FALSE;
+        break;
+
+    // Business Logic: Paint a horizontal line in the backbuffer.
+    case GWS_DrawHorizontalLine:
+        servicelineBackbufferDrawHorizontalLine();
+        NoReply = FALSE;
+        break;
+
+    // Business Logic: 
+    // + Paint a char in the backbuffer.
+    // + No response.
+    case GWS_DrawChar:
+        serviceDrawChar();
+        NoReply = TRUE;
+        break;
+
+    // Business Logic: 
+    // + Paint a text in the backbuffer.
+    // + No response.
+    case GWS_DrawText:
+        serviceDrawText();
+        NoReply = TRUE;
+        break;
+
+    // Business Logic: 
+    // + Refresh a window.
+    // + No response.
+    case GWS_RefreshWindow:
+        serviceRefreshWindow();
+        NoReply = TRUE;
+        break;
+
+    // Business Logic: 
+    // + Repaint a window.
+    // + No response.
+     case GWS_RedrawWindow:
+         serviceRedrawWindow();
+         NoReply = TRUE;
+         break;
+
+    // Business Logic: Resize a window.
+    case GWS_ResizeWindow:
+        serviceResizeWindow();
+        NoReply = FALSE;
+        break;
+
+    // Business Logic: Change the window position.
+    case GWS_ChangeWindowPosition:
+        serviceChangeWindowPosition();
+        NoReply = FALSE;
+        break;
+
+    // ...
+
+    // Business Logic: 
+    // Paint a pixel in the backbuffer. (Second implementation!)
+    // IN: Color, x, y,rop
+    case GWS_BackbufferPutPixel2:
+        libdisp_backbuffer_putpixel ( 
+            (unsigned long) COLOR_PINK, 
+            (unsigned long) long1, 
+            (unsigned long) long2,
+            (unsigned long) 0 );
+        NoReply = FALSE;
+        break;
+
+    // ...
+
+    // Business Logic: ?
+    // Disconnect.
+    // shutdown.
+    // Um cliente quer se desconectar.
+    case GWS_Disconnect:
+        gwssrv_debug_print ("gwssrv: [2010] Disconnect\n");
+        // DisconnectCurrentClient = TRUE;  // #todo
+        // NoReply = TRUE;  // #todo
+        break;
+
+    // Business Logic:
+    // #bugbug: NoReply?
+    case GWS_RefreshScreen:
+        gws_show_backbuffer();
+        // #test
+        // Handle incoming inputs right after a huge service routine.
+        //if ( is_accepting_input() == TRUE )
+        //    xx_wmInputReader();
+        //NoReply = FALSE;      // #todo
+        break;
+
+    // Business Logic: Refresh a rectangle.
+    case GWS_RefreshRectangle:
+        serviceRefreshRectangle();
+        NoReply = FALSE;
+        break;
+
+    // Business Logic: ?
+    // ?? #bugbug: The client only sends requests.
+    // GWS_GetSendEvent
+    case 2030:
+        gwssrv_debug_print ("gwssrv: [2030] serviceClientEvent\n");
+        //serviceClientEvent();
+        //NoReply = FALSE;  // #todo
+        break;
+
+    // Business Logic:
+    //  + The server will return an event 
+    //    from a queue in a given window.
+    case GWS_GetNextEvent:
+        serviceNextEvent();
+        NoReply = FALSE;
+        break;
+
+    // Business Logic: Plot a pixel. (Graphics)
+    // See: grprim.c
+    case GWS_GrPlot0:
+        serviceGrPlot0();
+        NoReply = FALSE;
+        break;
+
+    //#deprecated
+    case GWS_GrCubeZ:
+    case GWS_GrRectangle:
+        NoReply = FALSE;
+        break;
+
+    // Business Logic:
+    // #todo: Describe it here.
+    // No response.
+    case GWS_PutClientMessage:
+        servicePutClientMessage();
+        NoReply = TRUE;
+        break;
+
+    // Business Logic:
+    // #todo: Describe it here.
+    case GWS_GetClientMessage:
+        serviceGetClientMessage();
+        NoReply = FALSE;
+        break;
+
+    // Business Logic:
+    // + Set a text into a buffer in the window structure.
+    // No response.
+    case GWS_SetText:
+        serviceSetText();
+        NoReply = TRUE;
+        break;
+
+    // Business Logic:
+    // + Get a text from a buffer in the window structure.
+    case GWS_GetText:
+        serviceGetText();
+        NoReply = FALSE;
+        return 0;
+        break;
+
+    // Business Logic:
+    // Let's get one event from the client's event queue.
+    // Send it as a response.
+    case GWS_DrainInput:
+        //gwssrv_debug_print("dsProcedure 8080\n");
+        break;
+
+    // Business Logic: Get information about a given window.
+    case GWS_GetWindowInfo:
+        serviceGetWindowInfo();
+        NoReply = FALSE;
+        break;
+
+    // Business Logic:
+    // + Clone this process and execute the child, 
+    //   given the image name.
+    // + NO response.
+    // Service 9099:
+    case GWS_CloneAndExecute:
+        serviceCloneAndExecute();
+        NoReply = FALSE;
+        return 0;
+        break;
+
+    // Hello!
+    // Draw text inside the root window.
+    // screen_window = __root_window
+    case GWS_Hello:
+        // #todo: Put this routine inside a worker.
+        gwssrv_debug_print ("gwssrv: Message number 1000\n");
+        //#bugbug: Esse endereço de estrutura esta mudando para um valor
+        //que nao podemos acessar em ring3.
+        //if ( (void*) gui == NULL){
+        //    NoReply = FALSE;
+        //    break;
+        //}
+        if ( (void*) gui->screen_window != NULL )
+        {
+            //if ( gui->screen->used == 1 && gui->screen->magic == 1234 ){
+                dtextDrawText ( 
+                    (struct gws_window_d *) gui->screen_window,
+                    long1, long2, COLOR_GREEN,
+                    "gramland.bin: Hello from Gramland!");
+
+                gws_show_backbuffer();
+            //}
+        }
+        NoReply = FALSE;  // The client-side library is waiting for response.
+        break;
+
+    // If we received the message GWS_Quit and
+    // there is no more windows, so quit the application.
+    case GWS_Quit:
+        if (windows_count == 0){
+            //#todo: Não pode ter janelas abertas.
+            IsTimeToQuit=TRUE;
+        }
+        break;
+
+
+    // ...
+
+    // Business Logic: Invalid request.
+    default:
+        goto fail;
+        break;
+    }
+// Done
+    return (int) Status;
+fail:
+    return (int) -1;
+}
+
+// dispacher:
+// Get client's request from socket.
+// Messages sent via socket.
+// obs: read and write use the buffer '__buffer'
+// in the top of this file.
+// #todo:
+// No loop precisamos de accept() read() e write();
+// Get client's request from socket.
+
+static void dispacher(int fd)
+{
+// Getting requests from clients via socket file.
+// + Read the request.
+// + Process the request.
+// + Write a response, or not.
+
+    unsigned long *message_buffer = (unsigned long *) &__buffer[0];
+    ssize_t n_reads=0;
+    int Status = -1;
+    int SendErrorResponse=FALSE;
+    int SendEvent=FALSE;
+
+    dispatch_counter++;  //#todo: Delete this.
+    ServerProfiler.dispatch_counter++;
+
+// #todo:
+// No loop precisamos de accept() read() e write();
+//#atenção:
+// A função accept vai retornar o descritor do 
+// socket que usaremos ... por isso poderemos fecha-lo
+// para assim obtermos um novo da próxima vez.
+
+    //gwssrv_debug_print ("dispacher: \n");
+
+    // Fail, cleaning.
+    if (fd<0){
+        gwssrv_debug_print ("dispacher: fd\n");
+        goto exit2;
+    }
+
+
+//__loop:
+
+//
+// == Request ============================
+//
+
+// Requests may generate replies, events, and errors;
+// Request packets are numbered sequentially by the server 
+// as soon as it receives them.
+// See:
+// https://en.wikipedia.org/wiki/Round-trip_delay
+// If the request is (XNextEvent), so the reply will be the event.
+
+    /*
+    // Is current client connected.
+    if (currentClient->is_connected == 0)
+    {
+        // [FAIL] Not connected.
+        // close?
+    }
+    */
+
+// #important
+// We can handle only requests.
+// Drop it!
+
+    int value = (int) rtl_get_file_sync( fd, SYNC_REQUEST_GET_ACTION );
+    if (value != ACTION_REQUEST){
+        goto exit2;
+    }
+
+// #todo
+// Devemos escrever em nosso próprio
+// socket e o kernel copia??
+// o kernel copia para aquele arquivo ao qual esse estivere conectado.
+// olhando em accept[0]
+// Precisamos fechar o client se a leitura der errado?
+
+//
+// Recv
+//
+
+// We can't read our own socket.
+
+    if (fd == ____saved_server_fd){
+        printf("dispacher: fd == ____saved_server_fd\n");
+        printf("The server can't read on your own socket\n");
+        while (1){
+        };
+    }
+
+// accept() always return 31 when
+// getting the next client.
+
+    if (fd != 31){
+        printf("dispacher: fd != 31\n");
+        while (1){
+        };
+    }
+
+// Read
+// (Input port)
+    n_reads = (ssize_t) read( fd, __buffer, sizeof(__buffer) );
+    if (n_reads <= 0){
+        gwssrv_debug_print ("dispacher: read fail\n");
+        goto exit2;
+    }
+
+//
+// == Processing the request =============================
+//
+
+// Invalid request. 
+// Clean
+    if (message_buffer[1] == 0){
+        gwssrv_debug_print ("dispacher: Invalid request\n");
+        goto exit2;
+    }
+
+// Um cliente solicitou um evento.
+// Vamos sinalizar o tipo de resposta que temos que enviar,
+// caso nenhum erro aconteça.
+    if (message_buffer[1] == GWS_GetNextEvent){
+        SendEvent = TRUE;  // The response is an EVENT, not a REPLY.
+    }
+
+// Process request.
+// Do the service.
+    // #debug
+    // debug_print("dispacher: Process request\n");
+
+// OUT
+// <0 : error 
+
+    Status = 
+        (int) dsProcedure (
+                  (int) fd,
+                  (int)           message_buffer[1],
+                  (unsigned long) message_buffer[2],
+                  (unsigned long) message_buffer[3] );
+
+// Como o serviço não pode ser prestado corretamente.
+// Então logo abaixo mandaremos uma resposta de erro
+// e não uma resposta normal.
+    if (Status < 0){
+        SendErrorResponse = TRUE;
+    }
+
+//
+// == Sending reply ==========
+//
+
+
+// First, check if we need a reply.
+// Alguns requests não exigem resposta.
+// Como é o caso das mensagens assíncronas.
+// Entao precisamos modificar a flag de sincronizaçao.
+// que ainda deve estar sinalizando um request.
+// #todo
+// O problema é que temos que conferir
+// na biblioteca client-side se o cliente espera ou não
+// por uma resposta para um dado tipo de mensagens.
+// No momento todos os requests esperam por reposta?
+
+    if (NoReply == TRUE){
+        rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
+        goto exit0;
+    }
+
+//
+// == reponse ================
+//
+
+// Types of respose.
+// IN:
+// fd, 1=REPLY | 2=EVENT | 3=ERROR
+
+// ==========================================
+// ERROR: (3)
+// Se o serviço não pode ser prestado corretamente.
+// Error message.
+    if (SendErrorResponse == TRUE){
+        Status = (int) dsSendResponse(fd,RESPONSE_IS_ERROR);
+        goto exit2;
+    }
+// ==========================================
+// EVENT: (2)
+// Se o serviço foi prestado corretamente.
+// Era uma solicitação de evento
+// Event.
+    if (SendEvent == TRUE){
+        Status = (int) dsSendResponse(fd,RESPONSE_IS_EVENT);
+        goto exit2;
+    }
+// ==========================================
+// REPLY: (1)
+// Se o serviço foi prestado corretamente.
+// Era uma solicitação de serviço normal,
+// então vamos enviar um reponse normal. Um REPLY.
+// Normal reply.
+    if (SendEvent != TRUE){
+        Status = (int) dsSendResponse(fd,RESPONSE_IS_REPLY);
+        goto exit2;
+    }
+// A mensagem foi enviada normalmente,
+// Vamos sair normalmente.
+
+    //if(Status >= 0)
+        //goto exit0;
+
+// Fall
+
+exit2:
+    message_buffer[0] = 0;
+    message_buffer[1] = 0;
+    message_buffer[2] = 0;
+    message_buffer[3] = 0;
+    message_buffer[4] = 0;
+    message_buffer[5] = 0;
+exit1:
+exit0:
+    return;
+}
+
+//
+// == Initializations ==============================================
+//
+
+static void __initializeBackground(void)
+{
+    int WindowId = -1;
+    unsigned long w = gws_get_device_width();
+    unsigned long h = gws_get_device_height();
+
+    // #debug
+    // gwssrv_debug_print ("__initializeBackground\n");
+
+    if ( w==0 || h==0 ){
+        gwssrv_debug_print ("__initializeBackground: w h\n");
+        printf             ("__initializeBackground: w h\n");
+        exit(1);
+    }
+
+// The background window
+// #todo
+// Se estivermos em JAIL, podemos arriscar algum background melhor.
+// Talvez alguma imagem.
+
+    // COLOR_BACKGROUND = that green.
+    unsigned int bg_color = 
+        (unsigned int) get_color(csiDesktop);
+
+    __root_window = 
+        (struct gws_window_d *) CreateWindow ( 
+            WT_SIMPLE, 
+            0, //style
+            1, //status 
+            1, //view
+            "RootWindow", 
+            0, 0, w, h, 
+            gui->screen_window, 0, 
+            bg_color, bg_color );
+
+    // #debug
+    // asm ("int $3");
+
+    if ((void *) __root_window == NULL){
+        gwssrv_debug_print("__initializeBackground: __root_window\n");
+        printf            ("__initializeBackground: __root_window\n");
+        exit(1);
+    }
+    if ( __root_window->used != TRUE || __root_window->magic != 1234 ){
+        gwssrv_debug_print ("__initializeBackground: __root_window validation\n");
+        printf             ("__initializeBackground: __root_window validation\n");
+        exit(1);
+    }
+
+// #test
+    //__root_window->locked = TRUE;
+    //__root_window->enabled = FALSE;
+
+// Register the window.
+    WindowId = RegisterWindow(__root_window);
+    if (WindowId<0){
+        gwssrv_debug_print ("__initializeBackground: Couldn't register window\n");
+        printf             ("__initializeBackground: Couldn't register window\n");
+        exit(1);
+    }
+
+    //#debug
+    //asm ("int $3");
+
+// Testing bmp.
+// See: gramado/themes
+/*
+    if (current_mode == GRAMADO_JAIL){
+        gwssrv_display_system_icon ( 1, 8, 8 );
+    }else{
+        gwssrv_display_system_icon ( 2, 8, 8 );
+    };
+*/
+
+// See: 
+// gws.c
+
+    if (current_mode == GRAMADO_JAIL){
+        gwssrv_debug_print ("gwssrv: __initializeBackground: Calling refresh_screen\n");
+        //refresh_screen();
+    }
+
+// #debug
+    //gwssrv_debug_print ("gwssrv: __initializeBackground: done\n");
+    //refresh_screen();
+    //while(1){}
+}
+
+// __initializeGraphics:
+// Initialize the graphics support.
+// Initialize the display server infrastructure.
+// The current display and the current screen.
+// Initialize the 3d support.
+
+static int __initializeGraphics(void)
+{
+    int __init_status = -1;
+
+    //debug_print("__initializeGraphics\n");
+    //printf("__initializeGraphics: \n");
+
+    display_server->graphics_initialization_status = FALSE;
+
+
+//#debug
+    //gws_show_backbuffer();
+    //while(1){}
+
+// Initialize the graphics support.
+// Now we can use 3d routines.
+// See: grprim.c
+    
+    //gwssrv_debug_print ("__initializeGraphics: Calling grInit() \n");
+    //printf ("__initializeGraphics: Calling grInit() \n");
+    grInit();
+
+//#debug
+    //gws_show_backbuffer();
+    //while(1){}
+
+    // #debug
+    //gwssrv_debug_print ("__initializeGraphics: :)\n");
+    //printf ("__initializeGraphics: :)\n");
+    //asm("int $3");
+    //while(1){}
+
+//
+// Show surface.
+// 
+
+    //gws_show_backbuffer();
+// invalidate the surface in ring0.
+    invalidate_surface_retangle();
+
+    comp_initialize_mouse();
+
+    // #debug
+    // asm("int $3");
+    // while(1){}
+
+    display_server->graphics_initialization_status = TRUE;
+    return 0;
+fail:
+    display_server->graphics_initialization_status = FALSE;
+    return (int) -1;
+}
 
 // The display server's main struture.
 // See: gws.h
-static void __init_ws_structure(void)
+static void __initialize_ds_structure(void)
 {
 
 // The display server structure.
     display_server = 
         (struct display_server_d *) malloc ( sizeof(struct display_server_d) );
     if ((void*) display_server == NULL){
-        gwssrv_debug_print("__init_ws_structure: [FAIL] display_server\n");
-        printf            ("__init_ws_structure: [FAIL] display_server\n");
+        gwssrv_debug_print("__initialize_ds_structure: [FAIL] display_server\n");
+        printf            ("__initialize_ds_structure: [FAIL] display_server\n");
         exit(1);
     }
     memset( display_server, 0, sizeof(struct display_server_d) );
@@ -3407,10 +3412,8 @@ static void __initialize_server_state(void)
     ServerProfiler.initialized = TRUE;
 }
 
-
-
 // ========================================
-// initGUI:
+// __initialize_gui:
 //     Initialize the graphics user interface.
 // Init Graphics:
 // Draw something.
@@ -3418,7 +3421,7 @@ static void __initialize_server_state(void)
 // Initialize the '3D' graphics support.
 // Let's create the standard green background.
 
-static int initGUI(void)
+static int __initialize_gui(void)
 {
     int graphics_status = -1;
 
@@ -3434,15 +3437,15 @@ static int initGUI(void)
 
     int __init_status = (int) gwsInitGUI();
     if (__init_status != 0){
-        debug_print ("initGUI: [PANIC] Couldn't initialize the gui\n");
-        printf      ("initGUI: [PANIC] Couldn't initialize the gui\n");
+        debug_print ("__initialize_gui: [PANIC] Couldn't initialize the gui\n");
+        printf      ("__initialize_gui: [PANIC] Couldn't initialize the gui\n");
         //goto fail;
         exit(1);
     }
 
 // Create root window.
 // Create and update the taskbar window.
-    initBackground();
+    __initializeBackground();
 
 // IN: issuper, show.
 // See: wm.c
@@ -3460,8 +3463,8 @@ static int initGUI(void)
 // Check if we already have the root window.
 
     if ( (void*) __root_window == NULL ){
-        gwssrv_debug_print ("initGraphics: [FAIL] root window doesn't exist\n");
-        printf             ("initGraphics: [FAIL] root window doesn't exist\n");
+        gwssrv_debug_print ("__initializeGraphics: [FAIL] root window doesn't exist\n");
+        printf             ("__initializeGraphics: [FAIL] root window doesn't exist\n");
         //goto fail;
         exit(1);
     }
@@ -3471,12 +3474,6 @@ static int initGUI(void)
 // ok, no errors.
     return 0;
 }
-
-void gwssrv_quit(void)
-{
-    IsTimeToQuit = TRUE;
-}
-
 
 static void __initialize_kernel_module(void)
 {
@@ -3595,8 +3592,7 @@ static int ServerInitialization(int launch_tb)
     //gws_enable_transparence();
     gws_disable_transparence();
 // Display server structure
-// #todo: Change the name of this worker.
-    __init_ws_structure();
+    __initialize_ds_structure();
 // Server profiler initialization.
     __initialize_server_profiler();
 // Server state initialization.
@@ -3775,18 +3771,18 @@ static int ServerInitialization(int launch_tb)
     Initialization.current_phase = 2;
 
     int gui_status = -1;
-    gui_status = (int) initGUI();
+    gui_status = (int) __initialize_gui();
     if (gui_status < 0){
-        printf("ServerInitialization: initGUI failed\n");
+        printf("ServerInitialization: __initialize_gui failed\n");
         goto fail;
     }
 
 // ==================================================
 // Init Graphics
 
-    int graphics_status = (int) initGraphics();
+    int graphics_status = (int) __initializeGraphics();
     if (graphics_status < 0){
-        printf("ServerInitialization: initGraphics failed\n");
+        printf("ServerInitialization: __initializeGraphics failed\n");
         goto fail;
     }
     Initialization.setup_graphics_interface_checkpoint = TRUE;
@@ -3931,10 +3927,18 @@ static int ServerInitialization(int launch_tb)
 // Loop
 //
 
-// Set foreground thread.
-// Get events scanning a queue in the foreground queue.
+// Set this thread as foreground thread.
+// This way the input manager inside the base kernel 
+// will post the inputs into this thread and we will 
+// get this events from the system using syscall.
+// Each thread has it's own circular queue for system events.
+
+// Set focus, this way we can get system events.
+    gwssrv_debug_print("gramland: Entering main loop\n");
+    rtl_focus_on_this_thread();
+
 // + Accept connection from a client.
-// + Call the dispatcher to porcess the message.
+// + Call the dispatcher to process the message.
 // See:
 // https://man7.org/linux/man-pages/man2/accept.2.html
 // see: wm.c
@@ -3948,8 +3952,6 @@ static int ServerInitialization(int launch_tb)
 // Chamamos o accepr soment quando
 // o servidor estiver aceitando conexoes.
 
-    gwssrv_debug_print("gramland: Entering main loop\n");
-    rtl_focus_on_this_thread();
 
 // ==========================================
 // Finalize the ws structure initialization.

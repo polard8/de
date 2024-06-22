@@ -1,6 +1,6 @@
-
 // dispatch.h
 // The handlers for the requests.
+// Created by Fred NOra.
 // See:
 // protocol.h, 
 // main.c
@@ -9,7 +9,7 @@
 #define __DISPATCH_H    1
 
 // 1001
-// See: window.c
+// See: main.c
 int serviceCreateWindow(int client_fd);
 
 // 1002
@@ -20,7 +20,7 @@ int serviceCreateWindow(int client_fd);
 int servicelineBackbufferDrawHorizontalLine(void);
 
 // 1004
-// See: char.c
+// See: main.c
 int serviceDrawChar(void);
 
 // 1005
@@ -43,6 +43,7 @@ int serviceRefreshRectangle(void);
 
 // 2031
 // When a client get the next event from it's own queue.
+// See: main.c
 int serviceNextEvent(void);
 
 // 2041
@@ -52,6 +53,7 @@ int serviceGrCubeZ(void);
 int serviceGrRectangle(void);
 
 // 2222
+// See: main.c
 int serviceAsyncCommand(void);
 // 2222: service 1
 void serviceExitGWS(void);
@@ -86,6 +88,7 @@ int serviceDrawButton(void);
 
 // ??
 // Get a message given the Index and the Restart flag.
+// See: main.c
 int serviceNextEvent2(void);
 
 // ??
@@ -97,8 +100,4 @@ int servicepixelBackBufferPutpixel(void);
 
 
 #endif    
-
-
-
-
 

@@ -332,13 +332,14 @@ static void destroy_windows(int fd)
 }
 
 
+// do_done:
+// >> Launch the taskbar application.
+// >> Close the gdm application.
 static void do_done(int fd)
 {
-
     if (fd<0){
         printf("do_done: fd\n");
     }
-
 // #todo
 // Get the return. it can NOT fail.
     rtl_clone_and_execute(tb_image_name);
