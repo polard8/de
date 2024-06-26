@@ -1,8 +1,6 @@
-
 // rect.c 
-// Rectangle support for gws.
-// #todo: 
-// Rectangle rotutines belongs to ui/?!
+// Rectangle support.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 
@@ -57,7 +55,6 @@ __refresh_rectangle0 (
 
 // ====================
 
-
 /*
 void invalidate_rectangle( struct gws_rect_d *rect );
 void invalidate_rectangle( struct gws_rect_d *rect )
@@ -68,7 +65,6 @@ void invalidate_rectangle( struct gws_rect_d *rect )
     rect->dirty = TRUE;
 }
 */
-
 
 /*
 int
@@ -95,7 +91,6 @@ rect_intersect(
 }
 */
 
-
 int
 set_rect ( 
     struct gws_rect_d *rect, 
@@ -104,23 +99,20 @@ set_rect (
     unsigned long width,
     unsigned long height )
 {
-    if ( (void*) rect == NULL ){
+    if ((void *) rect == NULL){
         return FALSE;
     }
 
 // ?? relative
     rect->left = left;
     rect->top = top;
-
     rect->width = width;
     rect->height = height;
-
     // #text
     // rect->is_empty = TRUE;
 
     return TRUE;
 }
-
 
 // See: window.h
 void 
@@ -129,7 +121,7 @@ inflate_rect (
     unsigned long cx, 
     unsigned long cy )
 {
-    if ( (void*) rect == NULL ){
+    if ((void *) rect == NULL){
         return;
     }
 
@@ -181,7 +173,7 @@ offset_rect (
     unsigned long cx, 
     unsigned long cy )
 {
-    if ( (void*) rect == NULL ){
+    if ((void*) rect == NULL){
         return;
     }
 
@@ -309,7 +301,6 @@ int is_rect_dirty(struct gws_rect_d *rect)
     return FALSE;
 }
 
-
 int 
 rect_contains_vertically ( 
     struct gws_rect_d *rect,  
@@ -330,13 +321,12 @@ rect_contains_vertically (
     return FALSE;
 }
 
-
 int 
 rect_contains_horizontally ( 
     struct gws_rect_d *rect,
     unsigned long x )
 {
-    if ( (void*) rect == NULL ){
+    if ((void *) rect == NULL){
         return (int) -1;
     }
 
@@ -356,10 +346,9 @@ rect_set_left (
     struct gws_rect_d *rect, 
     unsigned long value )
 {
-    if ( (void*) rect == NULL ){
+    if ((void *) rect == NULL){
         return;
     }
-
     rect->left = value;
 }
 
@@ -368,10 +357,9 @@ rect_set_top (
     struct gws_rect_d *rect, 
     unsigned long value )
 {
-    if ( (void*) rect == NULL ){
+    if ((void *) rect == NULL){
         return;
     }
-
     rect->top = value;
 }
 
@@ -380,10 +368,9 @@ rect_set_right (
     struct gws_rect_d *rect, 
     unsigned long value )
 {
-    if ( (void*) rect == NULL ){
+    if ((void *) rect == NULL){
         return;
     }
-
     rect->right = value;
 }
 
@@ -392,10 +379,9 @@ rect_set_bottom (
     struct gws_rect_d *rect, 
     unsigned long value )
 {
-    if ( (void*) rect == NULL ){
+    if ((void *) rect == NULL){
         return;
     }
-
     rect->bottom = value;
 }
 
@@ -425,7 +411,6 @@ static void *__rect_memcpy32 (
     return (void *) v_dst;
 }
 
-
 // Flush the rectangle into the framebuffer.
 // Here we are flushing the content of a given
 // dirty retangle into the frame buffer.
@@ -434,8 +419,9 @@ static void *__rect_memcpy32 (
 
 int gwssrv_refresh_this_rect(struct gws_rect_d *rect)
 {
-
-    if ( (void*) rect == NULL ){ return -1; }
+    if ((void *) rect == NULL){ 
+        return -1; 
+    }
     if (rect->dirty != TRUE){ 
         return -1; 
     }
@@ -451,7 +437,7 @@ int gwssrv_refresh_this_rect(struct gws_rect_d *rect)
 // Flush the rectangle into the framebuffer.
 int flush_rectangle(struct gws_rect_d *rect)
 {
-    if ( (void *) rect == NULL ){
+    if ((void *) rect == NULL){
         return -1;
     }
     return (int) gwssrv_refresh_this_rect(rect);

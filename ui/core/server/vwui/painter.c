@@ -1,12 +1,13 @@
 
 // painter.c
+// Painter.
+// Drawing the graphical components.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 
 static void __draw_button_mark_by_wid( int wid, int button_number );
-//
 //===================================================================
-//
 
 // Paint the rectangle.
 int 

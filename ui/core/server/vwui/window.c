@@ -1,10 +1,8 @@
-/*
- * window.c
- *     Create and destroy a window.
- *     Some other routines for windows.
- * History:
- *     2019 - Created by Fred Nora.
- */
+// window.c
+// Create and destroy a window.
+// Some other routines for windows.
+// 2019 - Created by Fred Nora.
+
 // #importante
 // O frame de uma janela deve ser parte do Window Manager.
 // #bugbug
@@ -27,7 +25,6 @@
 #define BUTTON_MIN_HEIGHT   8
 
 static int config_use_transparency=FALSE;
-
 
 unsigned long windows_count=0;
 

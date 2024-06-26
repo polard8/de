@@ -1,9 +1,9 @@
-
 // demos.h
+// Demos for the graphics engine.
+// Created by Fred Nora.
 
 #ifndef __DEMOS_H
 #define __DEMOS_H  1
-
 
 //
 // models
@@ -16,8 +16,9 @@ struct cat_model_d
     int mouthVisible;
     // ...
 };
-struct cat_model_d CatModel;
 
+// See: demos.c
+extern struct cat_model_d CatModel;
 
 //
 // == Prototypes ===============

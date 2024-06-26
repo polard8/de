@@ -1,5 +1,13 @@
-
 // display.h
+// Display support.
+// The client-side application can handle the display driver functionalities 
+// using this structures on the server-side. But actually the server 
+// can call more than one display device driver to change some hardware 
+// characteristics of the display, just like resolution.
+// Our first goal is to connect this server with the 'qemu display driver' 
+// or 'bootloader display driver' that probably are gonna me build 
+// inside the base kernel.
+// Created by Fred Nora.
 
 #ifndef __OS_DISPLAY_H
 #define __OS_DISPLAY_H    1
@@ -69,12 +77,12 @@ struct gws_display_d
     struct gws_display_d *next;
 };
 
-struct gws_display_d  *CurrentDisplay;
+// See: gws.c
+extern struct gws_display_d  *CurrentDisplay;
 
 //#todo
 //#define GWS_DISPLAY_MAX 128;
 //unsigned long displayList[GWS_DISPLAY_MAX];
-
 
 #endif    
 

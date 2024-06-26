@@ -1,4 +1,3 @@
-
 // protocol.h
 // gws message protocol.
 // Create by Fred Nora.

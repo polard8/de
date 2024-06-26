@@ -1,4 +1,3 @@
-
 // globals.c
 // 2022 - Created by Fred Nora.
 

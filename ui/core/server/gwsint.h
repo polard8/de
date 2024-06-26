@@ -1,6 +1,6 @@
-
 // gwsint.h 
 // Internal definitions for Gramado Window Server.
+// Created by Fred Nora.
 
 // Version?
 // See protocol version in protocol.h.

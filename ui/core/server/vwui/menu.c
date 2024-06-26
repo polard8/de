@@ -1,5 +1,7 @@
 
 // menu.c
+// Menu support.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 
@@ -17,9 +19,7 @@ static const char *mn_app3 = "shutdown.bin";
 
 // ----------------
 
-
 // #deprecated
-
 int redraw_main_menu(void)
 {
     return FALSE;
@@ -30,7 +30,6 @@ int main_menu_all_windows_input_status(int input_status)
 {
     return FALSE;
 }
-
 
 // #test
 // Window server's widget.

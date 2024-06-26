@@ -1,6 +1,6 @@
 // dispatch.h
 // The handlers for the requests.
-// Created by Fred NOra.
+// Created by Fred Nora.
 // See:
 // protocol.h, 
 // main.c

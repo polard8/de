@@ -1,9 +1,9 @@
-
 // sprite.h
+// Sprite support.
+// Created by Fred Nora.
 
 #ifndef  ____SPRITE_H
 #define  ____SPRITE_H    1
-
 
 // Types
 // #todo: maybe create a 'enum'
@@ -21,10 +21,8 @@
 #define SPRITE_MESH        9  // 
 // ...
 
-
 struct gws_sprite_d
 {
-
     int used;
     int magic;
 

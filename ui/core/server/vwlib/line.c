@@ -1,11 +1,13 @@
 
 // line.c 
+// Line support.
 // We are using the library libgd.o.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 
-
-//#bugbug: use unsigned int for 'color'.
+// #todo
+// Use 'unsigned int' for 'color'.
 void 
 plotLineRect4 ( 
     int x1, int y1, 
@@ -18,7 +20,8 @@ plotLineRect4 (
     plotLine3d( x1,y2,0, x1,y1,0, color );
 }
 
-// #bugbug: Use unsigned int for 'color'.
+// #todo
+// Use 'unsigned int' for 'color'.
 void 
 plotLineRectZ ( 
     int x1, int y1, int z1, 
@@ -31,8 +34,9 @@ plotLineRectZ (
     plotLine3d( x1,y2,z1, x1,y1,z2, color );
 }
 
-//#bugbug: use unsigned int for 'color'.
-//ok triangulo invertido.
+// triangulo invertido?
+// #todo
+// Use 'unsigned int' for 'color'.
 void 
 testLines ( 
     int x1, int y1, 
@@ -48,8 +52,9 @@ testLines (
     plotLine3d(x1-dx,     y1, 0,     x1, y1-dy , 0, color);
 }
 
-// #bugbug: use unsigned int for 'color'.
-// OK triangulo invertido.
+// triangulo invertido?
+// #todo
+// Use 'unsigned int' for 'color'.
 void 
 testLinesZ ( 
     int x1, int y1, int z1, 
@@ -99,12 +104,14 @@ A_naive_line_drawing_algorithm(
 void test_draw_line(void)
 {
     register int i=0;
+    unsigned int Color = COLOR_YELLOW;
 
+// IN: x1,x2,y1,y2,color.
     for (i=0; i<400; i++){
         A_naive_line_drawing_algorithm ( 
-            8, 750,              // x1,x2
-            8, (50 + (i*4)) ,    // y1,y2
-            COLOR_YELLOW );
+            8, 750,
+            8, (50 + (i*4)) ,
+            Color );
     };
     gwssrv_show_backbuffer();
 }
@@ -230,11 +237,8 @@ grBackbufferDrawHorizontalLine (
     };
 }
 
-/*
- * backbuffer_draw_horizontal_line:
- *     Draw a horizontal line on backbuffer. 
- */
-
+// backbuffer_draw_horizontal_line:
+// Draw a horizontal line on backbuffer. 
 void 
 backbuffer_draw_horizontal_line ( 
     unsigned long x1,

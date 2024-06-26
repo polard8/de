@@ -1,9 +1,8 @@
-
 // humility.h
+// Created by Fred Nora.
 
 #ifndef __HUMILITY_H
 #define __HUMILITY_H    1
-
 
 /*
 // --------------------

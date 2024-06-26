@@ -1,15 +1,10 @@
-/*
- * File: char.c 
- *     gws - Char support.
- * History:
- *     2019 - Created by Fred Nora.
- */
+// char.c 
+// view: Char support.
+// 2019 - Created by Fred Nora.
 
 #include "../gwsint.h"
 
-
 struct char_initialization_d  CharInitialization;
-
 // Draw char support
 int gcharWidth=0;
 int gcharHeight=0;
@@ -135,7 +130,6 @@ int char_initialize(void)
 
     CharInitialization.initialized = FALSE;
 
-
 // Char width and height.
     CharInitialization.width = DEFAULT_FONT_WIDTH;
     CharInitialization.height = DEFAULT_FONT_HEIGHT;
@@ -147,7 +141,6 @@ int char_initialize(void)
     //...
 
     CharInitialization.initialized = TRUE;
-
     return 0;
 }
 
@@ -162,31 +155,25 @@ charBackbufferCharBlt (
     grBackbufferDrawCharTransparent ( x, y, color, c );
 }
 
-
-void charSetCharWidth ( int width )
+void charSetCharWidth (int width)
 {
     gcharWidth = (int) width;
 }
 
-
-void charSetCharHeight ( int height )
+void charSetCharHeight (int height)
 {
     gcharHeight = (int) height;
 }
-
 
 int charGetCharWidth (void)
 {
     return (int) gcharWidth;
 }
 
-
 int charGetCharHeight (void)
 {
     return (int) gcharHeight;
 }
-
-
 
 /*
  * charBackbufferDrawcharTransparent:
@@ -340,7 +327,7 @@ grBackbufferDrawCharTransparent2 (
     register int x2=0;
 
 // Invalid base address
-    if ( (void*) base_address == NULL )
+    if ((void *) base_address == NULL)
     {
         //#debug
         //printf("grBackbufferDrawCharTransparent2: base_address\n");
@@ -369,7 +356,7 @@ grBackbufferDrawCharTransparent2 (
 
         for ( x2=0; x2 < gcharWidth; x2++ )
         {
-            if ( ( *work_char_p & bit_mask ) )
+            if ( *work_char_p & bit_mask )
             {
                 // IN: color, x, y, rop
                 libdisp_backbuffer_putpixel ( 
@@ -396,13 +383,11 @@ fail:
     };
 }
 
-
 /*
  * charBackbufferDrawchar:
  *     Constrói um caractere no backbuffer.
  *     Desenha um caractere e pinta o pano de fundo.
  */ 
-
 void 
 grBackbufferDrawChar ( 
     unsigned long x, 
@@ -437,7 +422,7 @@ grBackbufferDrawChar (
         //#debug
         //Estamos parando só para testes.
 
-        printf ("gws_draw_char: initialization fail\n");
+        printf ("grBackbufferDrawChar: initialization fail\n");
         while(1){}
     }
 
@@ -517,7 +502,6 @@ grBackbufferDrawChar (
         work_char++; 
     };
 }
-
 
 //
 // End

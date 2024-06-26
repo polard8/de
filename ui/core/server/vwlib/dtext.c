@@ -1,13 +1,12 @@
 
 // File: dtext.c 
 // Draw text routines.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 
-/* 
- * grDrawString:
- *     Draw a string on the screen. 
- */
+// grDrawString:
+// Draw a string on the screen. 
 // No clipping
 void 
 grDrawString ( 
@@ -33,9 +32,9 @@ grDrawString (
     unsigned int __fg_color = color;
     //unsigned int __bg_color = color;
 
-    if ( (void*) string == NULL )
+    if ((void *) string == NULL)
         return;
-    if ( *string==0 )
+    if ( *string == 0 )
         return;
 
 // #fail
@@ -97,13 +96,10 @@ grDrawString (
     };
 }
 
-/* 
- * dtextDrawText:
- *     Draw text on a window.
- * #test: 
- *     Como opção, se nenhuma janela for especificada, 
- *     então pintaremos na janela principal.
- */
+// dtextDrawText:
+// Draw text on a window.
+// Como opção, se nenhuma janela for especificada, 
+// então pintaremos na janela principal.
 void 
 dtextDrawText ( 
     struct gws_window_d *window,
@@ -114,15 +110,15 @@ dtextDrawText (
 { 
 
 // Window validation
-    if ( (void*) window == NULL )
+    if ((void *) window == NULL)
         return;
-    if (window->magic!=1234)
+    if (window->magic != 1234)
         return;
 
 // String validation
-    if( (void*) string == NULL )
+    if ((void *) string == NULL)
         return;
-    if( *string==0 )
+    if ( *string == 0 )
         return;
 
 // Draw
@@ -145,15 +141,15 @@ dtextDrawText2 (
 { 
 
 // Window validation
-    if ( (void*) window == NULL )
+    if ((void *) window == NULL)
         return;
-    if (window->magic!=1234)
+    if (window->magic != 1234)
         return;
 
 // String validation
-    if( (void*) string == NULL )
+    if ((void *) string == NULL)
         return;
-    if( *string==0 )
+    if ( *string == 0 )
         return;
 
 // Draw
@@ -174,7 +170,4 @@ dtextDrawText2 (
             8 );
     }
 }
-
-
-
 

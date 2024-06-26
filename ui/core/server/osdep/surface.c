@@ -1,5 +1,8 @@
 
 // surface.c
+// Surfaces support.
+// That shared area used to draw things.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 

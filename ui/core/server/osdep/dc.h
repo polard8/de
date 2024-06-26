@@ -1,6 +1,6 @@
-
 // dc.h
 // Device Context.
+// Created by Fred Nora.
 
 #ifndef __DC_H
 #define __DC_H    1

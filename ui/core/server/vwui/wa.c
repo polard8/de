@@ -6,3 +6,5 @@
 
 #include "../gwsint.h"
 
+int dummy_wa=0;
+

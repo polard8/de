@@ -2,6 +2,7 @@
 // async.h
 // + Request numbers
 // + Sub-request numbers.
+// Created by Fred Nora.
 
 #ifndef __ASYNC_H
 #define __ASYNC_H    1
@@ -23,7 +24,6 @@
 #define ASYNC_REQUEST_REBOOT  89
 #define ASYNC_REQUEST_DESTROY_WINDOW  90
 #define ASYNC_REQUEST_PUT_PIXEL  1000
-
 
 #endif   
 

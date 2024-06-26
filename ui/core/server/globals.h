@@ -1,5 +1,5 @@
-
 // globals.h
+// 2022 - Created by Fred Nora.
 
 #ifndef __GWSSRV_GLOBALS_H
 #define __GWSSRV_GLOBALS_H   1

@@ -1,5 +1,6 @@
-
 // client.h
+// Client structure to handle the connections.
+// Created by Fred Nora.
 
 #ifndef ____CLIENT_H
 #define ____CLIENT_H    1
@@ -7,14 +8,11 @@
 // The client behavior
 struct gws_client_profile_d
 {
-
 // Packets
     unsigned long received_count;
     unsigned long sent_count;
-
     // ...
 };
-
 
 // Nesse arquivo fica a estrutura de cliente.
 // Essa estrutura vai conter as informações

@@ -1,14 +1,17 @@
-
 // demos.c
 // A place for demos.
 // #remember:
 // This is the display server.
 // This is not the right place for this thing.
 // But maybe it will be useful for effects.
+// Created by Fred Nora.
 
 #include "gwsint.h"
 
 int gUseDemos = TRUE;
+
+// See: demos.h
+struct cat_model_d CatModel;
 
 static void __draw_cat(int eye_scale, int cat_z);
 static void __draw_demo_curve1(int position, int model_z);

@@ -1,5 +1,6 @@
-
 // event.h
+// Event manager.
+// Created by Fred Nora.
 
 #ifndef EVENT_H
 #define EVENT_H    1
@@ -10,8 +11,6 @@
 // e a 'mensagem' determina o tipo de evento.
 // alem disso podemos ter mais detalhes
 // como se o evento vem do sistema ou do window server ...
-//
-
 
 struct gws_keyboard_event_d
 {
@@ -23,13 +22,12 @@ struct gws_mouse_event_d
     int dummy;
 };
 
-
 struct gws_window_event_d
 {
     int dummy;
 };
 
-
+// Main event strcuture.
 struct gws_event_d
 {
 

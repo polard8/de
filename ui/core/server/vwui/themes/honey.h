@@ -1,6 +1,6 @@
-
 // honey.h
 // Color theme for the color scheme.
+// Created by Fred Nora.
 
 #ifndef __HONEY_H
 #define __HONEY_H    1

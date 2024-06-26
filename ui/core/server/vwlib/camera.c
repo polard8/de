@@ -1,5 +1,6 @@
 
 // camera.c
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 
@@ -12,12 +13,10 @@ int camera_initialize(void)
 {
 // Do not use float.
 
-    CurrentCamera = 
-        (void *) malloc( sizeof( struct gr_camera_d ) );
-
-    if ( (void*) CurrentCamera == NULL ){
+    CurrentCamera = (void *) malloc( sizeof(struct gr_camera_d) );
+    if ((void*) CurrentCamera == NULL){
         printf("camera_initialize: fail\n");
-        exit(1);
+        goto fail;
     }
 
     CurrentCamera->used = TRUE;
@@ -37,7 +36,7 @@ int camera_initialize(void)
     CurrentCamera->lookat.z = 0;
 
 // Projection
-    if( (void*) CurrentProjection != NULL )
+    if ((void*) CurrentProjection != NULL)
     {
         if (CurrentProjection->initialized == TRUE){
             CurrentCamera->projection = 
@@ -46,8 +45,12 @@ int camera_initialize(void)
     }
 
     CurrentCamera->initialized = FALSE;
-
     return 0;
+
+fail:
+    // #debug
+    exit(1);
+    return (int) -1;
 }
 
 int 
@@ -58,10 +61,9 @@ camera (
 {
 // Do not use float.
 
-    if ( (void*) CurrentCamera == NULL ){
+    if ((void *) CurrentCamera == NULL){
         printf("camera: fail\n");
-        return -1;
-        //exit(1);
+        goto fail;
     }
 // ----------------
 // EYE:
@@ -83,7 +85,7 @@ camera (
     CurrentCamera->lookat.z = zLookAt;
 
     return 0;
+fail:
+    return (int) -1;
 }
-
-
 

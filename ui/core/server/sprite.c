@@ -1,5 +1,6 @@
-
 // sprite.c
+// Sprite support.
+// Created by Fred Nora.
 
 #include "gwsint.h"
 

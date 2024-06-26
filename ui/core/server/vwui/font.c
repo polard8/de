@@ -1,9 +1,8 @@
-
-// todo: 
-// the font support.
+// font.c
+// The font support.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
-
 
 struct font_initialization_d FontInitialization;
 
@@ -19,12 +18,8 @@ unsigned long g9x14fontAddress=0;         // 9x14,80×25,MDA, Hercules
 unsigned long g9x16fontAddress=0;         // 9x16,80×25,VGA
 //unsigned long gws_eye_sprite_address=0;
 
-
 static char *__initialize_lt8x8_font(void);
-
 // ==================
-
-
 
 /*
 static unsigned char font_nelson_cole2[128*8] = {};

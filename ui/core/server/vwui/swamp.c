@@ -6,3 +6,5 @@
 
 #include "../gwsint.h"
 
+int dummy_swamp=0;
+

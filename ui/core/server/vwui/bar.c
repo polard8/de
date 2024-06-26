@@ -3,6 +3,7 @@
 // Draw and update the notification bar. (yellow bar) (status bar).
 // #todo 
 // Change the name of this file.
+// Created by Fred Nora.
 
 #include "../gwsint.h"
 

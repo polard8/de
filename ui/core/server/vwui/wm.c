@@ -1,10 +1,7 @@
-/*
- * File: wm.c 
- *     The Window Manager.
- *     The window manager is embedded into the display server.
- * History:
- *     2020 - Create by Fred Nora.
- */
+// wm.c 
+// The Window Manager.
+// The window manager is embedded into the display server.
+// 2020 - Create by Fred Nora.
 
 #include "../gwsint.h"
 
@@ -15,9 +12,7 @@ const char *rootwindow_name = "RootWin";
 #define MSG_MOUSE_DRAG            61
 #define MSG_MOUSE_DROP            62
 
-//
 // Double click
-//
 struct double_click_d DoubleClick;
 
 
