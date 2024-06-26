@@ -1,12 +1,10 @@
 
-// ffa.c (far far away)
+// bar.c
 // Draw and update the notification bar. (yellow bar) (status bar).
 // #todo 
 // Change the name of this file.
 
-
 #include "../gwsint.h"
-
 
 // yellow bar. (rectangle not window)
 // developer status.

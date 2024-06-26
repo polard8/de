@@ -3313,7 +3313,6 @@ void wm_update_desktop(int tile, int show)
     if ((void*)w == NULL)
     {
         first_window = NULL;
-        //swamp_update_taskbar("DESKTOP",FALSE);
         flush_window(__root_window);
         // Go to the end to draw the taskbar.
         goto end;
@@ -3325,7 +3324,6 @@ void wm_update_desktop(int tile, int show)
     if (w->magic != 1234)
     {
         first_window = NULL;
-        //swamp_update_taskbar("DESKTOP",FALSE);
         flush_window(__root_window);
         // Go to the end to draw the taskbar.
         goto end;
@@ -3417,7 +3415,6 @@ void wm_update_desktop(int tile, int show)
             if ((void*) l->name != NULL)
             {
                 aw_name = l->name;
-                //swamp_update_taskbar(aw_name,FALSE);
             }
         }
     }
@@ -3426,7 +3423,6 @@ void wm_update_desktop(int tile, int show)
     if ((void*) l == NULL)
     {
         last_window = NULL;
-        //swamp_update_taskbar("DESKTOP",FALSE);
         flush_window(__root_window);
         goto end;
         return;
@@ -3548,12 +3544,7 @@ void  wm_update_desktop2(void)
     };
 
 done:
-// Flush the screen
-    swamp_update_taskbar("...",FALSE);
-
-// #test
     yellowstatus0("Gramado",FALSE);
-
 
 //#test
 //------------------------
@@ -3741,13 +3732,8 @@ update_window (
     //redraw_window(window,FALSE);
     //invalidate_window(window);
 
-//#todo: string
-    //swamp_update_taskbar("Win",TRUE);
-
     return (int) ret_val;
 }
-
-
 
 // #todo
 // Explain it better.

@@ -1,14 +1,12 @@
 
-// ffa.h
+// bar.h
 // Far Far Away area.
 // Draw and update the notification bar. (yellow bar) (status bar).
 // #todo
 // Change the name of this file.
 
-
 #ifndef __AREAS_FFA_H
 #define __AREAS_FFA_H    1
-
 
 #define FFA_STATE_GRACE   2000
 #define FFA_STATE_UNBRIO  1000

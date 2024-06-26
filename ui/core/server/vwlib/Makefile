@@ -1,5 +1,5 @@
 
-# ui/
+# rtl/
 
 # GRAMLAND.BIN
 # GWS - Gramland Window Server.
@@ -96,14 +96,8 @@ CINCLUDES += -I .
 CINCLUDES += -I ../
     
 # Objects
-myObjects = wm.o \
-bmp.o \
-menu.o \
-font.o \
-painter.o \
-window.o \
-ffa.o wa.o swamp.o    
-
+myObjects = char.o \
+dtext.o proj.o grprim.o camera.o line.o rect.o bitblt.o   
 
 
 .PHONY: all all-c gws-link finalize clean
@@ -112,25 +106,21 @@ all: main.o all-c gws-link finalize clean
 	@echo "Ok?"
 main.o:
 #	$(CC)  -c grinput.c  $(CFLAGS) $(CINCLUDES) -o grinput.o
-	$(CC)  -c wm.c    $(CFLAGS) $(CINCLUDES) -o wm.o
 all-c:
-
-	$(CC) -c bmp.c       $(CFLAGS) $(CINCLUDES) -o bmp.o
-
-	$(CC)  -c menu.c     $(CFLAGS) $(CINCLUDES) -o menu.o
-	$(CC)  -c font.c     $(CFLAGS) $(CINCLUDES) -o font.o
-	$(CC)  -c painter.c  $(CFLAGS) $(CINCLUDES) -o painter.o
-	$(CC)  -c window.c   $(CFLAGS) $(CINCLUDES) -o window.o
-
-	$(CC)  -c ffa.c    $(CFLAGS) $(CINCLUDES) -o ffa.o
-	$(CC)  -c wa.c     $(CFLAGS) $(CINCLUDES) -o wa.o
-	$(CC)  -c swamp.c  $(CFLAGS) $(CINCLUDES) -o swamp.o
+	$(CC)  -c char.c    $(CFLAGS) $(CINCLUDES) -o char.o
+	$(CC)  -c dtext.c   $(CFLAGS) $(CINCLUDES) -o dtext.o
+	$(CC)  -c proj.c    $(CFLAGS) $(CINCLUDES) -o proj.o
+	$(CC)  -c grprim.c  $(CFLAGS) $(CINCLUDES) -o grprim.o
+	$(CC)  -c camera.c  $(CFLAGS) $(CINCLUDES) -o camera.o
+	$(CC)  -c line.c    $(CFLAGS) $(CINCLUDES) -o line.o
+	$(CC)  -c rect.c    $(CFLAGS) $(CINCLUDES) -o rect.o
+	$(CC)  -c bitblt.c  $(CFLAGS) $(CINCLUDES) -o bitblt.o
 
 gws-link:
 #	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)
 # link
-	$(LD) -r -o ar_ui.o $(myObjects)
-	cp ar_ui.o ../
+	$(LD) -r -o ar_vwlib.o $(myObjects)
+	cp ar_vwlib.o ../
 	rm *.o
 
 finalize:

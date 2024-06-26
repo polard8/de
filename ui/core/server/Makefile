@@ -101,10 +101,10 @@ myObjects += libdisp.o
 myObjects += libgr.o
 
 myObjects += ar_root.o
-myObjects += ar_rtl.o
-myObjects += ar_os.o
-myObjects += ar_comp.o
-myObjects += ar_ui.o    
+myObjects += ar_osdep.o
+myObjects += ar_vwc.o
+myObjects += ar_vwlib.o
+myObjects += ar_vwui.o    
 
 .PHONY: all all-c gws-link finalize clean
 
@@ -126,10 +126,10 @@ all-c:
 callback.o client.o demos.o \
 globals.o gws.o sprite.o shutdown.o    
 
-	make -C rtl/
-	make -C comp/
-	make -C os/
-	make -C ui/
+	make -C osdep/
+	make -C vwc/
+	make -C vwlib/
+	make -C vwui/
 
 #
 # == imported objects =============================
@@ -161,9 +161,8 @@ finalize:
 	cp $(linkTarget) bin/
 clean:
 	-rm *.o
-	-rm comp/*.o
-	-rm os/*.o
-	-rm rtl/*.o
-	-rm ui/*.o
+	-rm osdep/*.o
+	-rm vwc/*.o
+	-rm vwlib/*.o
+	-rm vwui/*.o
 	-rm $(linkTarget)
-

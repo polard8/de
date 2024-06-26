@@ -8,6 +8,24 @@
 #ifndef __AREAS_SWAMP_H
 #define __AREAS_SWAMP_H    1
 
+//struct taskbar_d  TaskBar;
+//struct start_menu_d StartMenu;
+//struct quick_launch_d QuickLaunch;
+
+//const char *startmenu_label = "Gramado";
+
+// Taskbar
+#define TB_BUTTON_PADDING  2
+// 36
+//#define TB_HEIGHT  40
+#define TB_HEIGHT  (24+TB_BUTTON_PADDING+TB_BUTTON_PADDING)
+//#define TB_BUTTON_PADDING  4
+#define TB_BUTTON_HEIGHT  (TB_HEIGHT - (TB_BUTTON_PADDING*2))
+#define TB_BUTTON_WIDTH  TB_BUTTON_HEIGHT
+// #define TB_BUTTONS_MAX  8
+
+
+
 #define SWAMP_STATE_GRACE  2000
 #define SWAMP_STATE_BRIO   1000
 
@@ -16,6 +34,7 @@ struct swamp_info_d
 // BRIO, GRACE
     int state;
 };
+
 
 /*
 // ----------------------------
@@ -68,12 +87,6 @@ struct taskbar_d
 };
 extern struct taskbar_d  TaskBar;
 */
-
-
-void create_taskbar(int issuper, int show);
-void wm_Update_TaskBar( char *string, int flush );
-
-void swamp_update_taskbar(char *string, int flush);
 
 #endif   
 

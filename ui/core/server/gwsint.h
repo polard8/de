@@ -30,61 +30,64 @@ extern int current_mode;
 #include "protocol.h"
 #include "async.h"
 #include "globals.h"
-#include "ui/colors.h"
-#include "ui/themes/humility.h"
-#include "ui/themes/honey.h"
+#include "vwui/colors.h"
+#include "vwui/themes/humility.h"
+#include "vwui/themes/honey.h"
 
 // #imported
 // Display device library.
 #include <libdisp.h>
 
-#include "rtl/char.h"
-#include "rtl/dtext.h"
-#include "rtl/line.h"
+#include "vwlib/char.h"
+#include "vwlib/dtext.h"
+#include "vwlib/line.h"
 
-
-#include "ui/wt.h"
-#include "ui/menu.h"
+#include "vwui/wt.h"
+#include "vwui/menu.h"
 //#include "zres/grinput.h"   //#test
-#include "ui/metrics.h"
-#include "ui/window.h"
-#include "ui/areas/ffa.h"    // Far Far Away
-#include "ui/areas/wa.h"     // Working Area
-#include "ui/areas/swamp.h"  // Swamp
-#include "ui/wm.h"
+#include "vwui/metrics.h"
+#include "vwui/window.h"
+#include "vwui/areas/bar.h"    // Notification bar. (yellow)
+#include "vwui/areas/wa.h"     // Working Area
+#include "vwui/areas/swamp.h"  // Swamp
+#include "vwui/wm.h"
 
-#include "rtl/bitblt.h"
-#include "ui/vdesktop.h"
-#include "ui/painter.h"
-#include "ui/bmp.h"
+#include "vwlib/bitblt.h"
+
+#include "vwui/vdesktop.h"
+#include "vwui/painter.h"
+#include "vwui/bmp.h"
 
 // h:0.0
-#include "os/screen.h"   // X-like
-#include "os/display.h"  // X-like
-#include "os/host.h"     // X-like h:0.0
+#include "osdep/screen.h"   // X-like
+#include "osdep/display.h"  // X-like
+#include "osdep/host.h"     // X-like h:0.0
 
-#include "os/surface.h"
+#include "osdep/surface.h"
 
-#include "ui/gui.h"
+#include "vwui/gui.h"
 
 // Compositor
-#include "comp/comp.h"
+#include "vwc/comp.h"
 
 #include "event.h"    // view inputs
 
 // #imported
+
 #include <grprim0.h>
 #include <libgr.h>
-#include "rtl/grprim.h"
-#include "rtl/camera.h"
-#include "rtl/proj.h"
+
+#include "vwlib/grprim.h"
+#include "vwlib/camera.h"
+#include "vwlib/proj.h"
+
 #include "sprite.h"
 #include "demos.h"
 
-#include "os/packet.h"
-#include "os/connect.h"
+#include "osdep/packet.h"
+#include "osdep/connect.h"
 
-#include "ui/font.h"
+#include "vwui/font.h"
 
 // Client structure.
 // O proprio servidor poderia ser o cliente 0??
@@ -95,7 +98,7 @@ extern int current_mode;
 // drawing routines.
 // 'dc->something'
 // It needs to be the last one.
-#include "os/dc.h"
+#include "osdep/dc.h"
 
 #include "dispatch.h"
 
