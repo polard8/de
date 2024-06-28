@@ -1,11 +1,9 @@
 
+// sys/stat,h
 /*MINIX 3 stuff */
 
-
 #ifndef __STAT_H
-#define __STAT_H
-
-
+#define __STAT_H  
 
 //#include <sys/types.h>
 
@@ -54,12 +52,11 @@
 #define S_ISFIFO(m)	(((m) & S_IFMT) == S_IFIFO)	/* is a pipe/FIFO */
 
 
-
 // #todo
 // We need to define some types here.
 
-struct stat {
-
+struct stat 
+{
     dev_t     st_dev;     // ID of device containing file 
     ino_t     st_ino;     // inode number 
     mode_t    st_mode;    // protection 
@@ -75,14 +72,11 @@ struct stat {
     time_t    st_ctime;   // time of last status change 
 };
 
+// ====================================================
 
 int fstat(int fd, struct stat *buf);
 int stat(const char *path, struct stat *buf);
 int lstat(const char *path, struct stat *buf);
 
-
-
 #endif    
-
-
 

@@ -120,9 +120,9 @@ char *__execv_environ[] = {
 
 int execv(const char *path, char *const argv[])
 {
-    if ( (void*) path == NULL ){
+    if ((void *) path == NULL){
         errno = EINVAL;
-        return -1;
+        goto fail;
     }
 
 // #bugbug: 
@@ -130,12 +130,10 @@ int execv(const char *path, char *const argv[])
     return (int) execve( path, (char **) argv, __execv_environ );
     //return (int) execve ( path, (char **) argv, (char **) __execv_environ );
     //return (int) execve ( path, (char **) argv, environ ); //#todo: use this one.
-}
 
-/*
- * execve:
- * 
- */
+fail:
+    return (int) -1;
+}
 
 int 
 execve ( 
@@ -147,7 +145,7 @@ execve (
 
     if ((void*) path == NULL){
         errno = EINVAL;
-        return -1;
+        goto fail;
     }
 
     value = 
@@ -157,28 +155,34 @@ execve (
                   (unsigned long) argv, 
                   (unsigned long) envp ); 
 
-    if (value < 0)
-    {
+    if (value < 0){
         errno = (-value);
-        return (int) (-1);
-    } 
+        goto fail;
+    }
 
     return (int) value;
+
+fail:
+    return (int) -1;
 }
 
 ssize_t read_tty (int fd, const void *buf, size_t count)
 {
-    if (fd<0)
-    {
-        errno=EBADF;
-        return -1;
+    if (fd<0){
+        errno = EBADF;
+        goto fail;
     }
-    
+
+// #todo
+// buf and count calidations.
+
     return (ssize_t) sc80 ( 
                          272, 
-                         (unsigned long) fd,      // dispositivo.
+                         (unsigned long) fd,
                          (unsigned long) buf, 
-                         (unsigned long) count ); 
+                         (unsigned long) count );
+fail:
+    return (int) -1;
 }
 
 
@@ -239,17 +243,18 @@ ssize_t read(int fd, const void *buf, size_t count)
 
     ssize_t value = (-1);
 
+// Parameters
     if (fd<0){
         errno = EBADF;
-        return (ssize_t) (-1);
+        goto fail;
     }
     if ((void *) buf == NULL){
         errno = EINVAL;
-        return (ssize_t) (-1);
+        goto fail;
     }
     if (count <= 0){
         errno = EINVAL;
-        return (ssize_t) (-1);
+        goto fail;
     }
 
 // Syscall 18.
@@ -263,10 +268,13 @@ ssize_t read(int fd, const void *buf, size_t count)
 
     if (value < 0){
         errno = (-value);
-        return (ssize_t) (-1);
+        goto fail;
     }
 
     return (ssize_t) value;
+
+fail:
+    return (ssize_t) -1;
 }
 
 ssize_t write(int fd, const void *buf, size_t count)
@@ -275,17 +283,18 @@ ssize_t write(int fd, const void *buf, size_t count)
 
     ssize_t value = (-1);
 
+// Parameters
     if (fd<0){
         errno = EBADF;
-        return (ssize_t) (-1);
+        goto fail;
     }
     if ((void*) buf == NULL){
         errno = EINVAL;
-        return (ssize_t) (-1);
+        goto fail;
     }
     if (count <= 0){
         errno = EINVAL;
-        return (ssize_t) (-1);
+        goto fail;
     }
 
 // Syscall 19.
@@ -299,10 +308,13 @@ ssize_t write(int fd, const void *buf, size_t count)
 
     if (value<0){
         errno = (-value);
-        return (ssize_t) (-1);
+        goto fail;
     }
 
     return (ssize_t) value;
+
+fail:
+    return (ssize_t) -1;
 }
 
 
@@ -865,7 +877,6 @@ char *get_current_dir_name(void)
     return NULL;
 }
 
-
 /*
 int gettid()
 {
@@ -873,15 +884,12 @@ int gettid()
 }
 */
 
-
 /*
 void sysbeep()
 {
     //todo: use syscall!!
 }
 */
-
-
 
 /*
 //#todo:
@@ -896,10 +904,8 @@ void fcntl_dup(int fd)
 }
 */
 
-
 // dup()
 // https://man7.org/linux/man-pages/man2/dup.2.html
-
 int dup(int oldfd)
 {
     int value = -1;
@@ -924,9 +930,7 @@ int dup(int oldfd)
     return (int) value;
 }
 
-
 // dup2()
-
 int dup2(int oldfd, int newfd)
 {
     int value = -1;
@@ -955,9 +959,7 @@ int dup2(int oldfd, int newfd)
     return (int) value;
 }
 
-
 // dup3()
-
 int dup3(int oldfd, int newfd, int flags)
 {
     int value = -1;
@@ -986,7 +988,6 @@ int dup3(int oldfd, int newfd, int flags)
     return (int) value;
 }
 
-
 // See: sys/resource.h
 int getpriority(int which, id_t who)
 {
@@ -994,14 +995,12 @@ int getpriority(int which, id_t who)
     return -1;
 }
 
-
 // See: sys/resource.h
 int setpriority (int which, id_t who, int prio)
 {
     debug_print ("setpriority: [TODO]\n");
     return -1;
 }
-
 
 // nice:
 // Change process priority.
@@ -1014,7 +1013,6 @@ int nice(int inc)
     return -1;    //#todo
 
 //#todo
-
 /*
     int prio;
     errno = 0;
@@ -1031,10 +1029,10 @@ int nice(int inc)
 
 }
 
-
 int pause(void)
 {
     debug_print ("pause: [TODO]\n");
+    asm ("pause");  // hahaha
     return -1; //#todo
 }
 
@@ -1044,14 +1042,11 @@ int mkdir(const char *pathname, mode_t mode)
 
     debug_print ("mkdir: [TODO]\n");
 
-    if ( (void*) pathname == NULL )
-    {
+    if ((void *) pathname == NULL){
         errno=EINVAL;
         return -1;
     }
-
-    if ( *pathname == 0 )
-    {
+    if ( *pathname == 0 ){
         errno=EINVAL;
         return -1;
     }
@@ -1078,17 +1073,15 @@ int rmdir(const char *pathname)
 {
     debug_print ("rmdir: [TODO]\n");
 
-    if ( (void*) pathname == NULL )
-    {
+    if ((void *) pathname == NULL){
+        errno=EINVAL;
+        return -1;
+    }
+    if ( *pathname == 0 ){
         errno=EINVAL;
         return -1;
     }
 
-    if ( *pathname == 0 )
-    {
-        errno=EINVAL;
-        return -1;
-    }
 
     return -1; //#todo
 }
@@ -1314,9 +1307,10 @@ int close(int fd)
 {
     int value = -1;
 
-    if (fd<0){
+// Parameter
+    if (fd < 0){
         errno = EBADF;
-        return (int) (-1);
+        goto fail;
     }
 
 // Is it for sys_close() in kernel?
@@ -1327,12 +1321,15 @@ int close(int fd)
                   (unsigned long) fd, 
                   (unsigned long) fd );
 
-    if (value<0){
+    if (value < 0){
         errno = (-value);
-        return (int) (-1);
+        goto fail;
     }
 
     return (int) value;
+
+fail:
+    return (int) -1;
 }
 
 int pipe2 ( int pipefd[2], int flags )
@@ -1346,14 +1343,17 @@ int pipe2 ( int pipefd[2], int flags )
 
 int pipe(int pipefd[2])
 {
-    int value=-1;
+    int value = -1;
+
     value = (int) pipe2(pipefd,0);
-    if(value<0)
-    {
-        errno=(-value);
-        return -1;
+    if (value < 0){
+        errno = (-value);
+        goto fail;
     }
     return (int) value;
+
+fail:
+    return (int) -1;
 }
 
 long fpathconf (int fildes, int name)
@@ -1366,26 +1366,27 @@ long pathconf (const char *pathname, int name)
 {
     debug_print ("pathconf: [TODO]\n");
 
-    if ( (void*) pathname == NULL )
-    {
+    if ((void *) pathname == NULL){
         errno=EINVAL;
-        return -1;
+        goto fail;
     }
-    
-    if (*pathname == 0)
-    {
+    if (*pathname == 0){
         errno=EINVAL;
-        return -1;
+        goto fail;
     }
 
+// ...
 
-    return -1;
-} 
+    return (long) -1;
 
+fail:
+    return (long) -1;
+}
 
 // =======================
 // __gethostname:
 
+// static 
 char __Hostname_buffer[64];
 
 char *__gethostname(void)
@@ -1410,14 +1411,13 @@ int gethostname (char *name, size_t len)
 {
     int value = -1;
 
-    if ( (void*) name == NULL )
-    {
+// Parameters
+    if ((void*) name == NULL){
         printf ("gethostname: buffer fail\n");
         errno=EINVAL;
         return -1;
     }
-
-    if (len<0){
+    if (len < 0){
         printf ("gethostname: len fail\n");
         errno=EINVAL;
         return -1;
@@ -1446,19 +1446,16 @@ int sethostname (const char *name, size_t len)
 {
     int value=-1;
 
-    if ( (void*) name == NULL )
-    {
+// Parameters
+    if ((void *) name == NULL){
         errno=EINVAL;
         return -1;
     }
-
-    if (*name == 0)
-    {
+    if (*name == 0){
         errno=EINVAL;
         return -1;
     }
-
-    if (len<0){
+    if (len < 0){
         errno=EINVAL;
         return -1;
     }
@@ -1499,6 +1496,7 @@ int __getlogin(char *logname, size_t sz)
 /*
  * getlogin:
  */
+// static 
 char __Login_buffer[64];
 char *getlogin (void)
 {
@@ -1515,14 +1513,12 @@ int setlogin (const char *name)
 {
     int value=-1;
 
-    if ( (void*) name == NULL )
-    {
+// Parameters
+    if ((void *) name == NULL){
         errno=EINVAL;
         return -1;
     }
-
-    if (*name == 0)
-    {
+    if (*name == 0){
         errno=EINVAL;
         return -1;
     }
@@ -1541,7 +1537,6 @@ int setlogin (const char *name)
     return (int) value;
 }
 
-
 // getusername 
 // #todo
 // usar  setlogin 
@@ -1549,13 +1544,12 @@ int getusername (char *name, size_t len)
 {
     int value=0;
 
-    if ( (void*) name == NULL )
-    {
+// Parameters
+    if ((void *) name == NULL){
         printf ("getusername: buffer fail\n");
         errno=EINVAL;
         return -1;
     }
-
     if ( len < 0 || len > HOST_NAME_MAX )
     {
         printf ("getusername: len\n");
@@ -1593,24 +1587,20 @@ int getusername (char *name, size_t len)
 // O limite precisa ser respeitado. 
 // #todo
 // usar setlogin
-
 int setusername (const char *name, size_t len)
 {
     size_t __name_len = 0;
     int value = -1;
 
-    if ( (void*) name == NULL )
-    {
+// Parameters
+    if ((void *) name == NULL){
         errno=EINVAL;
         return -1;
     }
-
-    if (*name == 0)
-    {
+    if (*name == 0){
         errno=EINVAL;
         return -1;
     }
-
     if (len<0){
         errno=EINVAL;
         return -1;
@@ -1745,19 +1735,19 @@ int ttyto( int fd)
 */
 
 
+// isatty:
 // POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
 // isatty - test whether a file descriptor refers to a terminal
 // This function returns 1 if filedes is a file descriptor associated 
 // with an open terminal device, and 0 otherwise. 
-
 int isatty (int fd)
 {
     int Ret=-1;
     struct termios  t;
 
-    if (fd<0){
+    if (fd < 0){
         errno=EBADF;
-        return -1;
+        goto fail;
     }
 
     Ret = (int) tcgetattr(fd,&t);
@@ -1771,8 +1761,10 @@ int isatty (int fd)
     if (Ret == TRUE) { return TRUE;  }
     // NO
     if (Ret == FALSE){ return FALSE; }
+
+fail:
 // Crazy fail
-    return -1;
+    return (int) -1;
 }
 
 
@@ -1839,9 +1831,8 @@ int fstat(int fd, struct stat *buf)
     return (int) value;
 }
 
-
 // stat:
-// sys/stat.h
+// see: sys/stat.h
 int stat(const char *path, struct stat *buf)
 {
     int value = -1;
@@ -1849,23 +1840,23 @@ int stat(const char *path, struct stat *buf)
 
     debug_print ("stat: [TODO]\n");
 
-    if ( (void*) path == NULL )
-    {
+// Parameters
+    if ((void *) path == NULL){
         errno = EINVAL;
-        return -1;
+        goto fail;
     }
-    
-    if ( *path == 0 )
-    {
+    if ( *path == 0 ){
         errno = EINVAL;
-        return -1;
+        goto fail;
     }
+// #todo:
+// Check the 'buf' validation.
 
 // Open
     _fd = (int) open (path, 0, 0);
     if (_fd<0){
         errno = EBADF;
-        return -1;
+        goto fail;
     }
 
 // fstat
@@ -1873,23 +1864,25 @@ int stat(const char *path, struct stat *buf)
     close(_fd);
     if (value<0){
         errno = (-value);
-        return (int) -1;
+        goto fail;
     }
 
     return (int) value;
-}
 
+fail:
+    return (int) -1;
+}
 
 // sys/stat.h
 int lstat(const char *path, struct stat *buf)
 {
     debug_print ("lstat: [TODO]\n");
 
-    if ( (void*) path == NULL ){
+// Parameters
+    if ((void *) path == NULL){
         errno = EINVAL;
         return -1;
     }
-
     if ( *path == 0 ){
         errno = EINVAL;
         return -1;
@@ -1898,7 +1891,7 @@ int lstat(const char *path, struct stat *buf)
     return (int) stat(path, buf);
 }
 
-
+// alarm:
 // POSIX.1-2001, POSIX.1-2008, SVr4, 4.3BSD.
 // See:
 // https://man7.org/linux/man-pages/man2/alarm.2.html
@@ -1941,10 +1934,16 @@ void *sbrk(intptr_t increment)
 int execvp (const char *file, char *const argv[])
 {
     debug_print ("execvep: [TODO]\n");
-    return -1;
-    //return = execvpe ( file, argv, environ );
-}
 
+    if ((void *) file == NULL)
+        goto fail;
+
+    // #todo:
+    //return = execvpe ( file, argv, environ );
+
+fail: 
+    return (int) -1;
+}
 
 int 
 execvpe ( 
@@ -1953,38 +1952,47 @@ execvpe (
     char *const envp[] )
 {
     debug_print ("execvpe: [TODO]\n");
-    return -1;
+
+    if ((void *) file == NULL)
+        goto fail;
+
+    // #todo
+    // ...
+
+fail: 
+    return (int) -1;
 }
 
-
+// chown:
 // #todo: Not implementeed yet.
-
 int chown(const char *pathname, uid_t owner, gid_t group)
 {
     debug_print ("chown: [TODO]\n");
 
-    if ( (void*) pathname == NULL ){
+// Parameters:
+    if ((void *) pathname == NULL){
         errno = EINVAL;
-        return (int) (-1);
+        goto fail;
     }
     if (*pathname == 0){
         errno = EINVAL;
-        return (int) (-1);
+        goto fail;
     }
     if (owner < 0){
         errno = EINVAL;
-        return (int) (-1);
+        goto fail;
     }
     if (group < 0){
         errno = EINVAL;
-        return (int) (-1);
+        goto fail;
     }
 
-// #todo
+    // #todo
+    // ...
 
-    return -1; 
+fail:
+    return (int) -1; 
 }
-
 
 // #todo
 // Maybe it is easy.
@@ -1992,6 +2000,7 @@ int fchown(int fd, uid_t owner, gid_t group)
 {
     debug_print ("fchown: [TODO]\n");
 
+// Parameters
     if (fd<0){
         errno = EBADF;
         return -1;
@@ -2014,6 +2023,7 @@ int lchown(const char *pathname, uid_t owner, gid_t group)
 {
     debug_print ("lchown: [TODO]\n");
 
+// Parameters
     if ( (void*) pathname == NULL ){
         errno = EINVAL;
         return (-1);
@@ -2036,20 +2046,20 @@ int lchown(const char *pathname, uid_t owner, gid_t group)
     return (-1); 
 }
 
-
 int chdir(const char *path)
 {
     int value=-1;
 
     debug_print ("chdir: [TODO]\n");
 
+// Parameters
     if ((void*) path == NULL){
         errno = EINVAL;
-        return (int) -1;
+        goto fail;
     }
     if (*path == 0){
         errno = EINVAL;
-        return (int) -1;
+        goto fail;
     }
 
     value = 
@@ -2061,12 +2071,14 @@ int chdir(const char *path)
 
     if (value<0){
         errno = (-value);
-        return (int) (-1);
+        goto fail;
     }
 
     return (int) value;
-}
 
+fail:
+    return (int) -1;
+}
 
 //#todo: not implemented yet.
 int fchdir(int fd)
@@ -2075,9 +2087,12 @@ int fchdir(int fd)
 
     if (fd<0){
         errno = EBADF;
-        return -1;
+        goto fail;
     }
 
+// ...
+
+fail:
     return -1; 
 }
    
@@ -2086,16 +2101,21 @@ int fchdir(int fd)
 unsigned int sleep(unsigned int seconds)
 {
     debug_print ("sleep: [TODO]\n");
-    return -1;
+
+//fail:
+    return (unsigned int) 0;
 }
 
 void swab_w (const short *from, short *to, ssize_t n)
 {
+
+// Parameters
     //if ( (void*) from == NULL )
     //    return;
-
     //if ( (void*) to == NULL )
     //    return;
+    //if (n<0)
+        //return;
 
     n /= 2;
 
@@ -2106,42 +2126,52 @@ void swab_w (const short *from, short *to, ssize_t n)
     };
 }
 
-
 void swab (const void *from, void *to, ssize_t n)
 {
+
+// Parameters
     //if ( (void*) from == NULL )
     //    return;
-
     //if ( (void*) to == NULL )
     //    return;
+    //if (n<0)
+        //return;
 
     swab_w ( (const short *) from, (short *) to, (ssize_t) n );
 }
-
 
 // #
 // isso muda o posicionamento dentro do arquivo lá no kernel.
 // isso está certo, pois precisamos disso pra sabermos
 // o tamanho do arquivo.
 // whence = "De onde ?".
-
 off_t lseek(int fd, off_t offset, int whence)
 {
+
+// Parameters
     if (fd<0){
         errno = EBADF;
-        return (-1);
+        goto fail;
     }
+// #todo: offset, whence.
 
     return (off_t) sc80 ( 
                        603, 
                        (unsigned long) fd,
                        (unsigned long) offset,
                        (unsigned long) whence );
-}
 
+fail:
+    return (off_t) -1;
+}
 
 off_t tell(int fildes)
 {
+
+// Parameters
+    //if (fildes< 0)
+        // return -1;
+
     return (off_t) lseek(fildes, 0, SEEK_CUR);
     //maybe: return(lseek(fildes, 0, 1));
 }
@@ -2266,9 +2296,10 @@ int uname(struct utsname *buf)
 
     debug_print("uname: TODO\n");
 
+// Parameter
     if ((void*) buf == NULL){
         errno = EINVAL;
-        return (-1);
+        goto fail;
     }
 
     value = 
@@ -2280,10 +2311,13 @@ int uname(struct utsname *buf)
 
     if (value<0){
         errno = (-value);
-        return (-1);
+        goto fail;
     }
 
     return (int) value;
+
+fail:
+    return (int) -1;
 }
 
 
@@ -2388,27 +2422,30 @@ l:
     }
     if (a[i++] == '\0')
     {
-        return 1;
+        return (int) 1;
     }
     goto l;
 }
 
-
+// getlin:
 // pega uma label em uma linha do arquivo
-// para comparar strings;
-
+// para comparar strings.
 int getlin(char s[])
 {
     int ch=0;
-    int i=0;
+    register int i=0;
+
+// Parameters.
+    //if ( (void *) s == NULL)
+        //goto fail;
 
     i=0;
 l:
 
     // Se acabou a string.
-    if ( ( ch=getc(stdin) ) == '\0' )
+    if ( ( ch = getc(stdin) ) == '\0' )
     {
-        return (1);
+        return (int) 1;
     }
 
     // Se não for o marcador de label.
@@ -2441,9 +2478,11 @@ l:
 
     s[i] = '\0';
 
-    return (0);
-}
+    return 0;
 
+//fail:
+    //return (int) -1;
+}
 
 /*
 //label?
@@ -2668,7 +2707,6 @@ xxx_todo_int133 (
     return -1;
 }
 
-
 // Count occurrences of a char.
 // Credits: templeos.
 int 
@@ -2676,11 +2714,14 @@ StrOcc (
     unsigned char *src, 
     int ch )
 {
-    int Times=0;
-  
+    register int Times=0;
+
+// Parameter  
     if (!src){
         return 0; 
     }
+
+// Loop
     while (*src)
     {
         if (*src++ == ch)
@@ -2692,10 +2733,8 @@ StrOcc (
     return (int) Times;
 }
 
-
 // Point to 1st occurrence of marker set in str.
 // Credits: templeos.
-
 unsigned char *StrFirstOcc(
     unsigned char *src,
     unsigned char *marker )
@@ -2751,7 +2790,6 @@ unsigned char *Str_strrchr(unsigned char *string1, int ch)
 }
 */
 
-
 // See:
 // https://man7.org/linux/man-pages/man3/posix_spawn.3.html
 int 
@@ -2767,10 +2805,12 @@ posix_spawn (
 
     debug_print ("posix_spawn: [FIXME] It's a work in progress.\n"); 
 
+// Parameters:
     if ((void*) path == NULL){
         errno=EINVAL;
-        return -1;
+        goto fail;
     }
+    // ...
 
     value = 
         (int) sc80( 
@@ -2781,10 +2821,13 @@ posix_spawn (
 
     if (value<0){
         errno=(-value);
-        return -1;
+        goto fail;
     }
 
     return (int) value;
+
+fail:
+    return (int) -1;
 }
 
 int 
@@ -2797,9 +2840,16 @@ posix_spawnp (
     char *const envp[] )
 {
     debug_print ("posix_spawnp: [FIXME] It's a work in progress.\n"); 
-    return (int) sc80 ( 900, (unsigned long) file, 0, 0 );
-}
 
+// #todo
+// Check parameters
+    if ((void *) file == NULL)
+        goto fail;
+
+    return (int) sc80 ( 900, (unsigned long) file, 0, 0 );
+fail:
+    return (int) -1;
+}
 
 /*
 pid_t 
@@ -2830,7 +2880,9 @@ int spawnv(int mode, char *cmd, char **argv)
 
     debug_print ("spawnv: [FIXME] It's a work in progress.\n"); 
 
-    if ( (void*) cmd == NULL ){
+// Parameters
+// #todo: All the parameters
+    if ((void *) cmd == NULL){
         errno = EINVAL;
         return -1;
     }
@@ -2980,9 +3032,10 @@ spawnveg(
 int getdtablesize(void)
 {
     debug_print ("getdtablesize: [TODO] not implemented yet\n"); 
-    return -1;
-}
 
+//fail:
+    return (int) -1;
+}
 
 //
 // End

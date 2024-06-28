@@ -131,7 +131,7 @@ int rtl_y_or_n(void)
 {
     static int ch=0;
 
-    if ( (void*) stdin == NULL )
+    if ((void *) stdin == NULL)
         goto crazy_fail;
 
     printf("Type: 'y' or 'n'\n");
@@ -339,7 +339,7 @@ int remove (const char *pathname)
 {
     debug_print ("remove: [TODO] It removes a file from the file system\n");
 
-    if ( (void*) pathname == NULL){
+    if ((void *) pathname == NULL){
         goto fail;
     }
     if (*pathname == 0){
@@ -376,7 +376,7 @@ _strout (
         adjust++;
     };
 
-    while (--count>=0){
+    while (--count >= 0){
         putc (*string++, file);
     };
 
