@@ -1,5 +1,5 @@
-
 // terminal.c
+// Created by Fred Nora.
 
 //#include <ctype.h>
 // #todo:
@@ -1025,8 +1025,7 @@ static void compareStrings(int fd)
     }
 
 
-
-// Enable network
+// Unlock network
     if ( strncmp(prompt,"net-on",6) == 0 )
     {
         sc82 ( 22001, 
@@ -1034,7 +1033,7 @@ static void compareStrings(int fd)
         0, 0 );
         goto exit_cmp;
     }
-// Disable network
+// Lock network
     if ( strncmp(prompt,"net-off",7) == 0 )
     {
         sc82 ( 22001, 
