@@ -1,5 +1,5 @@
-
 // terminal.c
+// Created by Fred Nora.
 
 //#include <ctype.h>
 // #todo:
@@ -238,10 +238,35 @@ static void __test_post_async_hello(void);
 static void __winmax(int fd);
 static void __winmin(int fd);
 
-
 //#test
 static void update_clients(int fd);
+
+static void exit_terminal_application(int fd);
 //====================================================
+
+static void exit_terminal_application(int fd)
+{
+    printf("~exit: Exit the terminal application\n");
+
+// Parameter
+    if (fd<0)
+        goto done_raw;
+
+// Destroy terminal window
+    //if (Terminal.client_window_id<0)
+        //goto done_raw;
+    //gws_destroy_window(fd,Terminal.client_window_id);
+
+// Destroy main window
+    if (main_window<0)
+        goto done_raw;
+    gws_destroy_window(fd,main_window);
+
+//...
+
+done_raw:
+    exit(EXIT_SUCCESS);
+}
 
 //#test
 static void update_clients(int fd)
@@ -1024,7 +1049,9 @@ static void compareStrings(int fd)
         goto exit_cmp;
     }
 
-
+//
+// Network
+//
 
 // Enable network
     if ( strncmp(prompt,"net-on",6) == 0 )
@@ -1039,25 +1066,24 @@ static void compareStrings(int fd)
     {
         sc82 ( 22001, 
         0,  // OFF
-         0, 0 );
+        0, 0 );
         goto exit_cmp;
     }
-
-//
-// start-xxx section
-//
-
-// Quit embedded shell, 
-// launch #shell.bin
-// and start listening to stderr.
-    if ( strncmp(prompt, "start-shell", 11) == 0 )
-    {
-        // #todo: Create a worker for that.
-        printf("Quit embedded shell.\n");
-        printf("Start listening to stderr.\n");
-        isUsingEmbeddedShell = FALSE;
+// n1: arp
+    if ( strncmp(prompt,"n1", 2) == 0 ){
+        sc82( 22003, 1, 0, 0 );
         goto exit_cmp;
-    } 
+    }
+// n2: udp
+    if( strncmp(prompt,"n2", 2) == 0 ){
+        sc82 ( 22003, 2, 0, 0 );
+        goto exit_cmp;
+    }
+// n3: dhcp
+    if ( strncmp(prompt,"n3", 2) == 0 ){
+        sc82( 22003, 3, 0, 0 );
+        goto exit_cmp;
+    }
 // Start the network server.
 // Maybe we're gonna connect to this server to get information
 // about our network.
@@ -1072,6 +1098,18 @@ static void compareStrings(int fd)
     }
 
 
+// Quit embedded shell, 
+// launch #shell.bin
+// and start listening to stderr.
+    if ( strncmp(prompt, "start-shell", 11) == 0 )
+    {
+        // #todo: Create a worker for that.
+        printf("Quit embedded shell.\n");
+        printf("Start listening to stderr.\n");
+        isUsingEmbeddedShell = FALSE;
+        goto exit_cmp;
+    } 
+
 // #libc
 // Testing libc components.
     if ( strncmp(prompt,"libc",4) == 0 )
@@ -1081,23 +1119,20 @@ static void compareStrings(int fd)
     }
 
 // Create file using rtl implementation, not posix.
-    if ( strncmp(prompt,"create-file",11) == 0 )
-    {
+    if ( strncmp(prompt,"create-file",11) == 0 ){
         rtl_create_empty_file("newfil.txt");
         goto exit_cmp; 
     }
 // Create directory using rtl implementation, not posix.
-    if ( strncmp(prompt,"create-dir",10) == 0 )
-    {
+    if ( strncmp(prompt,"create-dir",10) == 0 ){
         rtl_create_empty_directory("newdir");
         goto exit_cmp; 
     }
 
-// exit: Exit the terminal application.
+// exit: 
+// Exit the terminal application.
     if ( strncmp(prompt,"exit",4) == 0 ){
-        printf("~exit: Exit the terminal application\n");
-        gws_destroy_window(fd,main_window);
-        exit(0);
+        exit_terminal_application(fd);
         goto exit_cmp;
     }
 
@@ -1130,24 +1165,6 @@ static void compareStrings(int fd)
 // IN: ms.
     if ( strncmp(prompt,"sleep",5) == 0 ){
         rtl_sleep(2000);
-        goto exit_cmp;
-    }
-
-// Network tests
-
-// arp
-    if ( strncmp(prompt,"n1", 2) == 0 ){
-        sc82( 22003, 1, 0, 0 );
-        goto exit_cmp;
-    }
-// udp
-    if( strncmp(prompt,"n2", 2) == 0 ){
-        sc82 ( 22003, 2, 0, 0 );
-        goto exit_cmp;
-    }
-// dhcp
-    if ( strncmp(prompt,"n3", 2) == 0 ){
-        sc82( 22003, 3, 0, 0 );
         goto exit_cmp;
     }
 
@@ -1184,9 +1201,10 @@ static void compareStrings(int fd)
 
 // open1
 // Test open() function.
+// #test: ok, device found.
     if ( strncmp(prompt,"open1",5) == 0 )
     {
-        // #test: ok, found.
+        printf("\n");
         open("/DEV/TTY0",          0, "a+"); 
         open("/DEV/PS2KBD",        0, "a+");
         open("/DEV/DEV_1234_1111", 0, "a+");  //?
@@ -1195,12 +1213,13 @@ static void compareStrings(int fd)
         goto exit_cmp;
     }
 
+    // int 3.
     if ( strncmp(prompt,"int3",4) == 0 ){
         do_int3();
         goto exit_cmp;
     }
 
-    //gp fault
+    // cli - (GP Fault in ring3)
     if ( strncmp(prompt,"cli",3) == 0 ){
         do_cli();
         goto exit_cmp;
@@ -1237,20 +1256,22 @@ static void compareStrings(int fd)
     if ( strncmp(prompt, "string", 6) == 0 )
     {
         cr();
-        lf();  // next line.
+        lf();
         tputstring(fd, "This is a string!\n");
         cr();
-        lf();  // enxt line.
+        lf();
         goto exit_cmp;
     }
 
 // Test escape sequence do terminal.
+// Inside the terminal window.
     if ( strncmp(prompt,"esc",3) == 0 ){
         __test_escapesequence(fd);
         goto exit_cmp;
     }
 
 // Test escape sequence do console no kernel.
+// Outside the terminal window. (the whole desktop)
     if ( strncmp(prompt,"esc2",4) == 0 )
     {
         //move cursor right
@@ -1263,13 +1284,13 @@ static void compareStrings(int fd)
         goto exit_cmp;
     }
 
-// Quit 'ws'.
-    if ( strncmp(prompt,"ws-quit",7) == 0 ){
+// Quit display server.
+    if ( strncmp(prompt,"ds-quit",7) == 0 ){
         //gws_async_command(fd,88,0,0);  //ok
         goto exit_cmp;
     }
 
-// Testing ioctl
+// Testing ioctl().
     if ( strncmp(prompt,"ioctl",5) == 0 )
     {
         __test_ioctl();
