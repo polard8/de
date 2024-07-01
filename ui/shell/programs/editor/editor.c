@@ -1,5 +1,6 @@
-
 // editor.c
+// Text editor for Gramado OS.
+// Created by Fred Nora.
 
 // Connecting via AF_INET.
 // tutorial example taken from. 
@@ -53,12 +54,13 @@ struct sockaddr_in addr = {
 };
 */
 
-
 static int isTimeToQuit = FALSE;
-
 static int file_status=FALSE;
 
-char file_buffer[512];
+// #test
+// The file buffer.
+//char file_buffer[512];
+char file_buffer[1024];
 
 //
 // windows
@@ -104,12 +106,15 @@ static int blink_status=FALSE;
 static const char *program_name = "EDITOR";
 // Addressbar title
 static const char *bar1_string = "bar1";
-// Button labe.
+// Button label.
 static const char *b1_string = "Save";
 // Client window title.
 static const char *cw_string = "cw";
 
 // text
+static unsigned long text1_l = 0;
+static unsigned long text1_t = 0;
+static unsigned int text1_color = 0;
 static const char *text1_string = "Name:";
 static const char *text2_string = "TEXT.TXT";
 
@@ -152,14 +157,33 @@ static void update_clients(int fd)
         main_window,   // The app window.
         (struct gws_window_info_d *) &lWi );
 
+
+// #test
+// Let's print the text, before the address bar.
+
+    text1_l = 2;
+    text1_t = 4 + (24/3);
+    text1_color = COLOR_BLACK;
+    gws_draw_text (
+        (int) fd,
+        (int) main_window,
+        (unsigned long) text1_l,
+        (unsigned long) text1_t,
+        (unsigned long) text1_color,
+        text1_string );
+
+
 // Change the position of the clients.
 
 // ---------------------------------------------
-// address bar
+// Address bar
+    // #todo: 
+    // '.l': It actually depends on the text befor this.
+    // We need to know the text width.
     cwAddressBar.l = (( lWi.cr_width/8 )*2);
     cwAddressBar.t = 4;
     cwAddressBar.w = (( lWi.cr_width/8 )*3);
-    cwAddressBar.h = 24;
+    cwAddressBar.h = 24; 
     gws_change_window_position( 
         fd,
         addressbar_window,
@@ -172,8 +196,8 @@ static void update_clients(int fd)
         cwAddressBar.h );
 
 //---------------------------------------------
-// button
-    cwButton.l = (( lWi.cr_width/8 )*7);
+// Save button
+    cwButton.l = (( lWi.cr_width/8 )*7) -4;
     cwButton.t = 4;
     cwButton.w = (( lWi.cr_width/8 )*1);
     cwButton.h = 24;
@@ -189,9 +213,8 @@ static void update_clients(int fd)
         cwButton.h );
 
 //-----------------------
-// the text window
-// Save
-// Save
+// The client window where we type the text.
+
     cwText.l = 0;
     cwText.t = (cwAddressBar.t + cwAddressBar.h + 2);
     cwText.w = lWi.cr_width;
@@ -735,16 +758,16 @@ int editor_initialize(int argc, char *argv[])
 // Right below the title bar.
 // Right above the client window.
 
-    unsigned long text_l = 2;
-    unsigned long text_t = 4 + (24/3);
-    unsigned int text_color = COLOR_BLACK;
+    text1_l = 2;
+    text1_t = 4 + (24/3);
+    text1_color = COLOR_BLACK;
 
     gws_draw_text (
         (int) client_fd,
         (int) main_window,
-        (unsigned long) text_l,
-        (unsigned long) text_t,
-        (unsigned long) text_color,
+        (unsigned long) text1_l,
+        (unsigned long) text1_t,
+        (unsigned long) text1_color,
         text1_string );
 
     //#debug
@@ -832,8 +855,8 @@ int editor_initialize(int argc, char *argv[])
     //#debug
     gws_refresh_window (client_fd, main_window);
 
-// Save
-    cwButton.l = (( lWi.cr_width/8 )*7);
+// Save button
+    cwButton.l = (( lWi.cr_width/8 )*7) -4;
     cwButton.t = 4;
     cwButton.w = (( lWi.cr_width/8 )*1);
     cwButton.h = 24;
