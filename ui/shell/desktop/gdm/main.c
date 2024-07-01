@@ -1,9 +1,7 @@
-/*
- * File: main.c
- *     GDM - Gramado Display Manager.
- * History:
- *     2022 - Created by Fred Nora.
- */
+// main.c
+// GDM - Gramado Display Manager.
+// 2022 - Created by Fred Nora.
+
 // Connecting via AF_INET.
 // tutorial example taken from. 
 // https://www.tutorialspoint.com/unix_sockets/socket_server_example.htm

@@ -58,7 +58,7 @@ struct child_window_d cwClientWindow;
 
 const char *app_name = "Browser";
 const char *ab_name = "address-bar";
-const char *ab_label = "https://github.com/frednora";
+const char *ab_label = "https://github.com/gramado";
 const char *bt_label = ">";
 const char *cw_name = "client-win";
 const char *cw_label = "Gramado OS";
@@ -96,7 +96,7 @@ static void update_clients(int fd)
         (struct gws_window_info_d *) &lWi );
 
 // ---------------------------------------------
-// address bar
+// Address bar
     cwAddressBar.l = (( lWi.cr_width/8 )*2);
     cwAddressBar.t = 4;
     cwAddressBar.w = (( lWi.cr_width/8 )*3);
@@ -112,9 +112,26 @@ static void update_clients(int fd)
         cwAddressBar.w,
         cwAddressBar.h );
 
+// IN: 
+// fd, window id, left, top, color, string
+    if (__addressbar_window > 0)
+    {
+        gws_draw_text (
+            (int) fd,
+            (int) __addressbar_window,
+            8, 8, (unsigned long) COLOR_BLACK, ab_label );
+    }
+
+    // #test
+    // This is gonna repaint the bar with bold border.
+    gws_set_focus(fd,__addressbar_window);
+    // #test
+    // This is gonna redraw it respecting the focus style.
+    gws_redraw_window(fd, __addressbar_window, TRUE);
+
 //---------------------------------------------
 // Button
-    cwButton.l = (( lWi.cr_width/8 )*7);
+    cwButton.l = (( lWi.cr_width/8 )*7) -4;
     cwButton.t = 4;
     cwButton.w = (( lWi.cr_width/8 )*1);
     cwButton.h = 24;
@@ -128,6 +145,9 @@ static void update_clients(int fd)
         __button_window,
         cwButton.w,
         cwButton.h );
+
+    gws_redraw_window(fd, __button_window, TRUE);
+
 
 //-----------------------
 // the client window
@@ -154,13 +174,6 @@ static void update_clients(int fd)
         cwClientWindow.w,
         cwClientWindow.h );
 
-// ...
-
-    gws_set_focus(fd,__addressbar_window);
-
-// At the end ...
-    gws_redraw_window(fd, __addressbar_window, TRUE);
-    gws_redraw_window(fd, __button_window, TRUE);
     gws_redraw_window(fd, __client_window, TRUE);
 }
 
@@ -394,9 +407,8 @@ int main2( int argc, char *argv[] )
                 app_name,
                 viewwindowx, viewwindowy, w_width, w_height );
 
-    if (main_window < 0)
-    {
-        debug_print("browser: main_window fail\n"); 
+    if (main_window < 0){
+        debug_print("browser: main_window\n"); 
         exit(1);
     }
 // Save globally
@@ -437,18 +449,16 @@ int main2( int argc, char *argv[] )
         gws_draw_text (
             (int) client_fd,
             (int) addressbar_window,
-             8, 8, (unsigned long) COLOR_BLACK, ab_label );
+            8, 8, (unsigned long) COLOR_BLACK, ab_label );
     }
 
 // ===================
 // button WT_BUTTON
-// Se janela mãe é overlapped,
-// pinta na client area.
 
-    unsigned long bt_l = (w_width -24 -4);
-    unsigned long bt_t = 4; 
-    unsigned long bt_w = 24;
-    unsigned long bt_h = 24; 
+    cwButton.l = (w_width -24) -4;
+    cwButton.t = 4;
+    cwButton.w = 24;
+    cwButton.h = 24;
 
     button = 
         (int) gws_create_window (
@@ -457,7 +467,7 @@ int main2( int argc, char *argv[] )
                   BS_DEFAULT, 
                   1, 
                   bt_label,
-                  bt_l, bt_t, bt_w, bt_h,   
+                  cwButton.l, cwButton.t, cwButton.w, cwButton.h, 
                   main_window, 
                   0, COLOR_GRAY, COLOR_GRAY );
 
