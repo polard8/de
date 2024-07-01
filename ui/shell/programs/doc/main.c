@@ -405,9 +405,13 @@ static void update_clients(int fd)
         cwAddressBar.w,
         cwAddressBar.h );
 
+    gws_set_focus(fd,__addressbar_window);
+    gws_redraw_window(fd, __addressbar_window, TRUE);
+
+
 //---------------------------------------------
 // Button
-    cwButton.l = (( lWi.cr_width/8 )*7);
+    cwButton.l = (( lWi.cr_width/8 )*7) -4;
     cwButton.t = 4;
     cwButton.w = (( lWi.cr_width/8 )*1);
     cwButton.h = 24;
@@ -422,10 +426,11 @@ static void update_clients(int fd)
         cwButton.w,
         cwButton.h );
 
+    gws_redraw_window(fd, __button_window, TRUE);
+
 //-----------------------
 // the client window
-// Save
-// Save
+
     cwClientWindow.l = 0;
     cwClientWindow.t = (cwAddressBar.t + cwAddressBar.h + 2);
     cwClientWindow.w = lWi.cr_width;
@@ -447,13 +452,6 @@ static void update_clients(int fd)
         cwClientWindow.w,
         cwClientWindow.h );
 
-// ...
-
-    gws_set_focus(fd,__addressbar_window);
-
-// At the end ...
-    gws_redraw_window(fd, __addressbar_window, TRUE);
-    gws_redraw_window(fd, __button_window, TRUE);
     gws_redraw_window(fd, __client_window, TRUE);
 }
 
@@ -686,8 +684,7 @@ int main ( int argc, char *argv[] )
                   0x0000,  
                   COLOR_GRAY, COLOR_GRAY );
 
-    if (main_window < 0)
-    {
+    if (main_window < 0){
         debug_print("docv: main_window fail\n"); 
         exit(1);
     }
@@ -715,8 +712,7 @@ int main ( int argc, char *argv[] )
                   main_window,  
                   0, COLOR_WHITE, COLOR_WHITE );
 
-    if (addressbar_window < 0)
-    {
+    if (addressbar_window < 0){
         debug_print("docv: addressbar_window fail\n"); 
         exit(1);
     }
@@ -736,17 +732,20 @@ int main ( int argc, char *argv[] )
 
 // ===================
 // button
+
+    cwButton.l = (w_width -24) -4;
+    cwButton.t = 4;
+    cwButton.w = 24;
+    cwButton.h = 24;
+
     button = 
         (int) gws_create_window (
                   client_fd,
                   WT_BUTTON, 
                   BS_DEFAULT, 
                   1, 
-                  ">",
-                  (w_width -24 -4),  // l 
-                  4,                 // t
-                  24, 
-                  24,
+                  ">",  // #todo: Use global variable.
+                  cwButton.l, cwButton.t, cwButton.w, cwButton.h,
                   main_window, 0, COLOR_GRAY, COLOR_GRAY );
 
     if (button < 0)
@@ -762,18 +761,23 @@ int main ( int argc, char *argv[] )
 
 // ===================
 // client window (White)
+
+    cwClientWindow.l = 0;
+    cwClientWindow.t = 4 +24 +4;
+    cwClientWindow.w = w_width >> 1;
+    cwClientWindow.h = w_height >> 1;
+
     client_window = 
         (int) gws_create_window (
                   client_fd,
                   WT_SIMPLE,1,1,"client",
-                  4,                       // l
-                  4 +24 +4,                // t
-                  w_width-8, 
-                  w_height -4 -24 -4 -4,
+                  cwClientWindow.l,
+                  cwClientWindow.t,  
+                  cwClientWindow.w, 
+                  cwClientWindow.h,
                   main_window, 0, COLOR_WHITE, COLOR_WHITE );
 
-    if (client_window < 0)
-    {
+    if (client_window < 0){
         debug_print("docv: client_window fail\n"); 
         exit(1);
     }
