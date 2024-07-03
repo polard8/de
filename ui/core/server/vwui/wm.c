@@ -3840,8 +3840,12 @@ void set_focus(struct gws_window_d *window)
                     if (p->type == WT_OVERLAPPED)
                     {
                         set_active_window(p);
-                        set_top_window(p);
-                        set_first_window(p);
+
+                        // #bugbug
+                        // Put it in top/first
+                        // will mess up the tiling when we press F5.
+                        //set_top_window(p);
+                        //set_first_window(p);
                         
                         redraw_window(p,TRUE);
                     }
