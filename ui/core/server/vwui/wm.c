@@ -3825,7 +3825,28 @@ void set_focus(struct gws_window_d *window)
         // Repaint the new owner that has the focus.
         // Now the new owner has focus and it will ne painted
         // with a different style.
+
+        // #test: 
+        // Set the parent as the active window.
+        if (window->parent != NULL)
+        {
+            if (window->parent->magic == 1234)
+            {
+                if (window->parent != active_window)
+                {
+                    if (window->parent->type == WT_OVERLAPPED){
+                        set_active_window(window->parent);
+                        redraw_window(window->parent,TRUE);
+                    }
+                }
+            }
+        }
+        
+
+        // Set the keyboard owner
         keyboard_owner = (void*) window;
+        // Set the mouse owner
+        mouse_owner = (void*) window;
         redraw_window(keyboard_owner,TRUE);
 
         // The old owner
@@ -6529,10 +6550,7 @@ void set_active_window(struct gws_window_d *window)
 // Can we active the root window?
 // The root window is WT_SIMPLE.
 
-    if (window == active_window){
-        return;
-    }
-
+// Parameter
     if ((void*) window == NULL){
         return;
     }
@@ -6540,7 +6558,16 @@ void set_active_window(struct gws_window_d *window)
         return;
     }
 
+// Is it already the active window.
+    if (window == active_window){
+        return;
+    }
+
+// The new active window.
     active_window = (void*) window;
+// The new keyboard owner
+    keyboard_owner = (void*) window;
+// The new mouse owner.
     mouse_owner = (void*) window;
 }
 
