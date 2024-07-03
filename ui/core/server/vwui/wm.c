@@ -3788,6 +3788,7 @@ void __set_foreground_tid(int tid)
 void set_focus(struct gws_window_d *window)
 {
     struct gws_window_d *old_owner;
+    struct gws_window_d *p;  // Parent window.
     int tid = -1;
     int SetForeground=FALSE;
 
@@ -3810,6 +3811,8 @@ void set_focus(struct gws_window_d *window)
     old_owner = keyboard_owner;
 // Set
     //keyboard_owner = (void*) window;
+// Parent
+    p = (void*) window->parent;
 
 // -----------------------------------------
 // EDIT BOX:
@@ -3828,20 +3831,23 @@ void set_focus(struct gws_window_d *window)
 
         // #test: 
         // Set the parent as the active window.
-        if (window->parent != NULL)
+        if (p != NULL)
         {
-            if (window->parent->magic == 1234)
+            if (p->magic == 1234)
             {
-                if (window->parent != active_window)
+                if (p != active_window)
                 {
-                    if (window->parent->type == WT_OVERLAPPED){
-                        set_active_window(window->parent);
-                        redraw_window(window->parent,TRUE);
+                    if (p->type == WT_OVERLAPPED)
+                    {
+                        set_active_window(p);
+                        set_top_window(p);
+                        set_first_window(p);
+                        
+                        redraw_window(p,TRUE);
                     }
                 }
             }
         }
-        
 
         // Set the keyboard owner
         keyboard_owner = (void*) window;
