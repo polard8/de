@@ -353,6 +353,9 @@ editorProcedure(
     unsigned long long1, 
     unsigned long long2 )
 {
+// dispatch a service
+
+// Parameters
     if (fd<0){
         return -1;
     }
@@ -363,8 +366,7 @@ editorProcedure(
         return -1;
     }
 
-// Event type:
-
+// Events
     switch(event_type){
 
     case 0:
@@ -380,25 +382,18 @@ editorProcedure(
         {
             //printf("editor.bin: MSG_MOUSERELEASED\n");
             //gws_redraw_window(fd, event_window, TRUE);
-
-            if (event_window == client_window)
-            {
-                // Refresh?
-                gws_draw_char (
-                    (int) fd,              // fd
-                    (int) event_window,    // wid
-                    (unsigned long) long1, // left
-                    (unsigned long) long2, // top
-                    (unsigned long) COLOR_BLACK,
-                    (unsigned long) '.' );
-            }
-            
             return 0;
         }
 
-        if(event_window == savebutton_window)
-            printf("EDITOR: Save!\n");
-        
+        //if (event_window == savebutton_window)
+            //printf("editor: Button released\n");
+
+        return 0;
+        break;
+
+    // Mouse clicked on a button.
+    case GWS_MouseClicked:
+        printf("editor: GWS_MouseClicked\n");
         return 0;
         break;
 
@@ -588,15 +583,26 @@ void pump(int fd, int wid)
 
     struct gws_event_d *e;
 
-    if (fd<0)
-        return;
-    if (wid<0)
-        return;
+    int target_wid = wid;
 
+// Parameter
+    if (fd<0){
+        printf("pump: fd\n");
+        return;
+    }
+
+// Target window
+// The main window?
+    if (target_wid<0){
+        printf("pump: target_wid\n");
+        return;
+    }
+
+// Pump
     e = 
         (struct gws_event_d *) gws_get_next_event(
                                    fd, 
-                                   wid,
+                                   target_wid,
                                    (struct gws_event_d *) &lEvent );
 
     if ((void *) e == NULL)
@@ -604,8 +610,9 @@ void pump(int fd, int wid)
     if (e->magic != 1234){
         return;
     }
-    if (e->type <0)
+    if (e->type < 0)
         return;
+// Dispatch
     editorProcedure( fd, e->window, e->type, e->long1, e->long2 );
 }
 
@@ -994,12 +1001,12 @@ int editor_initialize(int argc, char *argv[])
         if (isTimeToQuit == TRUE)
             break;
 
-        pump(client_fd,main_window);
+        // It needs to be the main window for now.
+        pump( client_fd, main_window );
     };
 
 // ok
-    if (isTimeToQuit == TRUE)
-    {
+    if (isTimeToQuit == TRUE){
         printf("editor.bin: isTimeToQuit\n");
         return EXIT_SUCCESS;
     }

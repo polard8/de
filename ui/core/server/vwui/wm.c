@@ -1304,6 +1304,8 @@ static void on_mouse_released(void)
             if ( p1->type == WT_OVERLAPPED || 
                  p1 == taskbar2_window )
             {
+                // #debug
+                // printf ("server: Sending GWS_MouseClicked\n");
                 window_post_message( 
                     p1->id, 
                     GWS_MouseClicked, 
@@ -3785,9 +3787,11 @@ void __set_foreground_tid(int tid)
 // Set the keyboard_owner window.
 void set_focus(struct gws_window_d *window)
 {
-    int tid = -1;
     struct gws_window_d *old_owner;
+    int tid = -1;
+    int SetForeground=FALSE;
 
+// Parameter
     if ((void*) window == NULL){
         return;
     }
@@ -3807,19 +3811,28 @@ void set_focus(struct gws_window_d *window)
 // Set
     //keyboard_owner = (void*) window;
 
-// Is it an editbox?
+// -----------------------------------------
+// EDIT BOX:
 // Redraw it with a new style.
-// This routine need to know if we're the keyboard owner
-// to select the style.
+// Thr routine will need to know if 
+// we're the keyboard owner to select the style.
 // IN: window, show
     if ( window->type == WT_EDITBOX || 
          window->type == WT_EDITBOX_MULTIPLE_LINES )
     {
-        keyboard_owner = (void*) window;
+        // The new owner:
+        // Update the keyboard owner.
         // Repaint the new owner that has the focus.
-        redraw_window(window,TRUE);
-        // Repaint the old owner that has not the focus.
-        if ( (void*) old_owner != NULL )
+        // Now the new owner has focus and it will ne painted
+        // with a different style.
+        keyboard_owner = (void*) window;
+        redraw_window(keyboard_owner,TRUE);
+
+        // The old owner
+        // Repaint the old owner.
+        // Now the old owner has no focus and it will ne painted
+        // with a different style.
+        if ((void*) old_owner != NULL)
         {
             if (old_owner->magic == 1234)
             {
@@ -3830,23 +3843,30 @@ void set_focus(struct gws_window_d *window)
                 }
             }
         }
-
-        // Set the foreground thread.
-        // That's the tid associated with this window.
-        tid = (int) window->client_tid;
-        if (tid<0)
-            return;
-        __set_foreground_tid(tid);
+        SetForeground = TRUE;
     }
 
-/*
+// -----------------------------------------
+// BUTTON:
+// Buttons also need to be repainted with a different style.
+// This new style tell us that the button is the first responter
+// in the case of user pressing the [ENTER] key.
+// ...
+
+// -----------------------------------------
+// ...:
+
+
 // Set the foreground thread.
 // That's the tid associated with this window.
     tid = (int) window->client_tid;
-    if (tid<0)
+    if (tid < 0){
+        // #bugbug
         return;
-    __set_foreground_tid(tid);
-*/
+    }
+    if (SetForeground){
+        __set_foreground_tid(tid);
+    }
 }
 
 // Get the keyboard_owner window.

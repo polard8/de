@@ -187,16 +187,18 @@ browserProcedure(
     unsigned long long2 )
 {
 
-    if(fd<0){
+// Parameters
+    if (fd<0){
         return -1;
     }
-    if(event_window<0){
+    if (event_window<0){
         return -1;
     }
-    if(event_type<0){
+    if (event_type<0){
         return -1;
     }
 
+// Events
     switch (event_type){
 
     // Evento de teste.
@@ -217,6 +219,7 @@ browserProcedure(
         if ( event_window == __client_window )
         {
             // Refresh?
+            /*
             gws_draw_char (
                 (int) fd,              // fd
                 (int) event_window,    // wid
@@ -224,9 +227,15 @@ browserProcedure(
                 (unsigned long) long2, // top
                 (unsigned long) COLOR_BLACK,
                 (unsigned long) '.' );
+            */
             return 0;
         }
         
+        return 0;
+        break;
+
+    case GWS_MouseClicked:
+        printf("browser: GWS_MouseClicked\n");
         return 0;
         break;
 

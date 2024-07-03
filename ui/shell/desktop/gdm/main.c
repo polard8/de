@@ -356,6 +356,7 @@ gdmProcedure(
 {
 // Dispatch service.
 
+// Parameters
     if (fd<0){
         return -1;
     }
@@ -366,6 +367,7 @@ gdmProcedure(
         return -1;
     }
 
+// Events
     switch (event_type){
 
     case 0:
@@ -393,10 +395,10 @@ gdmProcedure(
             return 0;
         }
         if (event_window == button1_window){
-            printf("~ button1 clicked\n");
+            printf("~ button1 released\n");
         }
         if (event_window == button2_window){
-            printf("~ button2 clicked\n");
+            printf("~ button2 released\n");
         }
         return 0;
         break;
@@ -408,7 +410,7 @@ gdmProcedure(
     // and the child window was passed via parameter.
     case GWS_MouseClicked:
         printf("gdm: GWS_MouseClicked\n");
-        //button2_window
+        return 0;
         break;
 
     // Redraw all the child windows.
@@ -483,11 +485,14 @@ static void pump(int fd)
     int target_wid = main_window;
     int status = -1;
 
+// Parameter
     if (fd<0){
         printf("pump: fd\n");
         return;
     }
 
+// Target window
+// The main window?
     if (target_wid<0){
         printf("pump: target_wid\n");
         return;

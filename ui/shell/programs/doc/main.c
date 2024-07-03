@@ -455,8 +455,6 @@ static void update_clients(int fd)
     gws_redraw_window(fd, __client_window, TRUE);
 }
 
-
-
 static int 
 docvProcedure(
     int fd, 
@@ -466,6 +464,7 @@ docvProcedure(
     unsigned long long2 )
 {
 
+// Parameters
     if (fd<0){
         return -1;
     }
@@ -476,6 +475,7 @@ docvProcedure(
         return -1;
     }
 
+// Events
     switch (event_type){
 
     // Evento de teste.
@@ -496,6 +496,7 @@ docvProcedure(
         if (event_window == __client_window)
         {
             // Refresh?
+            /*
             gws_draw_char (
                 (int) fd,              // fd
                 (int) event_window,    // wid
@@ -503,9 +504,15 @@ docvProcedure(
                 (unsigned long) long2, // top
                 (unsigned long) COLOR_BLACK,
                 (unsigned long) '.' );
+            */
             return 0;
         }
         
+        return 0;
+        break;
+
+    case GWS_MouseClicked:
+        printf("doc.bin: GWS_MouseClicked\n");
         return 0;
         break;
 
@@ -607,8 +614,8 @@ int main ( int argc, char *argv[] )
     addr_in.sin_port = PORTS_WS;   
     addr_in.sin_addr.s_addr = IP(127,0,0,1);
 
-
-    printf("docv.bin:\n");
+    //#debug
+    //printf("docv.bin:\n");
 
 // Device info.
     unsigned long w = gws_get_system_metrics(1);

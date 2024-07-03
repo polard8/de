@@ -1,5 +1,6 @@
-
 // wm.h
+// Window manager support.
+// Created by Fred Nora.
 
 #ifndef ____WM_H
 #define ____WM_H    1
@@ -11,7 +12,6 @@ struct gws_container_d
     unsigned long width;
     unsigned long height;
 };
-
 
 //
 // Gravity
