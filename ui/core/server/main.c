@@ -2705,206 +2705,7 @@ dsProcedure (
     
     switch (msg){
 
-    // Business Logic:
-    // + Asynchronous commands.
-    // + No response.
-    case GWS_AsyncCommand:
-        serviceAsyncCommand();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic:
-    // + Service: Create a window.
-    // + Response: Return the window ID.
-    case GWS_CreateWindow:
-        serviceCreateWindow(client_fd);
-        NoReply = FALSE;
-        break; 
-
-    // Business Logic: Paint a pixel in the backbuffer.
-    case GWS_BackbufferPutPixel:
-        servicepixelBackBufferPutpixel(); 
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: Paint a horizontal line in the backbuffer.
-    case GWS_DrawHorizontalLine:
-        servicelineBackbufferDrawHorizontalLine();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: 
-    // + Paint a char in the backbuffer.
-    // + No response.
-    case GWS_DrawChar:
-        serviceDrawChar();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic: 
-    // + Paint a text in the backbuffer.
-    // + No response.
-    case GWS_DrawText:
-        serviceDrawText();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic: 
-    // + Refresh a window.
-    // + No response.
-    case GWS_RefreshWindow:
-        serviceRefreshWindow();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic: 
-    // + Repaint a window.
-    // + No response.
-     case GWS_RedrawWindow:
-         serviceRedrawWindow();
-         NoReply = TRUE;
-         break;
-
-    // Business Logic: Resize a window.
-    case GWS_ResizeWindow:
-        serviceResizeWindow();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: Change the window position.
-    case GWS_ChangeWindowPosition:
-        serviceChangeWindowPosition();
-        NoReply = FALSE;
-        break;
-
-    // ...
-
-    // Business Logic: 
-    // Paint a pixel in the backbuffer. (Second implementation!)
-    // IN: Color, x, y,rop
-    case GWS_BackbufferPutPixel2:
-        libdisp_backbuffer_putpixel ( 
-            (unsigned long) COLOR_PINK, 
-            (unsigned long) long1, 
-            (unsigned long) long2,
-            (unsigned long) 0 );
-        NoReply = FALSE;
-        break;
-
-    // ...
-
-    // Business Logic: ?
-    // Disconnect.
-    // shutdown.
-    // Um cliente quer se desconectar.
-    case GWS_Disconnect:
-        gwssrv_debug_print ("gwssrv: [2010] Disconnect\n");
-        // DisconnectCurrentClient = TRUE;  // #todo
-        // NoReply = TRUE;  // #todo
-        break;
-
-    // Business Logic:
-    // #bugbug: NoReply?
-    case GWS_RefreshScreen:
-        gws_show_backbuffer();
-        // #test
-        // Handle incoming inputs right after a huge service routine.
-        //if ( is_accepting_input() == TRUE )
-        //    xx_wmInputReader();
-        //NoReply = FALSE;      // #todo
-        break;
-
-    // Business Logic: Refresh a rectangle.
-    case GWS_RefreshRectangle:
-        serviceRefreshRectangle();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: ?
-    // ?? #bugbug: The client only sends requests.
-    // GWS_GetSendEvent
-    case 2030:
-        gwssrv_debug_print ("gwssrv: [2030] serviceClientEvent\n");
-        //serviceClientEvent();
-        //NoReply = FALSE;  // #todo
-        break;
-
-    // Business Logic:
-    //  + The server will return an event 
-    //    from a queue in a given window.
-    case GWS_GetNextEvent:
-        serviceNextEvent();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic: Plot a pixel. (Graphics)
-    // See: grprim.c
-    case GWS_GrPlot0:
-        serviceGrPlot0();
-        NoReply = FALSE;
-        break;
-
-    //#deprecated
-    case GWS_GrCubeZ:
-    case GWS_GrRectangle:
-        NoReply = FALSE;
-        break;
-
-    // Business Logic:
-    // #todo: Describe it here.
-    // No response.
-    case GWS_PutClientMessage:
-        servicePutClientMessage();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic:
-    // #todo: Describe it here.
-    case GWS_GetClientMessage:
-        serviceGetClientMessage();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic:
-    // + Set a text into a buffer in the window structure.
-    // No response.
-    case GWS_SetText:
-        serviceSetText();
-        NoReply = TRUE;
-        break;
-
-    // Business Logic:
-    // + Get a text from a buffer in the window structure.
-    case GWS_GetText:
-        serviceGetText();
-        NoReply = FALSE;
-        return 0;
-        break;
-
-    // Business Logic:
-    // Let's get one event from the client's event queue.
-    // Send it as a response.
-    case GWS_DrainInput:
-        //gwssrv_debug_print("dsProcedure 8080\n");
-        break;
-
-    // Business Logic: Get information about a given window.
-    case GWS_GetWindowInfo:
-        serviceGetWindowInfo();
-        NoReply = FALSE;
-        break;
-
-    // Business Logic:
-    // + Clone this process and execute the child, 
-    //   given the image name.
-    // + NO response.
-    // Service 9099:
-    case GWS_CloneAndExecute:
-        serviceCloneAndExecute();
-        NoReply = FALSE;
-        return 0;
-        break;
-
+    // 1000
     // Hello!
     // Draw text inside the root window.
     // screen_window = __root_window
@@ -2931,6 +2732,194 @@ dsProcedure (
         NoReply = FALSE;  // The client-side library is waiting for response.
         break;
 
+    // 1001
+    // + Service: Create a window.
+    // + Response: Return the window ID.
+    case GWS_CreateWindow:
+        serviceCreateWindow(client_fd);
+        NoReply = FALSE;
+        break; 
+
+    // 1002: 
+    // Paint a pixel in the backbuffer.
+    case GWS_BackbufferPutPixel:
+        servicepixelBackBufferPutpixel(); 
+        NoReply = FALSE;
+        break;
+
+    // 1003: 
+    // Paint a horizontal line in the backbuffer.
+    case GWS_DrawHorizontalLine:
+        servicelineBackbufferDrawHorizontalLine();
+        NoReply = FALSE;
+        break;
+
+    // 1004: 
+    // + Paint a char in the backbuffer.
+    // + No response.
+    case GWS_DrawChar:
+        serviceDrawChar();
+        NoReply = TRUE;
+        break;
+
+    // 1005: 
+    // + Paint a text in the backbuffer.
+    // + No response.
+    case GWS_DrawText:
+        serviceDrawText();
+        NoReply = TRUE;
+        break;
+
+    // 1006: 
+    // + Refresh a window.
+    // + No response.
+    case GWS_RefreshWindow:
+        serviceRefreshWindow();
+        NoReply = TRUE;
+        break;
+
+    // 1007: 
+    // + Repaint a window.
+    // + No response.
+     case GWS_RedrawWindow:
+        serviceRedrawWindow();
+        NoReply = TRUE;
+        break;
+
+    // 1008:
+    // Resize a window.
+    case GWS_ResizeWindow:
+        serviceResizeWindow();
+        NoReply = FALSE;
+        break;
+
+    // 1009: 
+    // Change the window position.
+    case GWS_ChangeWindowPosition:
+        serviceChangeWindowPosition();
+        NoReply = FALSE;
+        break;
+
+    // ...
+
+    // 2000: 
+    // Paint a pixel in the backbuffer. (Second implementation!)
+    // IN: color, x, y, rop
+    case GWS_BackbufferPutPixel2:
+        libdisp_backbuffer_putpixel ( 
+            (unsigned long) COLOR_PINK, 
+            (unsigned long) long1, 
+            (unsigned long) long2,
+            (unsigned long) 0 );
+        NoReply = FALSE;
+        break;
+
+    // ...
+
+    // 2010:
+    // Disconnect.
+    // shutdown.
+    // Um cliente quer se desconectar.
+    case GWS_Disconnect:
+        gwssrv_debug_print ("gwssrv: [2010] Disconnect\n");
+        // DisconnectCurrentClient = TRUE;  // #todo
+        // NoReply = TRUE;  // #todo
+        break;
+
+    // 2020:
+    // Refresh screen
+    // #bugbug: NoReply?
+    case GWS_RefreshScreen:
+        gws_show_backbuffer();
+        // #test
+        // Handle incoming inputs right after a huge service routine.
+        //if ( is_accepting_input() == TRUE )
+        //    xx_wmInputReader();
+        //NoReply = FALSE;      // #todo
+        break;
+
+    // 2021: 
+    // Refresh a rectangle.
+    case GWS_RefreshRectangle:
+        serviceRefreshRectangle();
+        NoReply = FALSE;
+        break;
+
+    // 2030: 
+    // GWS_GetSendEvent ?
+    // ?? #bugbug: The client only sends requests.
+    // GWS_GetSendEvent
+    case 2030:
+        gwssrv_debug_print ("gwssrv: [2030] Send event\n");
+        //serviceClientEvent();
+        //NoReply = FALSE;  // #todo
+        break;
+
+    // 2031:
+    // Get next event
+    //  + The server will return an event 
+    //    from a queue in a given window.
+    case GWS_GetNextEvent:
+        serviceNextEvent();
+        NoReply = FALSE;
+        break;
+
+    // 2040: 
+    // Plot a pixel. (Graphics)
+    // See: grprim.c
+    case GWS_GrPlot0:
+        serviceGrPlot0();
+        NoReply = FALSE;
+        break;
+
+    // #deprecated
+    // 2041, 2042
+    case GWS_GrCubeZ:
+    case GWS_GrRectangle:
+        NoReply = FALSE;
+        break;
+
+    // 2222
+    // + Asynchronous commands.
+    // + No response.
+    case GWS_AsyncCommand:
+        serviceAsyncCommand();
+        NoReply = TRUE;
+        break;
+
+    // 2223:
+    // Put a message into the client's queue.
+    // No response.
+    case GWS_PutClientMessage:
+        servicePutClientMessage();
+        NoReply = TRUE;
+        break;
+
+    // 2224:
+    // Get a message from the client's queue.
+    case GWS_GetClientMessage:
+        serviceGetClientMessage();
+        NoReply = FALSE;
+        break;
+
+    // 2240:
+    // Set a text into a buffer in the window structure.
+    // No response.
+    case GWS_SetText:
+        serviceSetText();
+        NoReply = TRUE;
+        break;
+
+    // 2241:
+    // Get a text from a buffer in the window structure.
+    case GWS_GetText:
+        serviceGetText();
+        NoReply = FALSE;
+        return 0;
+        break;
+
+    // 4080
+    // Quit the process if it's possible.
     // If we received the message GWS_Quit and
     // there is no more windows, so quit the application.
     case GWS_Quit:
@@ -2940,6 +2929,29 @@ dsProcedure (
         }
         break;
 
+    // 8080:
+    // Let's get one event from the client's event queue.
+    // Send it as a response.
+    case GWS_DrainInput:
+        //gwssrv_debug_print("dsProcedure 8080\n");
+        break;
+
+    // 9093: 
+    // Get information about a given window.
+    case GWS_GetWindowInfo:
+        serviceGetWindowInfo();
+        NoReply = FALSE;
+        break;
+
+    // 9099:
+    // + Clone this process and execute the child, 
+    //   given the image name.
+    // + NO response.
+    case GWS_CloneAndExecute:
+        serviceCloneAndExecute();
+        NoReply = FALSE;
+        return 0;
+        break;
 
     // ...
 

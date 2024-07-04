@@ -217,6 +217,7 @@ typedef struct _gRep  gRep;
 #define GWS_RedrawWindow          1007
 #define GWS_ResizeWindow          1008
 #define GWS_ChangeWindowPosition  1009
+
 #define GWS_BackbufferPutPixel2   2000
 #define GWS_Disconnect            2010
 #define GWS_RefreshScreen         2020
@@ -225,6 +226,7 @@ typedef struct _gRep  gRep;
 
 //#define GWS_GetSendEvent          2030  // send event #
 #define GWS_GetNextEvent          2031
+
 #define GWS_GrPlot0               2040
 #define GWS_GrCubeZ               2041
 #define GWS_GrRectangle           2042

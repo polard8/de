@@ -269,7 +269,10 @@ static void wmProcessTimerEvent(unsigned long long1, unsigned long long2)
 // Print a char into the window with focus.
 // It needs to be an editbox?
 
-    // Acende
+    //const int MyChar = '_';
+    //const int MyChar = 219;  // Rectangle
+
+    // Acende (Draw black char)
     if (window->ip_on != TRUE){
         // #todo: Create a worker.
         wm_draw_char_into_the_window(
@@ -277,7 +280,8 @@ static void wmProcessTimerEvent(unsigned long long1, unsigned long long2)
         wm_draw_char_into_the_window(
             window, (int) VK_BACK,  COLOR_WHITE );
         window->ip_on = TRUE;
-    // Apaga
+
+    // Apaga (Draw white char)
     } else if (window->ip_on == TRUE ){
         // #todo: Create a worker.
         wm_draw_char_into_the_window(

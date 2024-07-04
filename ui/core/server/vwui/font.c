@@ -4,7 +4,8 @@
 
 #include "../gwsint.h"
 
-struct font_initialization_d FontInitialization;
+// See: font.h
+struct font_initialization_d  FontInitialization;
 
 // #bugbug: We need two values, w and h.
 int gfontSize=0;
@@ -18,7 +19,6 @@ unsigned long g9x14fontAddress=0;         // 9x14,80×25,MDA, Hercules
 unsigned long g9x16fontAddress=0;         // 9x16,80×25,VGA
 //unsigned long gws_eye_sprite_address=0;
 
-static char *__initialize_lt8x8_font(void);
 // ==================
 
 /*
@@ -2991,28 +2991,37 @@ static unsigned char __inverted_font_lt8x8[256*8] = {
 };
 
 
+// =====================================================================
+// Prototypes
+
+static char *__initialize_lt8x8_font(void);
+
+// =====================================================================
+
 static char *__initialize_lt8x8_font(void)
 {
-    unsigned char *tmp;
+    unsigned char *tmp_buffer;
     unsigned char c=0;
     register int i=0;
+    const int SizeInBytes = (256*8);
 
-    tmp = (unsigned char *) malloc (256*8);
-    if ( (void *) tmp == NULL ){
-        printf ("__initialize_lt8x8_font: [FAIL] tmp\n");
+// Tmp buffer
+    tmp_buffer = (unsigned char *) malloc(SizeInBytes);
+    if ((void *) tmp_buffer == NULL){
+        printf ("__initialize_lt8x8_font: tmp_buffer\n");
         goto fail;
     }
 
 // Pega um char da fonte lt e coloca na buffer provisorio.
-    for (i=0; i<(256*8); i++)
+    for (i=0; i<SizeInBytes; i++)
     {
         c      = (unsigned char) __inverted_font_lt8x8[i];
-        tmp[i] = (unsigned char) TableBitReverse[c];
+        tmp_buffer[i] = (unsigned char) TableBitReverse[c];
     }; 
 
 // Done:
 // Return the address of the new font.
-    return (char*) tmp;
+    return (char*) tmp_buffer;
 fail:
     return NULL;
 }
@@ -3027,18 +3036,10 @@ int font_initialize(void)
 
     FontInitialization.initialized = FALSE;
 
-
-// =========================================
-// 8x8 (default)
-
+// Set default 8x8 w h.
     FontInitialization.width = DEFAULT_FONT_WIDTH;
     FontInitialization.height = DEFAULT_FONT_HEIGHT;
-
-// Font size
-// #bugbug: 
-// It doesn't mean anything.
-// We need two values, w and h.
-    gfontSize = 8;
+    gfontSize = 8;  // ?
 
 // Linux font.
 // This is the current.
@@ -3059,6 +3060,6 @@ int font_initialize(void)
 
 fail:
     FontInitialization.initialized = FALSE;
-    return -1;
+    return (int) -1;
 }
 
