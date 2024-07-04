@@ -1,0 +1,24 @@
+
+  Communication between the display server and the display device driver.
+
+  This communication can be done using 'packets'. Or sending messages 
+via syscall or another method. The driver can export a handle just like a 
+file descriptor or a pathname.
+
+  We gotta send packets to the device driver 
+of the current 'display device' device driver.
+  Remember, this server has full access to the video ram (LFB),
+so it means that the device driver is embedded into the server. But, 
+at the same time, the server can use syscalls and tell to the kernel 
+to draw into the video ram (LFB), in this case it means that the 
+device driver of the display device is embedded into the base kernel. 
+  Inside the base kernel we can have more than one driver for the display device.
+For now we have one that is called 'boot display device', its because it has the 
+properties given to the kernel during the boot process. And a second one will be created 
+called 'qemu display device', it means that we're will be able to change the resolution 
+using this driver.
+  The goal is expose these device drivers usint a handle, just like a file path or file descriptor,
+just like any other device.
+  In the future we can have more 'display device drivers' and all them need to be exported 
+to this server, this way the server can send requests to these drivers to put data into 
+the video ram (LFB) or change resolution.
