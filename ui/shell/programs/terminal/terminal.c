@@ -494,17 +494,18 @@ void __test_gws(int fd)
 }
 
 
-static void __test_ioctl(void)
-{
 // Testing the 'foreground console' configuration.
 // It's working.
-
+static void __test_ioctl(void)
+{
     //printf ("~ioctl: Tests...\n");
 
 // #test
+// TIOCCONS - redirecting console output
 // Changing the output console tty.
 // A implementaçao que trata do fd=1 eh console_ioctl
 // e nao tty_ioctl.
+// https://man7.org/linux/man-pages/man2/TIOCCONS.2const.html
     printf("\n");
     printf("Changing the output console\n");
     // IN: fd, request, arg.
@@ -531,27 +532,29 @@ static void __test_ioctl(void)
 */
 //-----------
 
-    int maxcol = ioctl( STDOUT_FILENO, 512, 0 );  //Get max col
+    // 512 = right
+    // Get max col
+    int maxcol = ioctl( STDOUT_FILENO, 512, 0 );
 
 //-----------
-
 // Goto first line, position 0.
     ioctl( STDOUT_FILENO, 1008, 0 );
+    printf("a"); fflush(stdout);
+// Goto first line. last position 
+// Not the last column. If we hit the last, 
+// the console goes to the next line.
+    ioctl( STDOUT_FILENO, 1008, maxcol -2 ); //Set
     printf("A"); fflush(stdout);
 
-// Goto first line. position 70
-    ioctl( STDOUT_FILENO, 1008, maxcol -2); //Set
-    printf("a"); fflush(stdout);
-
 //-----------
-
 // Goto last line, position 0.
     ioctl( STDOUT_FILENO, 1009, 0 );
-    printf("Z"); fflush(stdout);
-
-// Goto last line. position 70
-    ioctl( STDOUT_FILENO, 1009, maxcol-2 );
     printf("z"); fflush(stdout);
+// Goto last line. last position 
+// Not the last column. If we hit the last, 
+// the console goes to the next line.
+    ioctl( STDOUT_FILENO, 1009, maxcol -2 );
+    printf("Z"); fflush(stdout);
 
 // Scroll forever.
     //while(1){
@@ -1243,22 +1246,23 @@ static void compareStrings(int fd)
         goto exit_cmp;
     }
 
-// Test escape sequence do terminal.
-    if ( strncmp(prompt,"esc",3) == 0 ){
-        __test_escapesequence(fd);
+// Testing escape sequence in the kernel console.
+// Test escape sequence do console no kernel.
+    if ( strncmp(prompt,"esc-k",5) == 0 )
+    {
+        // Moving the cursor:
+        printf("\033[8Cm Fred\n");         // right
+        printf("\033[8Dm Fred\n");         // left
+        printf("\033[4Bm cursor down\n");  // down
+        printf("\033[8Am cursor up\n");    // up
+        // ...
         goto exit_cmp;
     }
 
-// Test escape sequence do console no kernel.
-    if ( strncmp(prompt,"esc2",4) == 0 )
-    {
-        //move cursor right
-        printf("\033[8Cm Fred\n");
-        //move cursor left
-        printf("\033[8Dm Fred\n");
-        printf("\033[4Bm cursor down!\n");
-        printf("\033[8Am cursor up!\n");
-        // ...
+// Testing escape sequence inside the client window.
+// Test escape sequence do terminal.
+    if ( strncmp(prompt,"esc-t",5) == 0 ){
+        __test_escapesequence(fd);
         goto exit_cmp;
     }
 
@@ -1269,8 +1273,7 @@ static void compareStrings(int fd)
     }
 
 // Testing ioctl
-    if ( strncmp(prompt,"ioctl",5) == 0 )
-    {
+    if ( strncmp(prompt,"ioctl",5) == 0 ){
         __test_ioctl();
         goto exit_cmp;
     }
@@ -1891,10 +1894,9 @@ void del (void)
     LINES[cursor_y].ATTRIBUTES[cursor_x] = 7;
 }
 
-
+// Testing escape sequence inside the client window.
 void __test_escapesequence(int fd)
 {
-
     if (fd<0)
         return;
 
