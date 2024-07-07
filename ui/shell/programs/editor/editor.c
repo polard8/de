@@ -1,5 +1,7 @@
 // editor.c
 // Text editor for Gramado OS.
+// This is a client-side GUI application connected 
+// with the display server.
 // Created by Fred Nora.
 
 // Connecting via AF_INET.
@@ -21,7 +23,6 @@
 // https://wiki.osdev.org/Message_Passing_Tutorial
 // https://wiki.osdev.org/Synchronization_Primitives
 // ...
-
 
 // rtl
 #include <types.h>
@@ -63,14 +64,15 @@ static int file_status=FALSE;
 char file_buffer[1024];
 
 //
-// windows
+// Windows
 //
 
 // private
 static int main_window = 0;
 static int addressbar_window = 0;
-static int client_window = 0;
 static int savebutton_window = 0;
+static int client_window = 0;
+// ...
 
 struct child_window_d
 {
@@ -118,16 +120,10 @@ static unsigned int text1_color = 0;
 static const char *text1_string = "Name:";
 static const char *text2_string = "TEXT.TXT";
 
-// ---------------------------------------
+// =====================================
+// Prototypes
 
-//prototype
-static int 
-editorProcedure(
-    int fd, 
-    int event_window, 
-    int event_type, 
-    unsigned long long1, 
-    unsigned long long2 );
+static void editorShutdown(int fd);
 
 static void update_clients(int fd);
 
@@ -137,15 +133,37 @@ static int editor_init_globals(void);
 static void __test_text(int fd, int wid);
 static void __test_load_file(int socket, int wid);
 
+static int 
+editorProcedure(
+    int fd, 
+    int event_window, 
+    int event_type, 
+    unsigned long long1, 
+    unsigned long long2 );
+
 void pump(int fd, int wid);
 
-// ============
+// =====================================
+// Functions
+
+static void editorShutdown(int fd)
+{
+    if (fd<0)
+        return;
+    gws_destroy_window(fd,client_window );
+    gws_destroy_window(fd,savebutton_window );
+    gws_destroy_window(fd,addressbar_window  );
+
+    gws_destroy_window(fd,main_window );
+
+    close(fd);
+}
 
 static void update_clients(int fd)
 {
-    // Local
     struct gws_window_info_d lWi;
 
+// Parameter
     if (fd<0){
         return;
     }
@@ -156,7 +174,6 @@ static void update_clients(int fd)
         fd, 
         main_window,   // The app window.
         (struct gws_window_info_d *) &lWi );
-
 
 // #test
 // Let's print the text, before the address bar.
@@ -171,7 +188,6 @@ static void update_clients(int fd)
         (unsigned long) text1_t,
         (unsigned long) text1_color,
         text1_string );
-
 
 // Change the position of the clients.
 
@@ -254,7 +270,6 @@ static int editor_init_globals(void)
     return 0;
 }
 
-
 static int editor_init_windows(void)
 {
     register int i=0;
@@ -280,6 +295,11 @@ editorDrawChar(
 
     int pos_x=0;
     int pos_y=0;
+    unsigned int Color = COLOR_BLACK;
+
+// Parameter
+    if (fd<0)
+        return;
 
 // Get saved value
     pos_x = (int) (cursor_x & 0xFFFF);
@@ -314,13 +334,12 @@ editorDrawChar(
         client_window, 
         (cursor_x*8), 
         (cursor_y*8), 
-        COLOR_BLACK, 
+        Color, 
         ch );
 
     // increment
     cursor_x++;
 }
-
 
 void
 editorSetCursor( 
@@ -1006,8 +1025,11 @@ int editor_initialize(int argc, char *argv[])
     };
 
 // ok
-    if (isTimeToQuit == TRUE){
+    if (isTimeToQuit == TRUE)
+    {
         printf("editor.bin: isTimeToQuit\n");
+        
+        editorShutdown(client_fd);
         return EXIT_SUCCESS;
     }
 
@@ -1068,16 +1090,11 @@ int editor_initialize(int argc, char *argv[])
 //=================================
 */
 
-
-
-
-
     // #importante
     // Se não usarmos o loop acima, então podemos pegar
     // as mensagens do sistema....
     // O ws pode mandar mensagens de sistema para o
     // wm registrado.
-
 
     /*
     struct gws_event_d *Event;
@@ -1101,7 +1118,6 @@ int editor_initialize(int argc, char *argv[])
     };
     */
 
-
 // exit
     //close (client_fd);
     debug_print("editor: bye\n"); 
@@ -1115,11 +1131,4 @@ fail:
 //
 // End
 //
-
-
-
-
-
-
-
 

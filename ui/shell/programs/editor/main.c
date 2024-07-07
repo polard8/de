@@ -1,12 +1,6 @@
-
-/*
- * File: main.c
- *     Simple text editor for Gramado Window Server.
- *     editor.bin
- * History:
- *     2020 - Created by Fred Nora.
- */
-
+// main.c
+// Simple text editor for Gramado OS.
+// 2020 - Created by Fred Nora.
 
 // rtl
 #include <types.h>
