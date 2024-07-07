@@ -4211,7 +4211,6 @@ struct gws_display_d *gws_open_display(const char *display_name)
     Display->fd = (int) client_fd;
     Display->connected = FALSE;
 
-
     Display->lock      = FALSE;
     // ...
 
@@ -4283,7 +4282,7 @@ void gws_close_display(struct gws_display_d *display)
 {
     // #todo
  
-// Invalid parameter.
+// Parameter
     if ((void*) display == NULL){
         gws_debug_print("gws_close_display: display\n");
         return;
@@ -4293,15 +4292,14 @@ void gws_close_display(struct gws_display_d *display)
     if (display->magic != 1234)
         return;
 
+    display->connected = FALSE;
+    display->running = FALSE;
+    //display->lock=0;
+    // ...
+
 // #todo:
 // Maybe, destroy the screen structure.
 // ...
-
-
-    //display->lock=0;
-    display->connected = FALSE;
-    display->running = FALSE;
-    // ...
 
 // Show display name.
     if ((void*) display->display_name != NULL)

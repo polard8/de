@@ -3560,7 +3560,7 @@ static int ServerInitialization(int launch_tb)
     struct sockaddr server_address;
     socklen_t addrlen;
     server_address.sa_family = AF_GRAMADO;
-    server_address.sa_data[0] = 'w';
+    server_address.sa_data[0] = 'd';  // Display server
     server_address.sa_data[1] = 's';
     addrlen = sizeof(server_address);
 //==================
