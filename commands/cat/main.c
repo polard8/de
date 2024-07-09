@@ -22,6 +22,15 @@
 #define __BufferSize  (4*1024)
 static char buffer[__BufferSize];
 
+static int Max = 8;  // Max number of files
+
+// Flags
+static int fNumber=FALSE;
+static int fShowTabs=FALSE;
+static int fShowEnds=FALSE;
+//...
+
+// Strings
 const char *VersionString = "Version 1.0";
 const char *HelpString = "options: --help, --version, --number";
 //...
@@ -30,6 +39,7 @@ const char *HelpString = "options: --help, --version, --number";
 static void doHelp(void);
 static void doVersion(void);
 // ...
+static int process_file(char *file_name, int file_index);
 static void __clear_buffer(void);
 //-----------------------------
 
@@ -42,6 +52,62 @@ static void doVersion(void)
     printf("%s\n",VersionString);
 }
 
+// OUT:
+// nwrites or fail.
+static int process_file(char *file_name, int file_index)
+{
+    int ReturnValue = 0;
+    int fdRead = -1;
+    int fdWrite = 1;  //stdout
+    register int nreads = 0;
+    register int nwrites = 0;
+
+// Parameters
+    if ( (void*) file_name == NULL ){
+        printf ("process_file: Missing file_name parameter in file {%d}\n", 
+            file_index);
+        goto fail;
+    }
+    // see: Max
+    if (file_index < 0){
+        printf ("process_file: file_index parameter failed in file {%d}\n", 
+            file_index);
+        goto fail;
+    }
+
+// Open
+    fdRead = (int) open((char *) file_name, 0, "a+");
+    if (fdRead < 0){
+        printf ("process_file: File {%d} failed on open()\n", 
+            file_index);
+        goto fail;
+    }
+// Read from fd.
+    nreads = read( fdRead, buffer, 511 );
+    if (nreads <= 0){
+        printf ("cat: File {%d} failed on read()\n", 
+            file_index);
+        goto fail;
+    }
+// Write on stdout. If there's no redirection. 
+// Print the whole file into the screen.
+// In this case we don't have any modification flag.
+    nwrites = write( fdWrite, buffer, sizeof(buffer) );
+    if (nwrites <= 0){
+        printf ("cat: File {%d} failed on write()\n", 
+            file_index);
+        goto fail;
+    }
+    ReturnValue = nwrites;
+
+// Clear the buffer
+    __clear_buffer();
+
+    return (int) ReturnValue;
+fail:
+    return (int) -1;
+}
+
 static void __clear_buffer(void)
 {
     register int i=0;
@@ -51,17 +117,11 @@ static void __clear_buffer(void)
 
 int main(int argc, char *argv[])
 {
-    FILE *fp;
-    int fd=-1;
-    register int nreads = 0;
-    register int nwrites = 0;
-    size_t size=0;
-    int Max = 8;  //#test
     register int i=0;
-// Flags
-    int fNumber=FALSE;
-    int fShowTabs=FALSE;
-    int fShowEnds=FALSE;
+    int FileStatus = -1;
+
+// Max number of files.
+    Max = 8;
 
     /*
     // #debug
@@ -74,12 +134,12 @@ int main(int argc, char *argv[])
 
     if (argc <= 1){
         printf("Few parameters\n");
-	doHelp();
+        doHelp();
         goto fail;
     }
     if (argc >= Max){
         printf("Too many files\n");
-	goto fail;
+        goto fail;
     }
 
 // Clear the tmp buffer.
@@ -96,25 +156,25 @@ int main(int argc, char *argv[])
 
         if ( strncmp( argv[i], "--help", 6) == 0 ){
             isFlag=TRUE;
-	    doHelp();
+            doHelp();
             goto done;
         }
         if ( strncmp( argv[i], "--version", 9) == 0 ){
             isFlag=TRUE;
-	    doVersion();
+            doVersion();
             goto done;
         }
         if ( strncmp( argv[i], "--number", 8) == 0 ){
             isFlag=TRUE;
-	    fNumber = TRUE;
+            fNumber = TRUE;
         }
         if ( strncmp( argv[i], "--show-tabs", 11) == 0 ){
             isFlag = TRUE;
-	    fShowTabs = TRUE;
+            fShowTabs = TRUE;
         }
         if ( strncmp( argv[i], "--show-ends", 11) == 0 ){
             isFlag = TRUE;
-	    fShowEnds = TRUE;
+            fShowEnds = TRUE;
         }
         
         //
@@ -124,25 +184,13 @@ int main(int argc, char *argv[])
         // Open the file and print the content into the screen.
         if (isFlag == FALSE)
         {
-            fd = (int) open((char *) argv[i], 0, "a+");
-            if (fd < 0){
+            if (i >= Max){
                 goto fail;
             }
-            // Read from fd.
-            nreads = read( fd, buffer, 511 );
-            if (nreads <= 0){
-                printf ("cat: read() failed\n");
+            FileStatus = (int) process_file((char *) argv[i], i);
+            if (FileStatus < 0){
                 goto fail;
             }
-	    // Print the file into the screen.
-            // Write on stdout.
-            nwrites = write( 1, buffer, sizeof(buffer) );
-            if (nwrites <= 0){
-                printf ("cat: File {%d} failed on write()\n", i);
-                goto fail;
-            }
-	    // Clear the buffer
-	    __clear_buffer();
         }
     };
 
@@ -151,7 +199,4 @@ done:
 fail:
     return EXIT_FAILURE;
 }
-
-
-
 
