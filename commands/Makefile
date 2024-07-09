@@ -17,13 +17,9 @@ all:
 	make -C n9/
 	make -C n10/
 	make -C n11/
-	make -C pubsh/
 	make -C reboot/
 	#make -C rect/
 	#make -C replace/
-	make -C sh7/
-	make -C shell/
-	#make -C shell2/
 	make -C showfun/
 	make -C shutdown/
 	#make -C socket1/
