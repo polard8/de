@@ -1,11 +1,12 @@
 
 all:
-	make -C commands/
-	make -C ui/
+	make -C core/
+	make -C shell/
 clean:
-	-rm -f *.o 
+	-rm core/server/bin/*.BIN
+	-rm shell/bin/*.BIN
 clean-all:
-	-rm -f *.o 
-	-rm -f commands/bin/*.BIN
-	-rm -f ui/core/server/bin/*.BIN
-	-rm -f ui/shell/bin/*.BIN
+#todo: Clear the libs.
+	-rm core/server/bin/*.BIN
+	-rm shell/bin/*.BIN
+
