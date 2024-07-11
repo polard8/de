@@ -146,9 +146,6 @@ rtl_is_either_this_or_that(
 }
 
 
-
-
-
 /*
 
   // #todo
@@ -270,14 +267,10 @@ int rtl_get_input_mode(void)
 // Explain it better.
 void rtl_set_input_mode(int mode)
 {
-    if (mode < 0)
+    if (mode < 0){
         return;
-
-    sc80(
-        912,    // What is that?
-        mode,
-        mode,
-        mode );
+    }
+    sc80( 912, mode, mode, mode );
 }
 
 //
