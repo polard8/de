@@ -1,5 +1,5 @@
-
-// global.h
+// globals.h
+// Created by Fred Nora.
 
 #ifndef __GLOBALS
 #define __GLOBALS   1

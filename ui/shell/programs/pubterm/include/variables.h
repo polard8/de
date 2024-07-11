@@ -1,9 +1,7 @@
-/* 
- File: variables.h 
-     Data structures for shell variables. 
- History:
-    2018 - Ported from bash 1.05.
- */
+// variables.h 
+// Data structures for shell variables. 
+// 2018 - Document created by Fred Nora.
+// Credits: bash 1.05.
 
 #ifndef __VARIABLES__
 #define __VARIABLES__    1

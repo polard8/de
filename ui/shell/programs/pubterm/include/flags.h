@@ -1,5 +1,8 @@
+ // flags.h 
+ // Created by Fred Nora.
+
+
 /* 
- flags.h 
  -- a list of all the flags that the shell knows about.  You add
  a flag to this program by adding the name here, and in flags.c. 
  Welcome to the world of Un*x, 

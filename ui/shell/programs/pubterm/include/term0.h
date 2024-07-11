@@ -1,5 +1,6 @@
-
 // term0.h
+// Support for terminal application.
+// Created by Fred Nora.
 
 #ifndef __TERM0_H
 #define __TERM0_H    1
@@ -512,6 +513,9 @@ int textGetCurrentCol (void);
 
 void move_to( unsigned long x, unsigned long y );
 int pad_to(int count, char *string);
+
+// See: terminal.c
+int terminal_init(unsigned short flags);
 
 #endif   
 

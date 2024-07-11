@@ -1,5 +1,5 @@
-
 // alias.h -- structure definitions.
+// Created by Fred Nora.
 
 #ifndef __ALIAS
 #define __ALIAS   1

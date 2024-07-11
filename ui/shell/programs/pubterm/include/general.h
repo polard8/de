@@ -1,6 +1,6 @@
-
 // general.h 
 // -- defines that everybody likes to use.
+// Created by Fred Nora.
 
 #ifndef __GENERAL
 #define __GENERAL   1

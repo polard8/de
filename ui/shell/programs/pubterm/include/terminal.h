@@ -1,6 +1,6 @@
-
 // terminal.h
 // The main header for the terminal.bin
+// Created by Fred Nora.
 
 // rtl
 #include <types.h>
@@ -24,17 +24,9 @@
 #include "alias.h" 
 #include "ndir.h"
 #include "packet.h"
+
 #include "term0.h"
 
 // Client-side library.
 #include <gws.h>
-
-int terminal_init(unsigned short flags);
-
-
-
-
-
-
-
 

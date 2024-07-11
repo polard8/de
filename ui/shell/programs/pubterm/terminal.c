@@ -1,4 +1,3 @@
-
 // terminal.c
 // Created by Fred Nora.
 
@@ -15,6 +14,7 @@
 #include <stdlib.h>
 //#include <stdio.h>
 //#include <unistd.h>
+
 #include "include/terminal.h"
 
 
@@ -25,7 +25,6 @@
 // ...
 #define IP(a, b, c, d) \
     (a << 24 | b << 16 | c << 8 | d)
-
 
 
 // The main structure.
@@ -90,10 +89,7 @@ static unsigned long screen_buffer_saved_y=0;
 
 // ---------------------------------------
 
-//
 // System Metrics
-//
-
 int smScreenWidth=0;                   //1 
 int smScreenHeight=0;                  //2
 unsigned long smCursorWidth=0;         //3
@@ -121,20 +117,14 @@ unsigned long wlMaxWindowWidth=0;
 unsigned long wlMaxWindowHeight=0;
 
 
-//
-// Linhas
-//
-
+// Lines
 // Quantidade de linhas e colunas na área de cliente.
 int wlMinColumns=0;
 int wlMinRows=0;
 int __wlMaxColumns=0;
 int __wlMaxRows=0;
 
-//
 //  ## Window size ##
-//
-
 unsigned long wsWindowWidth=0;
 unsigned long wsWindowHeight=0;
 //...
@@ -241,16 +231,18 @@ static void __test_post_async_hello(void)
 {
 // Send async hello. 44888.
 
-    unsigned long message_buffer[32];
 // The tid of init.bin is '0', i guess. :)
     int InitProcessControlTID = 0;
 // Response support.
     //int __src_tid = -1;
     //int __dst_tid = -1;
 
+    unsigned long message_buffer[32];
+    unsigned long MessageCode = 44888;
+
 // The hello message
     message_buffer[0] = 0; //window
-    message_buffer[1] = (unsigned long) 44888;  // message code
+    message_buffer[1] = (unsigned long) MessageCode;
     message_buffer[2] = (unsigned long) 1234;   // Signature
     message_buffer[3] = (unsigned long) 5678;   // Signature
     message_buffer[4] = 0;  // Receiver
@@ -354,6 +346,10 @@ static void __winmin(int fd)
 // Talvez uma biblioteca client side tambem possa tratar disso.
 // Talvez um wm client-side tambem possa tratar isso.
 
+    //if (fd<0){
+    //    return;
+    //}
+
     int wid        = (int) Terminal.main_window_id;
     int client_wid = (int) Terminal.client_window_id;
 
@@ -425,21 +421,18 @@ void __test_gws(int fd)
         return;
     }
     gws_change_window_position(fd,Window,0,0);
-    gws_resize_window(
-        fd, Window, 400, 400);
+    gws_resize_window(fd, Window, 400, 400);
     //gws_refresh_window(fd,Window); //#bugbug
     //text
     //gws_draw_text(fd,Window,0,0,COLOR_RED,"This is a string");
 //redraw and refresh.
-    gws_redraw_window(
-         fd, Window, TRUE );
+    gws_redraw_window(fd, Window, TRUE);
 //redraw and not refresh.
     //gws_redraw_window(
          //fd, Window, FALSE );
     //text
     //gws_draw_text(fd,Window,0,0,COLOR_RED,"This is a string");
 }
-
 
 static void __test_ioctl(void)
 {
@@ -452,7 +445,7 @@ static void __test_ioctl(void)
 // Changing the output console tty.
 // A implementaçao que trata do fd=1 eh console_ioctl
 // e nao tty_ioctl.
-    printf("\n");
+    //printf("\n");
     printf("Changing the output console\n");
     // IN: fd, request, arg.
     int ioctl_return;
@@ -531,8 +524,8 @@ static void __test_winfo(int fd, int wid)
 {
     struct gws_window_info_d *Info;
 
-    if(fd<0) { return; }
-    if(wid<0){ return; }
+    if (fd<0) { return; }
+    if (wid<0){ return; }
 
     Info = (void*) malloc( sizeof(struct gws_window_info_d) );
     if ((void*) Info == NULL){
@@ -594,15 +587,19 @@ static inline void do_cli(void)
 // Try to execute the command line in the prompt[].
 static void __try_execute(int fd)
 {
+    register int i=0;
+    register int ii=0;
 
 // Limits:
 // + The prompt[] limit is BUFSIZ = 1024;
 // + The limit for the write() operation is 512 for now.
     size_t WriteLimit = 512;
 
+// Parameter
     if (fd<0){
         return;
     }
+
 // Empty buffer
    if (*prompt == 0){
        goto fail;
@@ -661,7 +658,6 @@ static void __try_execute(int fd)
 //Create a method.
 //int rtl_get_first_word_in_a_string(char *buffer_pointer, char *string);
 
-    register int ii=0;
     char filename_buffer[12]; //8+3+1
     char *p;
     p = prompt;
@@ -704,7 +700,6 @@ static void __try_execute(int fd)
 // Parse the filename inside its local buffer.
 //
 
-    register int i=0;
 // Is it a valid extension?
 // Pois podemos executar sem extensão.
     int isInvalidExt = FALSE;
@@ -889,16 +884,20 @@ static void libc_test(int fd)
     char tmp_file_name[64];
     char index_string_buffer[64];
 
-        //close(0); 
-        //close(1); 
-        //close(2);
-        //#remember: stderr was redirected to stdout.
-        //fclose(stdin); 
-        //fclose(stdout); 
-        //fclose(stderr); 
+// Parameter
+    if (fd < 0)
+        return;
 
-        //creat( "newfile.txt", 0666 );  // fcntl.c
-        //mkdir( "newdir", 0666 );       // unistd.c
+    //close(0); 
+    //close(1); 
+    //close(2);
+    //#remember: stderr was redirected to stdout.
+    //fclose(stdin); 
+    //fclose(stdout); 
+    //fclose(stderr); 
+
+    //creat( "newfile.txt", 0666 );  // fcntl.c
+    //mkdir( "newdir", 0666 );       // unistd.c
 
 // #test: Cria n files.
 // stress test:
@@ -935,7 +934,9 @@ static void libc_test(int fd)
 // Remember, we have an embedded command interpreter.
 static void compareStrings(int fd)
 {
-    if (fd<0){
+
+// Parameter
+    if (fd < 0){
         return;
     }
 
@@ -977,29 +978,25 @@ static void compareStrings(int fd)
     {
         netd_res = 
             (int) gws_clone_and_execute2(
-                      fd, 0,0,0,0,
-                      "gnssrv.bin" );
+                      fd, 0,0,0,0, "gnssrv.bin" );
         goto exit_cmp;
     }
 
 
 // #libc
 // Testing libc components.
-    if ( strncmp(prompt,"libc",4) == 0 )
-    {
+    if ( strncmp(prompt,"libc",4) == 0 ){
         libc_test(fd);        
         goto exit_cmp; 
     }
 
 // Create file using rtl implementation, not posix.
-    if ( strncmp(prompt,"create-file",11) == 0 )
-    {
+    if ( strncmp(prompt,"create-file",11) == 0 ){
         rtl_create_empty_file("newfil.txt");
         goto exit_cmp; 
     }
 // Create directory using rtl implementation, not posix.
-    if ( strncmp(prompt,"create-dir",10) == 0 )
-    {
+    if ( strncmp(prompt,"create-dir",10) == 0 ){
         rtl_create_empty_directory("newdir");
         goto exit_cmp; 
     }
@@ -1104,18 +1101,17 @@ static void compareStrings(int fd)
     }
     */
 
+    // int 3
     if ( strncmp(prompt,"int3",4) == 0 ){
         do_int3();
         goto exit_cmp;
     }
-
-    //gp fault
+    // GP fault
     if ( strncmp(prompt,"cli",3) == 0 ){
         do_cli();
         goto exit_cmp;
     }
-
-// Poweroff via ws.
+    // Poweroff via ws.
     if ( strncmp(prompt,"poweroff",8) == 0 ){
         gws_shutdown(fd);
         goto exit_cmp;
@@ -1146,10 +1142,10 @@ static void compareStrings(int fd)
     if ( strncmp(prompt, "string", 6) == 0 )
     {
         cr();
-        lf();  // next line.
+        lf();
         tputstring(fd, "This is a string!\n");
         cr();
-        lf();  // enxt line.
+        lf();
         goto exit_cmp;
     }
 
@@ -1162,9 +1158,9 @@ static void compareStrings(int fd)
 // Test escape sequence do console no kernel.
     if ( strncmp(prompt,"esc2",4) == 0 )
     {
-        //move cursor right
+        // Move cursor right
         printf("\033[8Cm Fred\n");
-        //move cursor left
+        // Move cursor left
         printf("\033[8Dm Fred\n");
         printf("\033[4Bm cursor down!\n");
         printf("\033[8Am cursor up!\n");
@@ -1179,8 +1175,7 @@ static void compareStrings(int fd)
     }
 
 // Testing ioctl
-    if ( strncmp(prompt,"ioctl",5) == 0 )
-    {
+    if ( strncmp(prompt,"ioctl",5) == 0 ){
         __test_ioctl();
         goto exit_cmp;
     }
@@ -1321,36 +1316,35 @@ static void compareStrings(int fd)
 // to create a child, not the terminal.
 // So, the clone_process function in kernel mode will not
 // create the connectors.
-    gws_clone_and_execute_from_prompt(fd);  // libgws.
+// libgws
+    gws_clone_and_execute_from_prompt(fd);
 
 exit_cmp:
     return;
 }
 
-
 static void doHelp(int fd)
 {
-    if(fd<0){
+
+// Parameter
+    if (fd<0){
         printf("doHelp: Invalid fd\n");
         return;
     }
 
+// Print message inside the terminal.
     cr();
     lf();
-    tputstring(fd,"terminal.bin:");
-
+    tputstring(fd,"pubterm:");
     cr();
     lf();
     tputstring(fd,"This is the terminal application");
-
     cr();
     lf();
-    tputstring(fd,"terminal.bin: You can type some commands");
-
+    tputstring(fd,"pubterm: You can type some commands");
     cr();
     lf();
     tputstring(fd,"cls, reboot, shutdown, uname ...");
-
     cr();
     lf();
 
@@ -1387,19 +1381,19 @@ static void doHelp(int fd)
  */
 }
 
-
-static void doAbout(int fd)
-{
 // This is the terminal application, 
 // the goal is receiving data from other programs via stdout.
 // But for now we are using a embedded shell.
+static void doAbout(int fd)
+{
 
-    if(fd<0)
+// Parameter
+    if (fd < 0)
         return;
 
     cr();
     lf();
-    tputstring(fd,"terminal.bin: This is the terminal application");
+    tputstring(fd,"pubterm: This is the terminal application");
     cr();
     lf();
 }
@@ -1408,15 +1402,19 @@ static void doPrompt(int fd)
 {
     register int i=0;
 
-    if(fd<0){
+// Parameter
+    if (fd<0){
         return;
     }
+
 // Clean prompt buffer and setup it again.
-    for ( i=0; i<PROMPT_MAX_DEFAULT; i++ ){ prompt[i] = (char) '\0'; };
+    for ( i=0; i<PROMPT_MAX_DEFAULT; i++ ){
+        prompt[i] = (char) '\0';
+    };
     prompt[0] = (char) '\0';
-    prompt_pos    = 0;
+    prompt_pos = 0;
     prompt_status = 0;
-    prompt_max    = PROMPT_MAX_DEFAULT;  
+    prompt_max = PROMPT_MAX_DEFAULT;  
 
 // Escrevia no console.
     // Prompt
@@ -1442,7 +1440,7 @@ static void doPrompt(int fd)
         return;
     }
 
-// draw prompt symbol.
+// Draw prompt symbol.
     gws_draw_char ( 
         fd, 
         wid, 
@@ -1541,20 +1539,18 @@ static void __send_to_child (void)
     char *shared_flag   = (char *) (0xC0800000 -0x210);   // flag
     char *shared_memory = (char *) (0xC0800000 -0x200);   // input
     //char *shared_memory = (char *) (0xC0800000 -0x100); // output
-   
+
+    register int i=0;   
    
     // There is a '\n' terminated line in prompt[].
     // #bugbug: Não podemos mandar uma linha sem '\n'.
     fseek(stdin, 0, SEEK_SET); 
     write ( fileno(stdin), prompt, 80);
     
-
     //copy to shared memory
     //send a system message.(maybe)
     //flag?
 
-
-    int i=0;
     // Send the command line to the shared memory.
     for(i=0; i<80; i++){ shared_memory[i] = prompt[i]; }
     // Clear prompt.
@@ -1566,12 +1562,15 @@ static void __send_to_child (void)
 }
 
 
-
 // Write something in the standard stream and call shell.bin.
 void test_standard_stream(int fd)
 {
     char buffer[4096];  //#bugbug: 4KB
     int nread = 0;
+
+// Parameter
+    if (fd < 0)
+        return;
 
     // gws_debug_print("test_standard_stream:\n");  
 
@@ -1664,15 +1663,11 @@ void test_standard_stream(int fd)
     */
 }
 
-
-void
-test_child_message(void)
+// lançando um processo filho.  
+// #todo: use clone_and_execute.
+void test_child_message(void)
 {
-   // lançando um processo filho.  
-   // #todo: use clone_and_execute.
-   sc80 ( 900, 
-       (unsigned long) "sh1.bin", 0, 0 );
-
+   sc80 ( 900, (unsigned long) "sh7.bin", 0, 0 );
 }
 
 //
@@ -1750,13 +1745,12 @@ terminal_write_char (
     cursor_x++;
     
     //if (cursor_x > __wlMaxColumns)
-    if(cursor_x >= Terminal.width_in_chars)
+    if (cursor_x >= Terminal.width_in_chars)
     {
         cursor_y++;
         cursor_x=0;
     }
 }
-
 
 /*
  * terminalInsertNextChar:
@@ -1777,13 +1771,11 @@ void terminalInsertNextChar(char c)
     LINES[cursor_y].CHARS[cursor_x] = (char) c;
 }
 
-
 // # terminal stuff
 void terminalInsertNullTerminator (void)
 {
     terminalInsertNextChar ( (char) '\0' );
 }
-
 
 // # terminal stuff
 void terminalInsertLF (void)
@@ -1797,7 +1789,6 @@ void terminalInsertCR (void)
     terminalInsertNextChar ( (char) '\r' );
 }
 
-
 // # terminal stuff
 //line feed
 void lf(void)
@@ -1806,8 +1797,7 @@ void lf(void)
     //terminalInsertLF();
     
     cursor_y++;
-    if (cursor_y >= Terminal.height_in_chars)
-    {
+    if (cursor_y >= Terminal.height_in_chars){
         clear_terminal_client_window(Terminal.client_window_id);
     }
 }
@@ -1839,7 +1829,6 @@ void ri (void)
 	//scrdown();
 }
 
-
 // # terminal stuff
 void del (void)
 {
@@ -1849,7 +1838,6 @@ void del (void)
     LINES[cursor_y].CHARS[cursor_x] = (char) '\0';
     LINES[cursor_y].ATTRIBUTES[cursor_x] = 7;
 }
-
 
 void __test_escapesequence(int fd)
 {
@@ -1888,18 +1876,17 @@ void __test_escapesequence(int fd)
     tputstring(fd, "done :)\n");
 }
 
-// 
+// Print a string inside the client window
 void tputstring(int fd, char *s)
 {
-// #test
-// Print a string inside the client window?
-
     size_t StringSize=0;
     register int i=0;
     char *b = (char *) s;
 
-// Pointer validation
-    if ( (void*) s == NULL )
+// Parameters
+    if (fd<0)
+        return;
+    if ((void*) s == NULL)
         return;
     if ( *s == 0 )
         return;
@@ -2033,23 +2020,22 @@ tputc (
     unsigned char ascii = (unsigned char) c;
     //unsigned char ascii = *c;
 
+// Parameters
+    if (fd<0)
+        return;
+    if (window<0)
+        return;
+
 // ------------
 // Control codes?
 // (0x00~0x1F) and 0x7F.
 
     int is_control=FALSE;
-    if ( ascii <= 0x1F || 
-         ascii == 0x7F )
+    if ( ascii <= 0x1F || ascii == 0x7F )
     {
         is_control = TRUE;
     }
 
-// Invalid socket
-    if (fd<0)
-        return;
-// Invalid target window.
-    if (window<0)
-        return;
 // Invalid char len.
 // #bugbug: Isso nem precisa.
      //if(len!=1)
@@ -2212,7 +2198,7 @@ tputc (
                 //save cursor position
                 case 's':
                     //printf("FOUND {Save cursor position}\n");
-                     save_cur();
+                    save_cur();
                     return;
                     break;
 
@@ -2294,13 +2280,12 @@ tputc (
                     ivalue = (int) (ivalue & 0xFF); //only the first byte.
                     ivalue = atoi(&ivalue); 
                     //printf("ivalue {%d}\n",ivalue);
-                    if ( (cursor_x+ivalue) < 80 )
+                    if ( (cursor_x + ivalue) < 80 )
                     {
-                        while (ivalue > 0)
-                        {
+                        while (ivalue > 0){
                             terminal_write_char(fd, window, (int) ' ');
                             ivalue--;
-                        }
+                        };
                     }
                     return;
                     break;
@@ -2537,7 +2522,6 @@ tputc (
 
 // # terminal stuff
 // Insere um caractere sentro do buffer.
-
 char 
 terminalGetCharXY ( 
     unsigned long x, 
@@ -2632,62 +2616,51 @@ __testPrintBuffer(void)
 */
 
 
-//Qual será a linha que estará no topo da janela.
+// Qual será a linha que estará no topo da janela.
 void textSetTopRow ( int number )
 {
     textTopRow = (int) number; 
 }
-
 
 int textGetTopRow (void)
 {
     return (int) textTopRow;
 }
 
-
-//Qual será a linha que estará na parte de baixo da janela.
-void textSetBottomRow ( int number )
+// Qual será a linha que estará na parte de baixo da janela.
+void textSetBottomRow (int number)
 {
     textBottomRow = (int) number; 
 }
-
 
 int textGetBottomRow (void)
 {
     return (int) textBottomRow; 
 }
 
-void textSetCurrentRow ( int number )
+void textSetCurrentRow (int number)
 {
     cursor_y = (int) number; 
 }
-
 
 int textGetCurrentRow (void)
 {
     return (int) cursor_y;
 }
 
-
-
-void textSetCurrentCol ( int number )
+void textSetCurrentCol (int number)
 {
     cursor_x = (int) number; 
 }
-
 
 int textGetCurrentCol (void)
 {
     return (int) cursor_x; 
 }
 
-
-/*
- * move_to:
- *    Move o cursor de posição.
- *    Assim o próximo char será em outro lugar da janela.
- */
-
+// move_to:
+// Move o cursor de posição.
+// Assim o próximo char será em outro lugar da janela.
 void move_to ( unsigned long x, unsigned long y )
 {
     if ( x > __wlMaxColumns || y > __wlMaxRows )
@@ -2704,13 +2677,12 @@ void move_to ( unsigned long x, unsigned long y )
 
 /* credits: bsd */
 /* Pad STRING to COUNT characters by inserting blanks. */
-
 int pad_to (int count, char *string)
 {
     register int i=0;
 
-//#todo
-//Check string validation?
+// #todo
+// Check string validation?
 
     i = strlen(string);
     if (i >= count){
@@ -2724,8 +2696,6 @@ int pad_to (int count, char *string)
     return (int) (i);
 }
 
-
-
 //char *hello = "Hello there!\n";
 /*
 #define IP(a, b, c, d) (a << 24 | b << 16 | c << 8 | d)
@@ -2736,61 +2706,65 @@ struct sockaddr_in addr = {
 };
 */
 
-
-
-//interna
-int __terminal_clone_and_execute ( char *name )
+// interna
+// #todo: Use 'const char*'
+int __terminal_clone_and_execute (char *name)
 {
-    //if( (void*) name == NULL )
-    //    return -1;
-    //if(*name == 0)
-    //    return -1;
+// Parameter:
+    if ((void*) name == NULL)
+        goto fail;
+    if (*name == 0)
+        goto fail;
+
     return (int) sc80 ( 900, (unsigned long) name, 0, 0 );
+fail:
+    return (int) -1;
 }
 
 void _draw(int fd, int c)
 {
 
-   //unsigned long x;
-   //x=0x65666768; //last
-   
+    //unsigned long x;
+    //x=0x65666768; //last
+
+    if (fd < 0)
+        return;
 
     //printf ("%c",c);
     //fflush(stdout);
     //return;
-   
-   
-                  /*
-                    terminal_drawchar_request (
-                        (int) fd,//fd,
-                        (int) 0, //__response_wid, //window_id,
-                        (unsigned long) __tmp_x,//left,
-                        (unsigned long) __tmp_y,//top,
-                        (unsigned long) COLOR_RED,
-                        (unsigned long) x ); 
-                        */
-                    
-                  gws_draw_char (
-                      (int) fd,             // fd,
-                      (int) 0,              // window id,
-                      (unsigned long) __tmp_x,    // left,
-                      (unsigned long) __tmp_y,    // top,
-                      (unsigned long) fg_color,
-                      (unsigned long) c );
-      
-                    
-                        
-                 __tmp_x = __tmp_x + 8;
-                 
-                 //if ( __tmp_x > (8*80) )
-                 //{
-                 //    __tmp_y = __tmp_y + 8;
-                 //    __tmp_x = 0;
-                 //}
-                 
-                //terminal_drawchar_response((int) fd);
-}
 
+
+    /*
+        terminal_drawchar_request (
+            (int) fd,//fd,
+            (int) 0, //__response_wid, //window_id,
+            (unsigned long) __tmp_x,//left,
+            (unsigned long) __tmp_y,//top,
+            (unsigned long) COLOR_RED,
+            (unsigned long) x ); 
+    */
+
+// Draw char
+
+    gws_draw_char (
+        (int) fd,             // fd,
+        (int) 0,              // window id,
+        (unsigned long) __tmp_x,    // left,
+        (unsigned long) __tmp_y,    // top,
+        (unsigned long) fg_color,
+        (unsigned long) c );
+  
+    __tmp_x = __tmp_x + 8;
+
+    //if ( __tmp_x > (8*80) )
+    //{
+    //    __tmp_y = __tmp_y + 8;
+    //    __tmp_x = 0;
+    //}
+
+    //terminal_drawchar_response((int) fd);
+}
 
 // worker
 static void __on_return_key_pressed(int fd)
@@ -2799,14 +2773,16 @@ static void __on_return_key_pressed(int fd)
     unsigned long jiffie_end=0;
     unsigned long jiffie_delta=0;
 
-// Finalize the command line.
-    input('\0');
+// Parameter
+    if (fd <0){
+        return;
+    }
 
     //jiffie_start = (unsigned long) rtl_get_system_metrics(118);
 
-    if(fd<0){
-        return;
-    }
+// Finalize the command line.
+    input('\0');
+
     compareStrings(fd);
 
     //jiffie_end = (unsigned long) rtl_get_system_metrics(118);
@@ -2940,11 +2916,17 @@ static int __input_from_connector(int fd)
 {
 // #importante:
 // Esse event loop pega dados de um arquivo.
+
+    register int C=0;
     int client_fd = fd;
     int window_id = Terminal.client_window_id;
-    int C=0;
     //const char *test_app = "shell.bin";
     const char *test_app = "pubsh.bin";
+
+
+// Parameter
+    if (fd < 0)
+        goto fail;
 
     //printf ("__input_from_connector: #todo\n");
 
@@ -2965,7 +2947,7 @@ RelaunchShell:
     __terminal_input_fp = stderr;   //save global.
     if ((void*) __terminal_input_fp == NULL){
         printf("__input_from_connector: __terminal_input_fp\n");
-        return -1;
+        goto fail;
     }
 
 // --------------------------------------
@@ -2986,18 +2968,21 @@ RelaunchShell:
 // -----------------------
 // Loop
 // Reading from stderr, with a new fd.
+// Process the char.
+// IN: socket, wid, msg, data1, data2
+
+    const int MessageCode = MSG_KEYDOWN;
 
     while (1){
-        C = fgetc(__terminal_input_fp);
+        C = (int) fgetc(__terminal_input_fp);
         if (C > 0)
         {
-            // Process the char.
             terminalProcedure( 
-                client_fd,    // socket
-                window_id,    // window ID
-                MSG_KEYDOWN,  // message code
-                C,            // long1 (ascii)
-                C );          // long2 (ascii)
+                client_fd,
+                window_id,
+                MessageCode,
+                C,
+                C );
         }
         // EOT - End Of Transmission.
         //if (C == 4){
@@ -3011,27 +2996,29 @@ done:
     printf ("__input_from_connector: Stop listening\n");
     return 0;
 fail:
-    return -1;
+    return (int) -1;
 }
 
-static int __input_STDIN(int fd)
-{
 // Get events from stdin, kernel and ws.
 // Pegando o input de 'stdin'.
 // #importante:
 // Esse event loop pega dados de um arquivo.
-
-
+static int __input_STDIN(int fd)
+{
+    register int C=0;
     FILE *new_stdin;
     int client_fd = fd;
     int window_id = Terminal.client_window_id;
-    int C=0;
     int fGetSystemEvents = TRUE;  // from kernel.
     int fGetWSEvents = TRUE;  // from window server.
 
+// Parameter
+   if (fd < 0)
+       goto fail;
+
+// stdin:
     //new_stdin = (FILE *) fopen("gramado.txt","a+");
     new_stdin = stdin;
-
     if ((void*) new_stdin == NULL){
         printf ("__input_STDIN: new_stdin\n");
         goto fail;
@@ -3057,25 +3044,29 @@ static int __input_STDIN(int fd)
     // atualiza as coisas em ring3 e ring0.
     rewind(new_stdin);
 
+// --------------------
+// #bubug
+// Logo apos lermos um ENTER, o terminal vai colocar
+// alguma coisa em stdin. Provavelmente estamos lendo
+// alguma coisa da linha de comandos usada pelo processo filho.
+// #bubug
+// Estamos lendo dois ENTER seguidos.
+// Process the char.
+// IN: socket, wid, msg, data1, data2
+
     while (1){
         if (isUsingEmbeddedShell == FALSE){
             break;
         }
-        // #bubug
-        // Logo apos lermos um ENTER, o terminal vai colocar
-        // alguma coisa em stdin. Provavelmente estamos lendo
-        // alguma coisa da linha de comandos usada pelo processo filho.
-        // #bubug
-        // Estamos lendo dois ENTER seguidos.
-        C = fgetc(new_stdin);
+        C = (int) fgetc(new_stdin);
         if (C > 0)
         {
             terminalProcedure( 
-                client_fd,    // socket
-                window_id,    // window ID
-                MSG_KEYDOWN,  // message code
-                C,            // long1 (ascii)
-                C );          // long2 (ascii)
+                client_fd,
+                window_id,
+                MSG_KEYDOWN,
+                C,
+                C );
         }
         // Get events from the window server.
         
@@ -3097,69 +3088,98 @@ fail:
 static int embedded_shell_run(int fd)
 {
     isUsingEmbeddedShell = TRUE;
-    if (fd<0)
+
+// Parameter
+    if (fd < 0){
         goto fail;
-    while (1){
-        if (isUsingEmbeddedShell != TRUE)
+    }
+// Loop
+    while (1)
+    {
+        if (isUsingEmbeddedShell != TRUE){
             break;
+        }
         __input_STDIN(fd);
     };
     return 0;
 fail:
-    return -1;
+    return (int) -1;
 }
 
 static int terminal_run(int fd)
 {
-    int InputStatus= -1;
+    int InputStatus = -1;
+
+// Parameter
+    if (fd<0)
+        goto fail;
+
     isUsingEmbeddedShell = FALSE;
-    while (1){
+
+// Loop
+    while (1)
+    {
         InputStatus = __input_from_connector(fd);
         if(InputStatus == 0)
             break;
     };
     return 0;
 fail:
-    return -1;
+    return (int) -1;
 }
-
 
 static void __get_system_event(int fd, int wid)
 {
     int msg_code = 0;
 
-// Get one single event.
-    if ( rtl_get_event() != TRUE )
+// Parameters
+    if (fd < 0)
         return;
+    //if (wid < 0)
+        //return;
+
+// Get one single event.
+    if ( rtl_get_event() != TRUE ){
+        return;
+    }
 
 // Dispatch
     msg_code = (int) (RTLEventBuffer[1] & 0xFFFFFFFF);
 
+// Accepting only these messages.
     switch (msg_code){
-    // Accepting only these messages.
     case MSG_CLOSE:
     case MSG_PAINT:
     // ...
+        // IN: socket, wid, msgcode, data1, data2
         terminalProcedure ( 
-            fd,  // socket 
-            wid,  // wid 
+            fd, 
+            wid,
             (int) msg_code, 
             (unsigned long) RTLEventBuffer[2],
             (unsigned long) RTLEventBuffer[3] );
         break;
     //#test
     case 44888:
-       printf("terminal.bin: 44888 Received\n");
+       printf("pubterm: 44888 Received\n");
        break;
     default:
         break;
     };
 }
 
+// Get only one event from the window server.
 static void __get_ws_event(int fd, int event_wid)
 {
-// Get only one event from the window server.
+    int event_type = -1;
 
+// Parameters
+    if (fd < 0)
+        return;
+    if (event_wid < 0)
+        return;
+
+// ------------
     struct gws_event_d lEvent;
     lEvent.used = FALSE;
     lEvent.magic = 0;
@@ -3167,32 +3187,32 @@ static void __get_ws_event(int fd, int event_wid)
     lEvent.long1 = 0;
     lEvent.long2 = 0;
 
+// ------------
     struct gws_event_d *e;
     e = 
         (struct gws_event_d *) gws_get_next_event(
                                    fd, 
                                    event_wid,
                                    (struct gws_event_d *) &lEvent );
-// Invalid event.
-    if ((void *) e == NULL)
+// Invalid event
+    if ((void *) e == NULL){
         return;
-    if (e->magic != 1234)
+    }
+    if (e->magic != 1234){
         return;
+    }
 
-// Dispatch event.
-    int event_type = (int) (e->type & 0xFFFFFFFF);
-    if (event_type<0)
+// Dispatch event
+    event_type = (int) (e->type & 0xFFFFFFFF);
+    if (event_type < 0){
         return;
+    }
     switch (event_type){
     // ...
     case MSG_PAINT:
     case MSG_CLOSE:
-        terminalProcedure( 
-            fd,          // socket
-            e->window,   // window ID
-            e->type,     // message code
-            e->long1,    // long1 (ascii)
-            e->long2 );  // long2 (ascii)
+        // socket, wid, msg code, data1, data2
+        terminalProcedure( fd, e->window, e->type, e->long1, e->long2 );
         break;
     };
 }
@@ -3204,11 +3224,9 @@ static void __initialize_basics(void)
 // Windows
     main_window=0;
     terminal_window=0;
-
 // Cursor
     cursor_x=0;
     cursor_y=0;
-
     __sequence_status=0;
 
 // CSI - Control Sequence Introducer.
@@ -3219,10 +3237,8 @@ static void __initialize_basics(void)
     __csi_buffer_tail=0;
     __csi_buffer_head=0;
 
-
     __tmp_x=0;
     __tmp_y=0;
-
 
 // Limite de tamanho da janela.
     wlMinWindowWidth=0;
@@ -3242,8 +3258,8 @@ static void __initialize_basics(void)
 
 static void terminalTerminal(void)
 {
-    int i=0;
-    int j=0;
+    //int i=0;
+    //int j=0;
 
     bg_color = COLOR_BLACK;
     fg_color = COLOR_WHITE;
@@ -3427,24 +3443,26 @@ static void terminalInitWindowPosition(void)
 }
 
 // Initialization.
-// Called by main() in main.c.
+// IN: Flags
 int terminal_init(unsigned short flags)
 {
 // Called by main() in main.c
 
+// ------------------------------------
 // Socket address.
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
     addr_in.sin_port = PORTS_WS;
     addr_in.sin_addr.s_addr = IP(127,0,0,1);    //ok
     //addr_in.sin_addr.s_addr = IP(127,0,0,9);  //fail
+// ------------------------------------
 
     int client_fd = -1;
 
     unsigned long w=0;
     unsigned long h=0;
 
-    debug_print ("terminal: Initializing\n");
+    debug_print ("pubterm: Initializing\n");
     
     __initialize_basics();
 
@@ -3453,13 +3471,14 @@ int terminal_init(unsigned short flags)
     w = gws_get_system_metrics(1);
     h = gws_get_system_metrics(2);
 
+// --------------
 // Socket
 // Create the socket and save the fd into the terminal structure.
     client_fd = (int) socket( AF_INET, SOCK_STREAM, 0 );
     if (client_fd < 0){
-       debug_print("terminal: on socket()\n");
-       printf     ("terminal: on socket()\n");
-       exit(1);
+       debug_print("pubterm: on socket()\n");
+       printf     ("pubterm: on socket()\n");
+       goto fail;
     }
     Terminal.client_fd = (int) client_fd;
 
@@ -3556,10 +3575,9 @@ int terminal_init(unsigned short flags)
                   mwColor, 
                   mwColor );
 
-    if (main_window<0)
-    {
-        printf("terminal: fail on main_window\n");
-        exit(1);
+    if (main_window < 0){
+        printf("pubterm: on main_window\n");
+        goto fail;
     }
     Terminal.main_window_id = main_window;
 
@@ -3578,9 +3596,8 @@ int terminal_init(unsigned short flags)
     
     wi = (void*) malloc( sizeof(struct gws_window_info_d) );
     if ((void*) wi == NULL){
-        printf("terminal: wi\n");
-        while (1){
-        };
+        printf("pubterm: wi\n");
+        goto fail;
     }
     //IN: fd, wid, window info structure.
     gws_get_window_info(
@@ -3589,44 +3606,38 @@ int terminal_init(unsigned short flags)
         (struct gws_window_info_d *) wi );
 
     if (wi->used != TRUE){
-        printf("terminal: wi->used\n");
-        while (1){
-        };
+        printf("pubterm: wi->used\n");
+        goto fail;
     }
     if (wi->magic != 1234){
-        printf("terminal: wi->magic\n");
-        while (1){
-        };
+        printf("pubterm: wi->magic\n");
+        goto fail;
     }
 
 // Setting new values for the client window.
 
 // Não pode ser maior que o dispositivo.
     if (wi->cr_left >= w){
-        printf("terminal: wi->cr_left\n");
-        while (1){
-        };
+        printf("pubterm: wi->cr_left\n");
+        goto fail;
     }
 
 // Não pode ser maior que o dispositivo.
     if (wi->cr_top >= h){
-        printf("terminal: wi->cr_top\n");
-        while (1){
-        };
+        printf("pubterm: wi->cr_top\n");
+        goto fail;
     }
 
 // Não pode ser maior que o dispositivo.
     if (wi->cr_width == 0 || wi->cr_width > w){
-        printf("terminal: wi->cr_width\n");
-        while (1){
-        };
+        printf("pubterm: wi->cr_width\n");
+        goto fail;
     }
 
 // Não pode ser maior que o dispositivo.
     if (wi->cr_height == 0 || wi->cr_height > h){
-        printf("terminal: wi->height\n");
-        while (1){
-        };
+        printf("pubterm: wi->height\n");
+        goto fail;
     }
 
 // #danger
@@ -3653,15 +3664,13 @@ int terminal_init(unsigned short flags)
                   COLOR_BLACK,
                   COLOR_BLACK );
 
-    if (terminal_window<0)
-    {
-        printf("terminal: fail on terminal_window\n");
-        exit(1);
+    if (terminal_window < 0){
+        printf("pubterm: on terminal_window\n");
+        goto fail;
     }
     Terminal.client_window_id = terminal_window;
     //#debug
     gws_refresh_window(client_fd, terminal_window);
-
 
 // #bugbug
 // Something is wrong here.
@@ -3675,11 +3684,8 @@ int terminal_init(unsigned short flags)
     Terminal.width = wWidth;
     Terminal.height = wHeight;
 // In chars.
-    Terminal.width_in_chars = 
-        (unsigned long)((wWidth/8) & 0xFFFF);
-    Terminal.height_in_chars = 
-        (unsigned long)((wHeight/8) & 0xFFFF);
-
+    Terminal.width_in_chars  = (unsigned long)((wWidth/8 ) & 0xFFFF);
+    Terminal.height_in_chars = (unsigned long)((wHeight/8) & 0xFFFF);
     Terminal.initialized = TRUE;
 
 // Set window with focus
@@ -3746,13 +3752,8 @@ int terminal_init(unsigned short flags)
 // #bugbug
 // It needs to be an 'editbox' for typing messages.
 
-/*
-    gws_async_command(
-         client_fd,
-         9,             // set focus
-         terminal_window,
-         terminal_window );
-*/
+    // Set focus
+    // gws_async_command( client_fd, 9, terminal_window, terminal_window );
 
     //rtl_focus_on_this_thread();
 
@@ -3768,13 +3769,8 @@ int terminal_init(unsigned short flags)
     clear_terminal_client_window(client_fd);
     doPrompt(client_fd);
 
-// Set active window
-
-    //gws_async_command(
-    //     client_fd,
-    //     15, 
-    //     main_window,
-    //     main_window );
+    // Set active window
+    //gws_async_command( client_fd, 15, main_window, main_window );
 
     gws_set_active( client_fd, main_window );
 
@@ -3790,29 +3786,32 @@ int terminal_init(unsigned short flags)
 
 // Input loop!
 // local routine.
-    int InputStatus=-1;
+    int InputStatus = -1;
 
 // -------------------------
 // Reading from the child.
 // Reading from connector.
     InputStatus = terminal_run(client_fd);
-    if (InputStatus < 0)
+    if (InputStatus < 0){
         goto fail;
+    }
 
 // -------------------------
 // Embedded shell
     InputStatus = (int) embedded_shell_run(client_fd);
-    if (InputStatus < 0)
+    if (InputStatus < 0){
         goto fail;
+    }
 
 done:
-    debug_print("terminal.bin: Bye\n"); 
-    printf     ("terminal.bin: Bye\n");
-    return 0;
+    debug_print("pubterm: Done\n"); 
+    printf     ("pubterm: Done\n");
+    return EXIT_SUCCESS;
+
 fail:
-    debug_print("terminal.bin: Fail\n"); 
-    printf     ("terminal.bin: Fail\n");
-    return -1;
+    debug_print("pubterm: Fail\n"); 
+    printf     ("pubterm: Fail\n");
+    return (int) -1;
 }
 
 //

@@ -1,5 +1,6 @@
-#history:
-#2019 - Created by Fred Nora.
+# It builds PUBTERM.BIN
+# 2019 - Created by Fred Nora.
+
 #todo:
 #fazer um makefile pra compilar o shell
 #obs: #bugbug tem que arrumas as coisas aqui.
@@ -10,8 +11,11 @@ SUBLEVEL = 0
 EXTRAVERSION =
 #NAME = 
 
+
 linkFlags  = -m elf_x86_64 \
 -s -x -static -T ../../link.ld
+
+linkTarget = PUBTERM.BIN 
 
 # usermode cross compiler flags.
 CFLAGS = -Wall
@@ -87,10 +91,10 @@ all-c:
 	cp $(LIBGWSOBJ)/libgws.o .
 
 hello-link:
-	ld $(linkFlags) -o PUBTERM.BIN $(myObjects)    
+	ld $(linkFlags) -o $(linkTarget) $(myObjects)    
 finalize:
-	cp PUBTERM.BIN  ../../bin
+	cp $(linkTarget)  ../../bin
 clean:
 	-rm *.o
-	-rm PUBTERM.BIN 
+	-rm $(linkTarget) 
 	

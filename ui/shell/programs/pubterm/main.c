@@ -1,8 +1,7 @@
-/*
- * File: main.c
- *     Simple virtual terminal.
- *     2021 - Created by Fred Nora.
- */
+// main.c
+// Main file for PUBTERM.BIN
+// 2021 - Created by Fred Nora.
+
 // #test
 // For now it has a small embedded command line interpreter.
 // The POSIX terminal interface.
@@ -117,6 +116,9 @@ int main(int argc, char *argv[])
 // Telling to the kernel that we are a terminal.
 // This way the kernel will create connectors
 // where we clone ourself.
+// #todo
+// Explain and document this connectors.
+
     // #todo: Create an API for this.
     // IN: syscall number,  ... signature.
     sc82(901,1234,1234,1234);
@@ -124,9 +126,11 @@ int main(int argc, char *argv[])
 // --------------------------------
 // IN: flags
     Status = (int) terminal_init(0);
-    if (Status != 0)
+    if (Status != EXIT_SUCCESS){
         printf("main: Something is wrong\n");
+        return EXIT_FAILURE;
+    }
 
-    return 0;
+    return EXIT_SUCCESS;
 }
 
