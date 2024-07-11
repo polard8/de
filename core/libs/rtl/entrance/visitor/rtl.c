@@ -41,13 +41,13 @@ unsigned long RTLEventBuffer[32];
 
 // System call.
 // Interrupt 0x80.
+// Adapter. System dependent.
 void *sc80 ( 
     unsigned long a, 
     unsigned long b, 
     unsigned long c, 
     unsigned long d )
 {
-// Adapter. System dependent.
     unsigned long __Ret=0;
 
     asm volatile ( " int %1 \n"
@@ -59,14 +59,13 @@ void *sc80 (
 
 // System call.
 // Interrupt 0x81.
+// Adapter. System dependent.
 void *sc81 ( 
     unsigned long a, 
     unsigned long b, 
     unsigned long c, 
     unsigned long d )
 {
-// Power
-// Adapter. System dependent.
     unsigned long __Ret=0;
 
     asm volatile ( " int %1 \n"
@@ -78,14 +77,13 @@ void *sc81 (
 
 // System call.
 // Interrupt 0x82.
+// Adapter. System dependent.
 void *sc82 ( 
     unsigned long a, 
     unsigned long b, 
     unsigned long c, 
     unsigned long d )
 {
-// Love
-// Adapter. System dependent.
     unsigned long __Ret=0;
 
     asm volatile ( " int %1 \n"
@@ -97,14 +95,13 @@ void *sc82 (
 
 // System call.
 // Interrupt 0x83.
+// Adapter. System dependent.
 void *sc83 ( 
     unsigned long a, 
     unsigned long b, 
     unsigned long c, 
     unsigned long d )
 {
-// Rest
-// Adapter. System dependent.
     unsigned long __Ret=0;
 
     asm volatile ( " int %1 \n"
@@ -116,13 +113,13 @@ void *sc83 (
 
 // System call.
 // Interrupt 0x80.
+// Adapter. System dependent.
 void *gramado_system_call ( 
     unsigned long a, 
     unsigned long b, 
     unsigned long c, 
     unsigned long d )
 {
-// Adapter. System dependent.
     return (void *) sc80(a,b,c,d);
 }
 
@@ -150,8 +147,6 @@ rtl_dispatch_signal_handler (
 
     return (unsigned long) __Return;
 }
-
-
 
 // =============================================================
 
@@ -187,7 +182,6 @@ inline void rtl_btc(void *bit_field, unsigned long bit_number)
 
 */
 
-
 /*
 // #test
 // Open special devices, given a standard string.
@@ -213,12 +207,12 @@ int gramado_open_device(char *string)
 */
 
 // Input port.
+// Input adapter. System dependent.
 int rtl_get_key_state(int vk)
 {
     unsigned long value=0;
     int virtual_key = (int) (vk & 0xFF);
 
-    // Input adapter. System dependent.
     value = 
         (unsigned long) sc80( 
                             138, 
@@ -247,8 +241,6 @@ void *rtl_shm_get_2mb_surface(void)
     return NULL;
 }
 
-
-
 // ==========================================
 // Exit on fail
 // Entry point
@@ -258,7 +250,6 @@ void *rtl_shm_get_2mb_surface(void)
 //   com base nas suas informações guardadas na estrutura app_d
 // encontrada em gramado.h na rtl.
 // + Por fim essa rotina deve finalizar a thread de controle.
-
 void rtl_elegant_exit_on_fail(void)
 {
     debug_print("rtl_elegant_exit_on_fail: #todo\n");
@@ -266,7 +257,6 @@ void rtl_elegant_exit_on_fail(void)
 }
 
 // =============================================================
-
 int rtl_get_input_mode(void)
 {
     return (int) gramado_system_call(911,0,0,0);
@@ -276,14 +266,10 @@ int rtl_get_input_mode(void)
 // Explain it better.
 void rtl_set_input_mode(int mode)
 {
-    if (mode < 0)
+    if (mode < 0){
         return;
-
-    gramado_system_call(
-        912,    // What is that?
-        mode,
-        mode,
-        mode );
+    }
+    gramado_system_call( 912, mode, mode, mode );
 }
 
 //
@@ -294,49 +280,48 @@ void rtl_set_input_mode(int mode)
 
 void rtl_set_global_sync(int sync_id, int request, int data)
 {
-    if (sync_id<0)
+    if (sync_id < 0){
         return;
-
-    //if (request<0)
+    }
+    //if (request<0){
         //return;
-
-    sc82 (10002,sync_id,request,data);
+    //}
+    sc82 ( 10002, sync_id, request, data );
 }
 
 int rtl_get_global_sync(int sync_id, int request)
 {
-    //if(fd<0)
-    //    return -1;
-
-    //if(request<0)
-    //    return -1;
-
+    //if (sync_id < 0){
+    //    return;
+    //}
+    //if (request<0){
+        //return;
+    //}
     return (int) sc82 (10003,sync_id,request,0);
 }
 
 // ========================
 
-
 void rtl_set_file_sync(int fd, int request, int data)
 {
-    if (fd<0)
+    if (fd < 0){
         return;
-
-    //if (request<0)
+    }
+    //if (request<0){
         //return;
-
-    sc82 (10006,fd,request,data);
+    //}
+    sc82 ( 10006, fd, request, data );
 }
 
 int rtl_get_file_sync(int fd, int request)
 {
-    //if(fd<0)
+    //if(fd<0){
     //    return -1;
-
-    //if(request<0)
+    //}
+    //if(request<0){
     //    return -1;
-
-    return (int) sc82 (10007,fd,request,0);
+    //}
+    return (int) sc82 ( 10007, fd, request, 0 );
 }
 
 unsigned char rtl_to_uchar (char ch)
@@ -412,6 +397,7 @@ rtl_post_system_message(
     //unsigned long return_value=0;
     unsigned long tid=0;
 
+// Parameters
     if (dest_tid < 0){
         return 0;
     }
@@ -433,6 +419,8 @@ rtl_post_system_message(
 
 //====================================================
 
+// Send async hello. 44888.
+// Using system messages.
 void 
 rtl_post_to_tid(
     int tid, 
@@ -440,10 +428,7 @@ rtl_post_to_tid(
     unsigned long long1, 
     unsigned long long2 )
 {
-// Send async hello. 44888.
-
     unsigned long message_buffer[32];
-
     int target_tid = tid;
     unsigned long msg = (unsigned long) (msg_code & 0xFFFFFFFF);
 
@@ -467,10 +452,6 @@ rtl_post_to_tid(
         (int) target_tid, 
         (unsigned long) message_buffer );
 }
-
-
-
-
 
 //=====================================
 
@@ -576,10 +557,10 @@ int rtl_get_event2(int index, int restart)
 {
     int Status = -1;
 
+// Parameters
     if (index<0){
         return (int) -1;
     }
-
     // #todo: Com esse if podemos selecionar mais de um modelo 
     // para pegar input.
     // if( ....
@@ -589,13 +570,11 @@ int rtl_get_event2(int index, int restart)
     return (int) Status;
 }
 
+// Get system events.
 struct rtl_event_d *rtl_next_event (void)
 {
-
-// Not a pointer.
+// Create and clear a local structure.
     struct rtl_event_d  rtlEvent;
-
-// Clean
     rtlEvent.window = NULL;
     rtlEvent.msg    = 0;
     rtlEvent.long1  = 0;
@@ -618,28 +597,19 @@ struct rtl_event_d *rtl_next_event (void)
         (unsigned long) &rtlEvent );
     rtl_exit_critical_section(); 
 
- // Check if it is a valid event.
-
+// Check if it is a valid event.
 // No, we do not have an event. 
-// Clean
-
-    if ( rtlEvent.msg == 0 )
-    {
-        rtlEvent.window = NULL;
-        rtlEvent.msg    = 0;
-        rtlEvent.long1  = 0;
-        rtlEvent.long2  = 0;
-        rtlEvent.long3  = 0;
-        rtlEvent.long4  = 0;
-        rtlEvent.long5  = 0;
-        rtlEvent.long6  = 0;
-        return NULL; 
+    if (rtlEvent.msg == 0){
+        goto fail; 
     }
 
 // Yes, we have an event.
     return (struct rtl_event_d *) &rtlEvent;
-}
 
+// We don't need to clear local structures.
+fail:
+    return NULL;
+}
 
 // P (Proberen) testar.
 // Pega o valor do spinlock principal.
@@ -688,13 +658,14 @@ int rtl_create_empty_file(char *file_name)
 {
     unsigned long Value=0;
 
+// Parameter
     if ((void*) file_name == NULL){
-        debug_print("rtl_create_empty_file: [FAIL] file_name\n");
-        return (int) -1;
+        debug_print("rtl_create_empty_file: file_name\n");
+        goto fail;
     }
     if ( *file_name == 0 ){
-        debug_print("rtl_create_empty_file: [FAIL] *file_name\n");
-        return (int) -1;
+        debug_print("rtl_create_empty_file: *file_name\n");
+        goto fail;
     }
 
     Value = 
@@ -708,6 +679,9 @@ int rtl_create_empty_file(char *file_name)
 // Error message.
 
     return (int) (Value & 0xF);
+
+fail:
+    return (int) -1;
 }
 
 // Create empty directory.
@@ -716,13 +690,14 @@ int rtl_create_empty_directory(char *dir_name)
 {
     unsigned long Value=0;
 
+// Parameter
     if ((void*) dir_name == NULL){
-        debug_print("rtl_create_empty_directory: [FAIL] dir_name\n");
-        return (int)(-1);
+        debug_print("rtl_create_empty_directory: dir_name\n");
+        goto fail;
     }
     if (*dir_name == 0){
-        debug_print("rtl_create_empty_directory: [FAIL] *dir_name\n");
-        return (int)(-1);
+        debug_print("rtl_create_empty_directory: *dir_name\n");
+        goto fail;
     }
 
 // #todo
@@ -740,15 +715,25 @@ int rtl_create_empty_directory(char *dir_name)
 // Error message
 
     return (int) (Value & 0xF);
+
+fail:
+    return (int) -1;
 }
 
 void *rtl_create_process(const char *file_name)
 {
     char pName[32];
 
-    debug_print("rtl_create_process:\n #todo\n");
-    //return NULL;
-    
+    debug_print("rtl_create_process: #todo\n");
+
+// #todo
+// Check parameter validation
+    if ((void*) file_name == NULL)
+        goto fail;
+    if (*file_name == 0)
+        goto fail;
+
+// #bugbug: Why 16?
     strncpy(pName,file_name,16);
     pName[17] = 0;
     pName[31] = 0;
@@ -762,12 +747,14 @@ void *rtl_create_process(const char *file_name)
         (unsigned long) &pName[0],
         3,  //priority
         0 );
+fail:
+    return NULL;
 }
 
 int rtl_start_process(void *process)
 {
-    debug_print("rtl_start_process:\n #todo\n");
-    return -1;
+    debug_print("rtl_start_process: #todo\n");
+    return (int) -1;
 }
 
 /*
@@ -777,14 +764,12 @@ pid_t rtl_get_process_pid( void *process )
 }
 */
 
-
 /*
 int rtl_start_process_pid( pid_t pid );
 int rtl_start_process_pid( pid_t pid )
 {
 }
 */
-
 
 /*
  * rtl_create_thread:
@@ -793,21 +778,26 @@ int rtl_start_process_pid( pid_t pid )
  *     Precisamos uma função que envie mais argumentos.
  *     Essa será uma rotina de baixo nível para pthreads.
  */
-
+//#define	SYSTEMCALL_CREATETHREAD     72
 void *rtl_create_thread ( 
     unsigned long init_rip, 
     unsigned long init_stack, 
     char *name )
 {
-    //#define	SYSTEMCALL_CREATETHREAD     72
     debug_print ("rtl_create_thread:\n");
+
+// #todo
+// Check parameters validation
+
+    //if (init_rip == 0)
+        //return NULL;
+
     return (void *) gramado_system_call ( 
-                        72,    //SYSTEMCALL_CREATETHREAD, 
+                        72,
                         init_rip, 
                         init_stack, 
                         (unsigned long) name );
 }
-
 
 /*
  * rtl_start_thread:
@@ -818,13 +808,16 @@ void *rtl_create_thread (
 void rtl_start_thread (void *thread)
 {
     debug_print ("rtl_create_thread:\n");
+
+// #todo
+// Check parameters validation
+
     gramado_system_call ( 
         SYSTEMCALL_STARTTHREAD, 
         (unsigned long) thread, 
         (unsigned long) thread, 
         (unsigned long) thread );
 }
-
 
 /*
 int rtl_get_thread_tid( void *thread);
@@ -833,14 +826,12 @@ int rtl_get_thread_tid( void *thread)
 }
 */
 
-
 /*
 int rtl_start_thread_tid(int tid);
 int rtl_start_thread_tid(int tid)
 {
 }
 */
-
 
 /* Get the next token in a string, 
  * returning a pointer to the byte following the token.
@@ -858,7 +849,7 @@ char *rtl_get_next_token_in_a_string(
 	*w = 0;
 	*size = 0;
 
-// Fail
+// Parameters:
     if ((void*) buf == NULL){
         goto fail;
     }
@@ -869,13 +860,12 @@ char *rtl_get_next_token_in_a_string(
         goto fail;
     }
 
-
     size_t BufferSize = strlen(buf);
     if (BufferSize > buffer_size)
         goto fail;
 
 // Pula os espaços iniciais se tiver.
-	while (isspace(*buf))
+	while ( isspace(*buf) )
 	{
 	    buf++;
 	};
@@ -908,11 +898,11 @@ fail:
 }
 
 
+// ??
 // Vamos escrever em uma janela indefinida. NULL.
 // provavelmente a janela principal.
 // #todo: Change string to 'const char *'
 // #todo: Change the type for color parameter. Use 'unsigned int' instead.
-
 int 
 rtl_draw_text ( 
     unsigned long x, 
@@ -920,17 +910,16 @@ rtl_draw_text (
     unsigned long color, 
     char *string )
 {
-// ??
-
     unsigned long msg[8];
 
+// Parameters:
     if ( (void*) string == NULL ){
         debug_print("rtl_draw_text: string\n");
-        return -1;
+        goto fail;
     }
     if ( *string == 0 ){
         debug_print("rtl_draw_text: *string\n");
-        return -1;
+        goto fail;
     }
 
     msg[0] = (unsigned long) 0;  // window;
@@ -947,6 +936,8 @@ rtl_draw_text (
                     (unsigned long) &msg[0], 
                     (unsigned long) &msg[0], 
                     (unsigned long) &msg[0] );
+fail:
+    return (int) -1;
 }
 
 /*
@@ -964,15 +955,17 @@ void rtl_show_backbuffer (void)
     gramado_system_call ( SYSTEMCALL_REFRESHSCREEN, 0, 0, 0 );
 }
 
-
 /*
  * rtl_get_system_metrics:
  *     Obtem informações sobre dimensões e posicionamentos. 
  *     #importante
  */
-
 unsigned long rtl_get_system_metrics (int index)
 {
+
+// #todo
+// Check parameter
+
     //if (index<0){
         //gde_debug_print ("gde_get_system_metrics: fail\n");
         //return 0;
@@ -987,15 +980,14 @@ unsigned long rtl_get_system_metrics (int index)
 
 int rtl_is_qemu(void)
 {
-    int isQEMU=-1;
+    int isQEMU = -1;
+
     isQEMU = (int) rtl_get_system_metrics(300);
     //isVirtualBox = rtl_get_system_metrics(?);
     //isBochs      = rtl_get_system_metrics(?);
 
     return (int) (isQEMU & 0xFFFFFFFF);
 }
-
-
 
 pid_t rtl_current_process(void)
 {
@@ -1033,7 +1025,6 @@ void XorSwap( int* x, int* y )
 }
 */
 
-
 /*
 void AddSwap( unsigned int* x, unsigned int* y );
 void AddSwap( unsigned int* x, unsigned int* y )
@@ -1046,7 +1037,6 @@ void AddSwap( unsigned int* x, unsigned int* y )
   }
 }
 */
-
 
 /*
  * rtl_copy_text:
@@ -1074,17 +1064,16 @@ rtl_copy_text (
     int x=0;
     int y=0; 
 
-    if ( (void *) src == NULL || 
-         (void *) dest == NULL )
+// Parameters
+    if ( (void *) src == NULL || (void *) dest == NULL )
     {
         printf("rtl_copy_text: src dest\n");
-        return -1;
+        goto fail;
     }
-
     if ( width <= 0 || height <= 0 )
     {
         printf("rtl_copy_text: width height\n");
-        return -1;
+        goto fail;
     }
 
     for ( y=0; y< __height; y++ ) 
@@ -1101,9 +1090,10 @@ rtl_copy_text (
         } 
     };
 
-    return -0; 
+    return 0;
+fail:
+    return (int) -1;
 }
-
 
 /*
 char *johncarmack_strstr(const char *haystack, const char *needle);
@@ -1128,7 +1118,6 @@ int rtl_file_length (FILE *f)
 	return end;
 }
 */
-
 
 /*
 int rtl_file_exists (const char *filename);
@@ -1217,7 +1206,6 @@ uint32_t rtl_read32(uint8_t *ptr, uint16_t offset) {
 }
 */
 
-
 /*
 int rtl_is_separator (int c);
 int rtl_is_separator (int c) 
@@ -1229,7 +1217,6 @@ int rtl_is_separator (int c)
     };
 }
 */
-
 
 /*
 //caracteres iguais em duas strings,
@@ -1255,7 +1242,6 @@ rtl_StrCommonSubset(
 }
 */
 
-
 /*
 int rtl_IsPath(unsigned char *str);
 int rtl_IsPath(unsigned char *str)
@@ -1267,7 +1253,6 @@ int rtl_IsPath(unsigned char *str)
   return FALSE;
 }
 */
-
 
 /*
 //credits: 8188eu driver
@@ -1283,7 +1268,6 @@ static int hex2num_i(char c)
 	return -1;
 }
 */
-
 
 /*
  * hwaddr_aton - Convert ASCII string to MAC address
@@ -1317,7 +1301,6 @@ static int hwaddr_aton_i(const char *txt, u8 *addr)
 }
 */
 
-
 /*
 void *rtl_zalloc (size_t size);
 void *rtl_zalloc (size_t size)
@@ -1333,7 +1316,6 @@ void *rtl_zalloc (size_t size)
     return n;
 }
 */
-
 
 /*
 void *rtl_realloc_raw (void *p, int sz);
@@ -1440,7 +1422,6 @@ void rtl_free_environ (void *address, int len)
     };
 }
 */
-
 
 /*
  //2020 - created by fred nora.
@@ -1966,7 +1947,6 @@ int rtl_vector_count (char **vector)
 */
 
 
-
 void rtl_test_pipe (void)
 {
     int pipefd[2];
@@ -2028,17 +2008,17 @@ void rtl_test_pipe (void)
 size_t rtl_path_count (unsigned char *path)
 {
     size_t Value = 0;
-    int i=0;
+    register int i=0;
     int max = (80*25);
 
+// Parameter
     if ( (void*) path == NULL ){
-        printf ("rtl_path_count: [FAIL] path\n");
-        return (size_t) -1;
+        printf ("rtl_path_count: path\n");
+        goto fail;
     }
-
     if (*path == 0){
-        printf ("rtl_path_count: [FAIL] *path\n");
-        return (size_t) -1;
+        printf ("rtl_path_count: *path\n");
+        goto fail;
     }
 
     for ( i=0; i < max; i++ )
@@ -2048,8 +2028,9 @@ size_t rtl_path_count (unsigned char *path)
     };
 
     return (size_t) Value;
+fail:
+    return (size_t) -1;
 }
-
 
 int 
 rtl_load_path ( 
@@ -2059,37 +2040,41 @@ rtl_load_path (
 {
     int status = -1;
 
-    if ( (void*) path == NULL ){
-        printf ("rtl_load_path: [FAIL] path\n");
-        return (int) -1;
+// Parameters:
+    if ((void*) path == NULL){
+        printf ("rtl_load_path: path\n");
+        goto fail;
     }
-
     if (*path == 0){
-        printf ("rtl_load_path: [FAIL] *path\n");
-        return (int) -1;
+        printf ("rtl_load_path: *path\n");
+        goto fail;
     }
-
-
     //if ( buffer = 0 )
     //{
-        // msg
-    //    return -1;
+          // msg
+    //    goto fail;
     //}
 
-    status = (int) gramado_system_call ( 4004, 
-                       (unsigned long) path, 
-                       (unsigned long) buffer, 
-                       (unsigned long) buffer_len );
+    status = 
+        (int) gramado_system_call ( 4004, 
+                (unsigned long) path, 
+                (unsigned long) buffer, 
+                (unsigned long) buffer_len );
 
     return (int) status;
+fail:
+    return (int) -1;
 }
 
-
+// Write one byte in stdout.
 ssize_t rtl_console_beep(void)
 {
+    int fd = fileno(stdout);
+    // const
     char BeepChar = '\a';
+
     return (ssize_t) write ( 
-                         fileno(stdout), 
+                         fd , 
                          (const void *) &BeepChar, 
                          1 );
 }
@@ -2103,13 +2088,15 @@ void rtl_broken_vessels(void)
 // OUT: Child's PID.
 int rtl_clone_and_execute(char *name)
 {
+
+// Parameter
     if ((void *) name == NULL){
-        printf ("rtl_clone_and_execute: [FAIL] name\n");
-        return (int) -1;
+        printf ("rtl_clone_and_execute: name\n");
+        goto fail;
     }
     if ( *name == 0 ){
-        printf ("rtl_clone_and_execute: [FAIL] *name\n");
-        return (int) -1;
+        printf ("rtl_clone_and_execute: *name\n");
+        goto fail;
     }
 
     //rewind(stdin);
@@ -2122,21 +2109,27 @@ int rtl_clone_and_execute(char *name)
 // Maybe we can send a raw command line.
 
     return (int) sc82( 900, (unsigned long) name, 0, 0 );
+
+fail:
+    return (int) -1;
 }
 
-
-int rtl_spawn_process( const char *path )
+int rtl_spawn_process(const char *path)
 {
+
+// Parameter:
     if ( (void *) path == NULL ){
-        printf ("rtl_spawn_process: [FAIL] name\n");
-        return -1;
+        printf ("rtl_spawn_process: name\n");
+        goto fail;
     }
     if (*path == 0){
-        printf ("rtl_spawn_process: [FAIL] *name\n");
-        return -1;
+        printf ("rtl_spawn_process: *name\n");
+        goto fail;
     }
 
     return (int) rtl_clone_and_execute((char*)path);
+fail:
+    return (int) -1;
 }
 
 // get current thread
@@ -2202,7 +2195,7 @@ void rtl_show_heap_info(void)
 // Use the kernel allocator for ring 3 shared memory.
 void *shAlloc(size_t size_in_bytes)
 {
-    if (size_in_bytes==0){
+    if (size_in_bytes == 0){
         size_in_bytes++;
     }
     return (void*) gramado_system_call (891,size_in_bytes,0,0); 
@@ -2230,7 +2223,6 @@ rtl_strcaseequal (
 }
 */
 
-
 /*
 int     __argc_save;
 char  **__argv_save;
@@ -2249,7 +2241,6 @@ int rtl_check_parm (char *check)
     return 0;
 }
 */
-
 
 /*
 int rtl_ipow (int base, int exp);
@@ -2308,27 +2299,28 @@ unsigned long rtl_memory_size_in_kb(void)
     return (unsigned long) rtl_get_system_metrics (33);
 }
 
-// #nottested
+// #not_tested
 // Send the command lint to stdin,
 // and execute a cloned process where it's name
 // is in the first word of the cmdline string.
-int rtl_execute_cmdline( char *cmdline )
+int rtl_execute_cmdline(char *cmdline)
 {
     char cmd[512];
     char filename_buffer[12]; //8+3+1
     char *p;
+    register int i=0;
     int ii=0;    
 
+// Parameter
     if ( (void*) cmdline == NULL )
-        return -1;
-
-    if (*cmdline == 0)
-        return -1;
+        goto fail;
+    if (*cmdline == 0){
+        goto fail;
+    }
 
     p = cmdline;
 
-// copy cmdline
-    int i=0;
+// Copy cmdline
     for (i=0; i<512; i++)
     {
         cmd[i] = cmdline[i];
@@ -2368,6 +2360,8 @@ int rtl_execute_cmdline( char *cmdline )
     rtl_clone_and_execute(filename_buffer);
 
     return 0;
+fail:
+    return (int) -1;
 }
 
 /*
@@ -2381,8 +2375,7 @@ int rtl_open_device(char *dev_number)
     strcat(dev_name, dev_number);
     
     value = (int) open(dev_name, O_RDWR|O_NDELAY);
-    
-    if(value < 0)
+    if (value < 0)
     {
         errno = (int)(-value);
         return (int) (-1);
@@ -2391,7 +2384,6 @@ int rtl_open_device(char *dev_number)
     return (int) value;
 }
 */
-
 
 int rtl_swap32(int *x, int *y)
 {

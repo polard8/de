@@ -1,4 +1,3 @@
-
 // gramado.h
 // gramado system calls.
 // #bugbug: It is not properly stub routines,
@@ -7,6 +6,10 @@
 // the name in ALL apllications.
 // 2022 - Fred Nora
 
+// #ps:
+// You can see the prefix rtl_xxxx specially in rtl.c,
+// but also in some other files, just like 
+// stdio.c. stdlib.c and unistd.c
 
 #ifndef __GRAMADO_CALL
 #define __GRAMADO_CALL    1
@@ -44,8 +47,6 @@
 
 // #define RTL_ABS(X)    (((X) < 0) ? (-(X)) : (X))
 
-
-
 // #todo: create cool defines.
 //#define SC80_NR    0x80
 //#define SC81_NR    0x81
@@ -55,9 +56,6 @@
 //
 // == prototypes =============================================
 //
-
-// See: rtl.c
-void rtl_elegant_exit_on_fail(void);
 
 // =====================================================
 
@@ -93,6 +91,10 @@ void *gramado_system_call (
     unsigned long c, 
     unsigned long d );
 
+// =====================================================
+
+// See: rtl.c
+void rtl_elegant_exit_on_fail(void);
 
 unsigned long 
 rtl_dispatch_signal_handler (
@@ -101,13 +103,11 @@ rtl_dispatch_signal_handler (
 
 // =====================================================
 
-
 void *rtl_shm_get_2mb_surface(void);
 
 // input mode
 int rtl_get_input_mode(void);
 void rtl_set_input_mode(int mode);
-
 
 // ========================
 // global sync
@@ -215,7 +215,6 @@ int rtl_create_empty_directory(char *dir_name);
 void *rtl_create_process( const char *file_name );
 int rtl_start_process( void *process );
 
-
 //
 // == thread ===============================
 //
@@ -259,11 +258,14 @@ rtl_post_to_tid(
     unsigned long long1, 
     unsigned long long2 );
 
-unsigned long rtl_get_system_message2(unsigned long message_buffer,int index,int restart);
+unsigned long 
+rtl_get_system_message2(
+    unsigned long message_buffer, 
+    int index, 
+    int restart );
 
 unsigned long rtl_get_system_metrics (int index);
 int rtl_is_qemu(void);
-
 
 unsigned long rtl_jiffies(void);
 unsigned long rtl_memory_size_in_kb(void);
@@ -278,7 +280,6 @@ pthread_t pthread_self(void);
 // usado para calcular o tempo de execuçao de uma funcao.
 unsigned long rtl_get_progress_time(void);
 
-
 // #bugbug
 // Not tested yet.
 int 
@@ -287,7 +288,6 @@ rtl_copy_text (
     unsigned long dest, 
     int width, 
     int height );
-
 
 int rtl_reboot(void);
 
@@ -309,9 +309,9 @@ void rtl_broken_vessels(void);
 
 // Clone and execute a process.
 // #todo: maybe use 'const char*'
-int rtl_clone_and_execute( char *name );
+int rtl_clone_and_execute(char *name);
 
-int rtl_spawn_process( const char *path );
+int rtl_spawn_process(const char *path);
 
 // get current thread
 // set foreground thread.
@@ -328,9 +328,9 @@ void rtl_sleep(unsigned long ms);
 void rtl_invalidate_screen(void);
 
 // Use the kernel allocator for ring 3 shared memory.
-void *shAlloc( size_t size_in_bytes );
+void *shAlloc(size_t size_in_bytes);
 
-int rtl_execute_cmdline( char *cmdline );
+int rtl_execute_cmdline(char *cmdline);
 
 int rtl_swap32(int *x, int *y);
 int rtl_swap64(long *x, long *y);
