@@ -1,5 +1,4 @@
-
-# os/
+# osdep/
 
 # GRAMLAND.BIN
 # GWS - Gramland Window Server.
@@ -96,7 +95,7 @@ CINCLUDES += -I .
 CINCLUDES += -I ../
     
 # Objects
-myObjects = connect.o surface.o    
+myObjects = connect.o surface.o gramado.o  
 
 
 .PHONY: all all-c gws-link finalize clean
@@ -107,8 +106,9 @@ main.o:
 #	$(CC)  -c grinput.c  $(CFLAGS) $(CINCLUDES) -o grinput.o
 all-c:
 #	$(CC)  -c grinput.c  $(CFLAGS) $(CINCLUDES) -o grinput.o
-	$(CC)  -c connect.c $(CFLAGS) $(CINCLUDES) -o connect.o
-	$(CC)  -c surface.c $(CFLAGS) $(CINCLUDES) -o surface.o
+	$(CC) -c gramado/connect.c $(CFLAGS) $(CINCLUDES) -o connect.o
+	$(CC) -c gramado/surface.c $(CFLAGS) $(CINCLUDES) -o surface.o
+	$(CC) -c gramado/gramado.c $(CFLAGS) $(CINCLUDES) -o gramado.o 
 
 gws-link:
 #	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)

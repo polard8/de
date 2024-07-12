@@ -1,4 +1,3 @@
-
 // connect.c
 // Register the window server in the system.
 // Created by Fred Nora.
@@ -29,6 +28,7 @@ static pid_t __pid=0;
 // < 0 =  fail.
 int registerDS(void)
 {
+// Valid only for Gramado OS.
 
 // cgroup
 // Getting pointer for the current cgroup, ring0 address (hahaha). 
@@ -39,11 +39,10 @@ int registerDS(void)
     if ((void *) __p_cgroup == NULL)
     {
         // #debug
-        gwssrv_debug_print ("registerDS: [FAIL] __p_cgroup\n");
-        printf             ("registerDS: [FAIL] __p_cgroup\n");
+        gwssrv_debug_print ("registerDS: __p_cgroup\n");
+        printf             ("registerDS: __p_cgroup\n");
         exit(1);
-
-        return (int) (-1);
+        goto fail;
     }
 
 // =====================
@@ -55,11 +54,10 @@ int registerDS(void)
     if (__pid < 0)
     {
         // #debug
-        gwssrv_debug_print ("registerDS: [FAIL] __pid\n");
-        printf             ("registerDS: [FAIL] __pid\n");
+        gwssrv_debug_print ("registerDS: __pid\n");
+        printf             ("registerDS: __pid\n");
         exit(1);
-
-        return (int) (-1);
+        goto fail;
     }
 
 // Register this PID of the current window server.
@@ -80,6 +78,9 @@ int registerDS(void)
 
 // 0 = OK.
     return 0;
+
+fail:
+    return (int) -1;
 }
 
 //

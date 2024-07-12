@@ -1,8 +1,8 @@
-
 // packet.h
+// Created by Fred Nora.
 
-#ifndef GWS_PACKET_H
-#define GWS_PACKET_H    1
+#ifndef __GRAMADO_PACKET_H
+#define __GRAMADO_PACKET_H    1
 
 // Socket packets.
 // Usados na troca de mensgens via socket.

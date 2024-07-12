@@ -5,6 +5,12 @@
 #ifndef __CONFIG_H
 #define __CONFIG_H    1
 
+// Plataform
+#define PLATFORM_GRAMADO  1
+//#define PLATFORM_WINDOWS  1
+//#define PLATFORM_LINUX  1
+// ...
+
 // Wallpaper.
 #define CONFIG_USE_WALLPAPER  0
 // Notification area, at the top.

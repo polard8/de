@@ -9,8 +9,8 @@
 // inside the base kernel.
 // Created by Fred Nora.
 
-#ifndef __OS_DISPLAY_H
-#define __OS_DISPLAY_H    1
+#ifndef __GRAMADO_DISPLAY_H
+#define __GRAMADO_DISPLAY_H    1
 
 //
 struct gws_display_d

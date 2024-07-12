@@ -1,9 +1,8 @@
-
 // surface.h
+// Created by Fred Nora.
 
-#ifndef __SURFACE_H
-#define __SURFACE_H    1
-
+#ifndef __GRAMADO_SURFACE_H
+#define __GRAMADO_SURFACE_H    1
 
 // #test
 // Um retângulo criado pelo kgws em ring0 

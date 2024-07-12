@@ -59,11 +59,13 @@ extern int current_mode;
 #include "vwui/bmp.h"
 
 // h:0.0
-#include "osdep/screen.h"   // X-like
-#include "osdep/display.h"  // X-like
-#include "osdep/host.h"     // X-like h:0.0
+#include "osdep/gramado/screen.h"   // X-like
+#include "osdep/gramado/display.h"  // X-like
+#include "osdep/gramado/host.h"     // X-like h:0.0
 
-#include "osdep/surface.h"
+#include "osdep/gramado/surface.h"
+#include "osdep/gramado/gramado.h"
+
 
 #include "vwui/gui.h"
 
@@ -84,8 +86,8 @@ extern int current_mode;
 #include "sprite.h"
 #include "demos.h"
 
-#include "osdep/packet.h"
-#include "osdep/connect.h"
+#include "osdep/gramado/packet.h"
+#include "osdep/gramado/connect.h"
 
 #include "vwui/font.h"
 
@@ -98,7 +100,7 @@ extern int current_mode;
 // drawing routines.
 // 'dc->something'
 // It needs to be the last one.
-#include "osdep/dc.h"
+#include "osdep/gramado/dc.h"
 
 #include "dispatch.h"
 

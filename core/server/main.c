@@ -4171,6 +4171,20 @@ int main (int argc, char **argv)
     };
  */
 
+
+// # os dependent code.
+#if defined(PLATFORM_GRAMADO)
+    int gramado_status = GramadoInitialize();
+    if (gramado_status < 0){
+        // ...
+        goto fail;
+    }
+#endif  
+
+   //#debug
+   //printf("main.c: Breakpoint\n");
+   //while(1){}
+
 //0 = Time to quit.
     Status = (int) ServerInitialization(fLaunchTB);
     if (Status != 0){

@@ -1,8 +1,8 @@
-
 // screen.h
+// Created by Fred Nora.
 
-#ifndef __OS_SCREEN_H
-#define __OS_SCREEN_H    1
+#ifndef __GRAMADO_SCREEN_H
+#define __GRAMADO_SCREEN_H    1
 
 // see: globals.c
 extern int refresh_device_screen_flag;

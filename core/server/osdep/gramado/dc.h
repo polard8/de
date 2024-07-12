@@ -2,8 +2,8 @@
 // Device Context.
 // Created by Fred Nora.
 
-#ifndef __DC_H
-#define __DC_H    1
+#ifndef __GRAMADO_DC_H
+#define __GRAMADO_DC_H    1
 
 #define PALETTE_COUNT_MAX  16
 
