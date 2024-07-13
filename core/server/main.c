@@ -75,11 +75,15 @@ See: https://wiki.osdev.org/Graphics_stack
 #define VERSION_MAJOR  0
 #define VERSION_MINOR  1
 
+
 // Types of response
-// Used in __send_respose().
+// Used in dsSendResponse().
+// See: packet.h
+// 0 = request
 #define RESPONSE_IS_REPLY  1
 #define RESPONSE_IS_EVENT  2
 #define RESPONSE_IS_ERROR  3
+// 4 = disconnect
 
 //----------------
 // Gramado Network Protocol 
@@ -3140,7 +3144,7 @@ static void dispacher(int fd)
 // == reponse ================
 //
 
-// Types of respose.
+// Types of response.
 // IN:
 // fd, 1=REPLY | 2=EVENT | 3=ERROR
 

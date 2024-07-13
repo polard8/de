@@ -30,11 +30,11 @@
     request may not be sent immediately. 
  */
 
-#define SERVER_PACKET_TYPE_REQUEST     1000 
-#define SERVER_PACKET_TYPE_REPLY       1001 
-#define SERVER_PACKET_TYPE_EVENT       1002
-#define SERVER_PACKET_TYPE_ERROR       1003
-#define SERVER_PACKET_TYPE_DISCONNECT  1004
+#define SERVER_PACKET_TYPE_REQUEST     1000  // 0
+#define SERVER_PACKET_TYPE_REPLY       1001  // 1 
+#define SERVER_PACKET_TYPE_EVENT       1002  // 2
+#define SERVER_PACKET_TYPE_ERROR       1003  // 3
+#define SERVER_PACKET_TYPE_DISCONNECT  1004  // 4
 
 #endif    
 
