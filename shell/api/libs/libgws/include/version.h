@@ -1,5 +1,5 @@
-
 // version.h
+// Created by Fred Nora.
 
 #ifndef __LIBGWS_VERSION_H
 #define __LIBGWS_VERSION_H    1
@@ -18,10 +18,7 @@ struct libgws_version_d
 };
 // Version struct.
 // See: gws.c
-extern struct libgws_version_d libgwsVersion;
-
-
+extern struct libgws_version_d  libgwsVersion;
 
 #endif   
-
 

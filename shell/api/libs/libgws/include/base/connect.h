@@ -1,10 +1,10 @@
-/*
- * File: connect.c
- *     #todo: Some connections routines for libgws.
- *     This header should be included by including "gws.h".
- */
+// connect.c
+// Created by Fred Nora.
+
+// #todo: Some connections routines for libgws.
+// This header should be included by including "gws.h".
 // Os codigos da libgws vão precisar disso 
-// pra se conectarem com o Window Server. gws
+// pra se conectarem com o Display Server. (Gramland)
 
 #ifndef __LIBGWS_CONNECT_H_
 #define __LIBGWS_CONNECT_H_    1

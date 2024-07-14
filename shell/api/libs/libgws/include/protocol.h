@@ -1,5 +1,5 @@
-
 // protocol.h
+// Created by Fred Nora.
 
 #ifndef  __LIBGWS_PROTOCOL_H
 #define  __LIBGWS_PROTOCOL_H    1
@@ -104,8 +104,6 @@
 #define GWS_ControlArrowDown    81
 #define GWS_ControlArrowLeft    82
 #define GWS_ControlArrowRight   83
-
-
 
 
 // =======================================

@@ -1,12 +1,11 @@
-/*
- * File: display.h 
- *     Display structure support.
- *     This header should be included by including "gws.h".
- */
+// display.h 
+// Display structure support.
+// Created by Fred Nora.
+
+// This header should be included by including "gws.h".
 
 #ifndef __LIBGWS_DISPLAY_H
 #define __LIBGWS_DISPLAY_H    1
-
 
 // #??
 // Podemos ter um buffer de request dentro da estrutura de display.
@@ -76,19 +75,4 @@ void gws_display_exit(struct gws_display_d *display);
 
 
 #endif    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
