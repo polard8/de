@@ -5978,7 +5978,7 @@ is_within2 (
 // pw
 // The parent window.
     pw = window->parent;
-    if ( (void*) pw == NULL ){
+    if ((void*) pw == NULL){
         return FALSE;
     }
     if ( pw->used != TRUE && pw->magic != 1234 ){
@@ -5988,7 +5988,7 @@ is_within2 (
 // w
 // The window itself
     w = window;
-    if ( (void*) w == NULL ){
+    if ((void*) w == NULL){
         return FALSE;
     }
     if ( w->used != TRUE && w->magic != 1234 ){

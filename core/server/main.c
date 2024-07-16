@@ -943,10 +943,12 @@ int serviceAsyncCommand(void)
         break;
 
     // #suspended
-    //see: wm.c
+    // #bugbug: Maybe not.
+    // Slow the server;
+    // Maybe only the taskbar can call this request
+    // to update the desktop after a startmenu event.
+    // see: wm.c
     case 11:
-        //#bugbug: Maybe not.
-        // Slow the server;
         //wm_update_desktop(TRUE,TRUE);
         goto done;
         break;
