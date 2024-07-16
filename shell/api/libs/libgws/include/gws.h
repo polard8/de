@@ -22,7 +22,7 @@
 // Network ports used by the socket routines.
 #include "base/ports.h"
 // Part of the connection/communication support.
-#include "base/gwspack.h"
+#include "base/packet.h"
 // Read and write from socket.
 #include "base/rw.h"
 #include "base/connect.h"

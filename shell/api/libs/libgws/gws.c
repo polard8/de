@@ -359,6 +359,11 @@ static struct gws_window_info_d *__gws_get_window_info_response(
     int sig2=0;
     register int i=0;
 
+// #todo:
+// Check fd.
+    //if (fd <0)
+        //return NULL;
+
     if ((void*) window_info == NULL){
         return NULL;
     }
@@ -400,14 +405,14 @@ static struct gws_window_info_d *__gws_get_window_info_response(
     switch (msg){
 
     // ok, that is what we need.
-    case GWS_SERVER_PACKET_TYPE_REPLY:
+    case SERVER_PACKET_TYPE_REPLY:
         goto process_response;
         break;
 
     // fail
-    case GWS_SERVER_PACKET_TYPE_EVENT:
-    case GWS_SERVER_PACKET_TYPE_REQUEST:
-    case GWS_SERVER_PACKET_TYPE_ERROR:
+    case SERVER_PACKET_TYPE_EVENT:
+    case SERVER_PACKET_TYPE_REQUEST:
+    case SERVER_PACKET_TYPE_ERROR:
     default:
         goto fail;
         break; 
@@ -436,7 +441,7 @@ process_response:
 
 // OK
 // The data field
-    if (msg_code == GWS_SERVER_PACKET_TYPE_REPLY)
+    if (msg_code == SERVER_PACKET_TYPE_REPLY)
     {
         //printf("__gws_get_next_event_response: WE GOT THE DATA\n");
     
@@ -594,13 +599,13 @@ static struct gws_event_d *__gws_get_next_event_response (
 
     switch (msg){
 
-    case GWS_SERVER_PACKET_TYPE_EVENT:
+    case SERVER_PACKET_TYPE_EVENT:
         goto process_event;
         break;
 
-    case GWS_SERVER_PACKET_TYPE_REPLY:
-    case GWS_SERVER_PACKET_TYPE_REQUEST:
-    case GWS_SERVER_PACKET_TYPE_ERROR:
+    case SERVER_PACKET_TYPE_REPLY:
+    case SERVER_PACKET_TYPE_REQUEST:
+    case SERVER_PACKET_TYPE_ERROR:
     default:
         //printf ("__gws_get_next_event_response: Invalid msg code\n"); 
         event->type = 0;
@@ -633,7 +638,7 @@ process_event:
 // #todo: 
 // Check if it is a REPLY message.
 
-    if (msg_code != GWS_SERVER_PACKET_TYPE_EVENT){
+    if (msg_code != SERVER_PACKET_TYPE_EVENT){
         debug_print ("__gws_get_next_event_response: msg_code fail\n");
         goto fail0;
     }
@@ -651,7 +656,7 @@ process_event:
     event->magic = 0;
 
 // OK
-    if (msg_code == GWS_SERVER_PACKET_TYPE_EVENT)
+    if (msg_code == SERVER_PACKET_TYPE_EVENT)
     {
         //printf("__gws_get_next_event_response: WE GOT AN EVENT\n");
     
@@ -881,15 +886,15 @@ response_loop:
     switch (msg){
 
         // Reply!
-        case GWS_SERVER_PACKET_TYPE_REPLY:
+        case SERVER_PACKET_TYPE_REPLY:
             goto process_reply;
             break;
 
-        case GWS_SERVER_PACKET_TYPE_REQUEST: 
-        case GWS_SERVER_PACKET_TYPE_EVENT:
-        case GWS_SERVER_PACKET_TYPE_ERROR:
+        case SERVER_PACKET_TYPE_REQUEST: 
+        case SERVER_PACKET_TYPE_EVENT:
+        case SERVER_PACKET_TYPE_ERROR:
         default:
-            return -1;
+            return (int) -1;
             break; 
     };
 
@@ -1037,15 +1042,15 @@ response_loop:
     switch (msg){
 
         // Reply!
-        case GWS_SERVER_PACKET_TYPE_REPLY:
+        case SERVER_PACKET_TYPE_REPLY:
             goto process_reply;
             break;
 
-        case GWS_SERVER_PACKET_TYPE_REQUEST:
-        case GWS_SERVER_PACKET_TYPE_EVENT:
-        case GWS_SERVER_PACKET_TYPE_ERROR:
+        case SERVER_PACKET_TYPE_REQUEST:
+        case SERVER_PACKET_TYPE_EVENT:
+        case SERVER_PACKET_TYPE_ERROR:
         default:
-            return -1;
+            return (int) -1;
             break; 
     };
 
@@ -1170,20 +1175,20 @@ static int __gws_refresh_rectangle_response(int fd)
     switch (msg){
 
         // Reply
-        case GWS_SERVER_PACKET_TYPE_REPLY:
+        case SERVER_PACKET_TYPE_REPLY:
             return (int) value;
             break;
 
-        case GWS_SERVER_PACKET_TYPE_REQUEST:
-        case GWS_SERVER_PACKET_TYPE_EVENT:
-        case GWS_SERVER_PACKET_TYPE_ERROR:
+        case SERVER_PACKET_TYPE_REQUEST:
+        case SERVER_PACKET_TYPE_EVENT:
+        case SERVER_PACKET_TYPE_ERROR:
         default:
-            return -1;
+            return (int) -1;
             break; 
     };
 
 //fail:
-    return -1;
+    return (int) -1;
 }
 
 // ================================================
@@ -1549,13 +1554,13 @@ response_loop:
     switch (msg){
 
         // Reply!
-        case GWS_SERVER_PACKET_TYPE_REPLY:
+        case SERVER_PACKET_TYPE_REPLY:
             goto process_reply;
             break;
 
-        case GWS_SERVER_PACKET_TYPE_REQUEST:
-        case GWS_SERVER_PACKET_TYPE_EVENT:            
-        case GWS_SERVER_PACKET_TYPE_ERROR:
+        case SERVER_PACKET_TYPE_REQUEST:
+        case SERVER_PACKET_TYPE_EVENT:            
+        case SERVER_PACKET_TYPE_ERROR:
         default:
             printf ("__gws_gettext_response: Not a reply\n");
             return NULL;
@@ -1736,7 +1741,7 @@ response_loop:
         gws_debug_print ("__gws_clone_and_execute_response: recv fail.\n");
         printf          ("__gws_clone_and_execute_response: recv fail.\n");
         printf ("Something is wrong with the socket.\n");
-        return -1;
+        return (int) -1;
         //exit (1);
     }
 
@@ -1748,15 +1753,15 @@ response_loop:
     switch (msg){
 
         // Reply!
-        case GWS_SERVER_PACKET_TYPE_REPLY:
+        case SERVER_PACKET_TYPE_REPLY:
             goto process_reply;
             break;
 
-        case GWS_SERVER_PACKET_TYPE_REQUEST:
-        case GWS_SERVER_PACKET_TYPE_EVENT:            
-        case GWS_SERVER_PACKET_TYPE_ERROR:
+        case SERVER_PACKET_TYPE_REQUEST:
+        case SERVER_PACKET_TYPE_EVENT:            
+        case SERVER_PACKET_TYPE_ERROR:
         default:
-            return -1;
+            return (int) -1;
             break; 
     };
 
@@ -1972,7 +1977,7 @@ static wid_t __gws_createwindow_response(int fd)
 // The response message
 // Recebemos alguma coisa.
 // A mesagem pode ser de vários tipos.
-// A mensagem que esperamos nesse caso é GWS_SERVER_PACKET_TYPE_REPLY.
+// A mensagem que esperamos nesse caso é SERVER_PACKET_TYPE_REPLY.
 // Porque estamos esperando resposta de um request.
 
     wid_t wid = (int) message_buffer[0];
@@ -1980,17 +1985,18 @@ static wid_t __gws_createwindow_response(int fd)
 
     switch (msg){
     // reply
-    case GWS_SERVER_PACKET_TYPE_REPLY: 
+    case SERVER_PACKET_TYPE_REPLY: 
         return (wid_t) wid;
         break;
     // error
-    case GWS_SERVER_PACKET_TYPE_REQUEST:
-    case GWS_SERVER_PACKET_TYPE_EVENT:
-    case GWS_SERVER_PACKET_TYPE_ERROR:
+    case SERVER_PACKET_TYPE_REQUEST:
+    case SERVER_PACKET_TYPE_EVENT:
+    case SERVER_PACKET_TYPE_ERROR:
     default:
         return (wid_t) -1;
         break;
     };
+
 fail:
     return (wid_t) -1;
 }
