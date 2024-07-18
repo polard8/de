@@ -145,7 +145,6 @@ __gws_drawchar_request (
     unsigned int color,
     unsigned int ch );
 
-
 // == Draw text ==========================
 static int 
 __gws_drawtext_request (
@@ -217,7 +216,6 @@ void *gws_system_call (
 */
     return (unsigned long) sc80(a,b,c,d);
 }
-
 
 static void __gws_clear_msg_buff(void)
 {
@@ -4007,11 +4005,14 @@ gws_async_command (
     message_buffer[4] = data;  // data1
     // ...
 
+// Parameters
     if (fd<0){
         debug_print("gws_async_command: fd\n");
         goto fail;
     }
+// ...
 
+// Sending ...
     n_writes = 
         (int) send ( 
                   fd,

@@ -1,4 +1,4 @@
-// dispatch.h
+// actions.h
 // This is a list of actions.
 // A route maps a request to a controller action.
 // A route is an entity that links a request with an action.
@@ -161,8 +161,6 @@ int serviceDrawButton(void);
 // Deprecated?
 // See: main.c
 int serviceNextEvent2(void);
-
-
 
 
 #endif    
