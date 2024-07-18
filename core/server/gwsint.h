@@ -102,7 +102,7 @@ extern int current_mode;
 // It needs to be the last one.
 #include "osdep/gramado/dc.h"
 
-#include "dispatch.h"
+#include "actions.h"
 
 
 struct gws_graphics_d

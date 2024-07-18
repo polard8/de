@@ -1,4 +1,11 @@
 // dispatch.h
+// This is a list of actions.
+// A route maps a request to a controller action.
+// A route is an entity that links a request with an action.
+// In our case, dsProcedure() is that route, that makes the connections 
+// of the request with the controller action.
+// Actions are provided by controllers and these actions 
+// handles the objects, that are windows or menus.
 // The handlers for the requests.
 // In main.c we have the function dispatcher() that calls dsProcedure(),
 // the function dsProcedure() will call all the handlers exposed in this header.
@@ -12,8 +19,8 @@
 //   grprim.c   = some low level services.
 // ...
 
-#ifndef __DISPATCH_H
-#define __DISPATCH_H    1
+#ifndef __ACTIONS_H
+#define __ACTIONS_H    1
 
 // 1000
 // hello

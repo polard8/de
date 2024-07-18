@@ -2692,7 +2692,8 @@ exit0:
 // globals.h
 // OUT
 // <0 : error 
-
+// Process the requests.
+// All the services are the 'Business Logic'.
 static int
 dsProcedure ( 
     int client_fd,
@@ -2700,8 +2701,9 @@ dsProcedure (
     unsigned long long1, 
     unsigned long long2 )
 {
-// Process the requests.
-// All the services are the 'Business Logic'.
+// Route:
+// This is the main route. It connects the request with 
+// the controller action and the action handles the data.
 
     int Status=0;  //ok
     //int my_pid = -1;
