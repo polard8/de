@@ -128,8 +128,8 @@ all-c:
 gws-link:
 #	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)
 # link
-	$(LD) -r -o ar_vwui.o $(myObjects)
-	cp ar_vwui.o ../
+	$(LD) -r -o o3_vwui.o $(myObjects)
+	cp o3_vwui.o ../
 	rm *.o
 
 finalize:

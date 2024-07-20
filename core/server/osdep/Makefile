@@ -113,8 +113,8 @@ all-c:
 gws-link:
 #	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)
 # link
-	$(LD) -r -o ar_osdep.o $(myObjects)
-	cp ar_osdep.o ../
+	$(LD) -r -o n1_osdep.o $(myObjects)
+	cp n1_osdep.o ../
 	rm *.o
 
 finalize:

@@ -119,8 +119,8 @@ all-c:
 gws-link:
 #	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)
 # link
-	$(LD) -r -o ar_vwlib.o $(myObjects)
-	cp ar_vwlib.o ../
+	$(LD) -r -o o2_vwlib.o $(myObjects)
+	cp o2_vwlib.o ../
 	rm *.o
 
 finalize:

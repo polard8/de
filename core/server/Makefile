@@ -92,28 +92,40 @@ CINCLUDES += -I $(LIBDISP)
 CINCLUDES += -I $(LIBGR)
 CINCLUDES += -I .    
 
-# Objects
-myObjects = crt0.o main.o rtl.o \
-ctype.o stdio.o stdlib.o string.o conio.o socket.o signal.o unistd.o \
-termios.o ioctl.o fcntl.o    
 
+# Objects
+myObjects = crt0.o main.o rtl.o
+
+myObjects += ctype.o stdio.o stdlib.o string.o conio.o socket.o signal.o unistd.o \
+termios.o ioctl.o fcntl.o
 myObjects += libdisp.o
 myObjects += libgr.o
 
-myObjects += ar_root.o
-myObjects += ar_osdep.o
-myObjects += ar_vwc.o
-myObjects += ar_vwlib.o
-myObjects += ar_vwui.o    
+myObjects += n1_osdep.o
+
+myObjects += o1_vwc.o
+myObjects += o2_vwlib.o
+myObjects += o3_vwui.o
+
+myObjects += p1_root.o    
+
 
 .PHONY: all all-c gws-link finalize clean
 
 all: main.o all-c gws-link finalize clean
 	@echo "Ok?"
 main.o:
-	$(CC) -c main.c      $(CFLAGS) $(CINCLUDES) -o main.o
+	$(CC) -c main.c $(CFLAGS) $(CINCLUDES) -o main.o
 all-c:
 
+# n
+	make -C osdep/
+# o
+	make -C vwc/
+	make -C vwlib/
+	make -C vwui/
+
+# p
 	$(CC) -c callback.c  $(CFLAGS) $(CINCLUDES) -o callback.o
 	$(CC) -c client.c    $(CFLAGS) $(CINCLUDES) -o client.o
 	$(CC) -c demos.c     $(CFLAGS) $(CINCLUDES) -o demos.o
@@ -122,14 +134,9 @@ all-c:
 	$(CC) -c sprite.c    $(CFLAGS) $(CINCLUDES) -o sprite.o
 	$(CC) -c shutdown.c  $(CFLAGS) $(CINCLUDES) -o shutdown.o
 #	$(CC) -c zres/grinput.c   $(CFLAGS) $(CINCLUDES) -o grinput.o
-	$(LD) -r -o ar_root.o \
+	$(LD) -r -o p1_root.o \
 callback.o client.o demos.o \
 globals.o gws.o sprite.o shutdown.o    
-
-	make -C osdep/
-	make -C vwc/
-	make -C vwlib/
-	make -C vwui/
 
 #
 # == imported objects =============================
