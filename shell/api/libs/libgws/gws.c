@@ -4179,8 +4179,8 @@ struct gws_display_d *gws_open_display(const char *display_name)
 // ---------------------------------
     struct sockaddr_in  addr_in;
     addr_in.sin_family      = AF_INET;
-    addr_in.sin_port        = __PORTS_DISPLAY_SERVER;
     addr_in.sin_addr.s_addr = __IP(127,0,0,1);
+    addr_in.sin_port        = __PORTS_DISPLAY_SERVER;
     int addrlen=0;
     addrlen = sizeof(addr_in);
 // ---------------------------------
@@ -4209,7 +4209,8 @@ struct gws_display_d *gws_open_display(const char *display_name)
 
 // (2)
 // Create the socket file.
-    client_fd = socket( AF_INET, SOCK_STREAM, 0 );
+    //client_fd = socket( AF_INET, SOCK_STREAM, 0 );
+    client_fd = socket( AF_INET, SOCK_RAW, 0 );
     if (client_fd<0){
        printf ("gws_open_display: Couldn't create socket\n");
        goto fail;

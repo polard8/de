@@ -133,8 +133,8 @@ static int __initialization(void)
 //==============================
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
-    addr_in.sin_port = PORTS_WS;   
     addr_in.sin_addr.s_addr = IP(127,0,0,1);
+    addr_in.sin_port = PORTS_WS;
 //==============================
 
     int client_fd = -1;
@@ -152,7 +152,8 @@ static int __initialization(void)
     // #debug
     //printf ("gws: Creating socket\n");
 
-    client_fd = (int) socket( AF_INET, SOCK_STREAM, 0 );
+    //client_fd = (int) socket( AF_INET, SOCK_STREAM, 0 );
+    client_fd = (int) socket( AF_INET, SOCK_RAW, 0 );
     if (client_fd < 0)
     {
        gws_debug_print("cmdline: on socket()\n");

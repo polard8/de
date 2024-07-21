@@ -268,11 +268,7 @@ int gws(void)
     addrlen = sizeof(addr);
     //==============================
     
-    
     int client_fd = -1;
-    
-    
-    
     
     gws_debug_print ("-------------------------\n"); 
     //printf          ("-------------------------\n"); 

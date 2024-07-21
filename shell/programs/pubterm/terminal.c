@@ -3472,9 +3472,9 @@ int terminal_init(unsigned short flags)
     h = gws_get_system_metrics(2);
 
 // --------------
-// Socket
 // Create the socket and save the fd into the terminal structure.
-    client_fd = (int) socket( AF_INET, SOCK_STREAM, 0 );
+    //client_fd = (int) socket( AF_INET, SOCK_STREAM, 0 );
+    client_fd = (int) socket( AF_INET, SOCK_RAW, 0 );
     if (client_fd < 0){
        debug_print("pubterm: on socket()\n");
        printf     ("pubterm: on socket()\n");

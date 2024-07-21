@@ -311,12 +311,15 @@ static int do_event_loop(int fd)
 
 int main2( int argc, char *argv[] )
 {
-    int client_fd = -1;
 
+//----------------
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
-    addr_in.sin_port = PORTS_WS;   
     addr_in.sin_addr.s_addr = IP(127,0,0,1);
+    addr_in.sin_port = PORTS_WS;
+//----------------
+
+    int client_fd = -1;
 
     debug_print ("browser: Initializing ...\n");
 
@@ -329,7 +332,8 @@ int main2( int argc, char *argv[] )
     }
 
 // socket
-    client_fd = socket( AF_INET, SOCK_STREAM, 0 );
+    //client_fd = socket( AF_INET, SOCK_STREAM, 0 );
+    client_fd = socket( AF_INET, SOCK_RAW, 0 );
     if (client_fd<0){
        printf ("browser: Couldn't create socket\n");
        exit(1);

@@ -3493,15 +3493,15 @@ int terminal_init(unsigned short flags)
 {
 // Called by main() in main.c
 
-// Socket address.
+// -------------------------
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
-    addr_in.sin_port = __PORTS_DISPLAY_SERVER;  //PORTS_WS;
     addr_in.sin_addr.s_addr = IP(127,0,0,1);    //ok
     //addr_in.sin_addr.s_addr = IP(127,0,0,9);  //fail
+    addr_in.sin_port = __PORTS_DISPLAY_SERVER;  //PORTS_WS;
+// -------------------------
 
     int client_fd = -1;
-
     unsigned long w=0;
     unsigned long h=0;
 
@@ -3517,8 +3517,10 @@ int terminal_init(unsigned short flags)
 
 // Socket
 // Create the socket and save the fd into the terminal structure.
-    client_fd = (int) socket( AF_INET, SOCK_STREAM, 0 );
-    if (client_fd < 0){
+    //client_fd = (int) socket( AF_INET, SOCK_STREAM, 0 );
+    client_fd = (int) socket( AF_INET, SOCK_RAW, 0 );
+    if (client_fd < 0)
+    {
        debug_print("terminal: on socket()\n");
        printf     ("terminal: on socket()\n");
        exit(1);

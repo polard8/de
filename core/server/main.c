@@ -3717,8 +3717,14 @@ static int ServerInitialization(int launch_tb)
 
 // Socket
 // Creating a socket file and saving the fd in different places.
-    server_fd = (int) socket(AF_GRAMADO, SOCK_STREAM, 0);
-    if (server_fd<0){
+    server_fd = 
+        (int) socket(
+            AF_GRAMADO,    // Family
+            SOCK_STREAM,   // Not UDP in AF_GRAMADO. 
+            0 );           // No protocol
+
+    if (server_fd<0)
+    {
         gwssrv_debug_print("gramland: on socket()\n");
         printf            ("gramland: on socket()\n");
         goto fail;

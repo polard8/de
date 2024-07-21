@@ -605,14 +605,14 @@ int main ( int argc, char *argv[] )
 //test
     // doc_viewer(argc,argv);
 
-// ---------------
-
-    int client_fd = -1;
-
+// -------------------------------------
     struct sockaddr_in addr_in;
     addr_in.sin_family = AF_INET;
-    addr_in.sin_port = PORTS_WS;   
     addr_in.sin_addr.s_addr = IP(127,0,0,1);
+    addr_in.sin_port = PORTS_WS;   
+// -------------------------------------
+
+    int client_fd = -1;
 
     //#debug
     //printf("docv.bin:\n");
@@ -626,12 +626,13 @@ int main ( int argc, char *argv[] )
     }
 
 // socket
-    client_fd = socket( AF_INET, SOCK_STREAM, 0 );
-    if (client_fd<0){
+    //client_fd = socket( AF_INET, SOCK_STREAM, 0 );
+    client_fd = socket( AF_INET, SOCK_RAW, 0 );
+    if (client_fd<0)
+    {
        printf ("docv: Couldn't create socket\n");
        exit(1);
     }
-
 
 // connect
 // Nessa hora colocamos no accept um fd.
