@@ -5,6 +5,68 @@
 #define  __LIBGWS_PROTOCOL_H    1
 
 
+//
+// Request
+//
+
+struct _gReq
+{
+// packed header
+    unsigned long wid;   // window id
+    unsigned long code;  // message code
+    unsigned long ul2;
+    unsigned long ul3;
+// extra
+    unsigned long ul4;
+    unsigned long ul5;
+    unsigned long ul6;
+    unsigned long ul7;
+// extra
+    unsigned long ul8;
+    unsigned long ul9;
+// extra
+    unsigned long ul10;
+    unsigned long ul11;
+    unsigned long ul12;
+    unsigned long ul13;
+// Strings or some other data.
+    unsigned char data[256];
+};
+typedef struct _gReq  gReq;
+
+//
+// Reply
+//
+struct _gRep
+{
+// packed header
+    unsigned long wid;   // window id
+    unsigned long code;  // message code
+    unsigned long ul2;
+    unsigned long ul3;
+// extra
+    unsigned long ul4;
+    unsigned long ul5;
+    unsigned long ul6;
+    unsigned long ul7;
+// extra
+    unsigned long ul8;
+    unsigned long ul9;
+// extra
+    unsigned long ul10;
+    unsigned long ul11;
+    unsigned long ul12;
+    unsigned long ul13;
+// Strings or some other data.
+    unsigned char data[256];
+};
+typedef struct _gRep  gRep;
+
+
+
+
+
+
 //++
 // =======================================
 // Protocol request constants

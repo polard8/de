@@ -1,17 +1,14 @@
-
 // gramuser.h
 // User interactive components, not system components.
 
 #ifndef __LIBGWS_GRAMUSER_H_
 #define __LIBGWS_GRAMUSER_H_    1
 
-
 // Explode byte.
 unsigned int gws_explode_byte_32(unsigned char data);
 
 unsigned int gws_rgb(int r, int g, int b);
 unsigned int gws_argb(int a, int r, int g, int b);
-
 
 //
 // == 2d ==============================================
@@ -215,6 +212,8 @@ struct gws_event_d *gws_get_next_event(
     int fd, 
     int wid,
     struct gws_event_d *event );
+
+int XNextEvent (struct _XDisplay *dpy, struct _XEvent *event);
 
 // get next event.
 // the window server return the next event

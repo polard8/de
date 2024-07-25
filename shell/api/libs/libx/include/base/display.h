@@ -29,6 +29,10 @@ struct gws_display_d
 
 // Network socket. 
     int fd;
+
+// Main window
+    int main_wid;
+
 // Is someone in critical section? 
     int lock;
     int connected;
@@ -55,6 +59,9 @@ struct gws_display_d
     struct gws_display_d *next;
 };
 
+// Display
+// See: Xlibint.h on Xlib.
+#define _XDisplay  gws_display_d
 
 //
 // The current display

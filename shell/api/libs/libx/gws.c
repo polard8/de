@@ -3059,6 +3059,63 @@ fail:
     return NULL;
 }
 
+
+int XNextEvent (struct _XDisplay *dpy, struct _XEvent *event)
+{
+    struct gws_event_d lEvent;
+    lEvent.used = FALSE;
+    lEvent.magic = 0;
+    lEvent.type = 0;
+    //lEvent.long1 = 0;
+    //lEvent.long2 = 0;
+
+    int fd=-1;
+    int wid=-1;
+
+// Parameters:
+    if ((void*) dpy == NULL)
+        goto fail;
+    //if ((void*) event == NULL)
+        //goto fail;
+
+    fd = (int) dpy->fd;
+    wid = (int) dpy->main_wid;
+
+    if (fd<0){
+        goto fail;
+    }
+    if (wid<0){
+        goto fail;
+    }
+
+    struct _XEvent *tmpEvent;
+    tmpEvent = (struct _XEvent *) gws_get_next_event(
+                                   fd, 
+                                   wid,
+                                   (struct gws_event_d *) &lEvent );
+
+    if ((void *) tmpEvent == NULL)
+       goto fail;
+    if (tmpEvent->magic != 1234)
+       goto fail;
+
+// Return 'data' tu the caller.
+    event->used   = (int) tmpEvent->used;
+    event->magic  = (int) tmpEvent->magic;
+    event->window = (int) tmpEvent->window;
+    event->type   = (int) tmpEvent->type;
+    event->long1  = (unsigned long) tmpEvent->long1;
+    event->long2  = (unsigned long) tmpEvent->long2;
+    // kEvent, mEvent, wEvent and next.
+
+// done
+    return 0;
+
+fail:
+    return (int) -1;
+}
+
+
 // gws_get_window_info:
 // The server will return the info about one given window.
 struct gws_window_info_d *gws_get_window_info(

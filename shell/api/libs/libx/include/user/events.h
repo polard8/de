@@ -59,10 +59,21 @@ struct gws_event_d
     struct gws_event_d *next;
 };
 
+// Event
+// Event for libx.
+// See:
+#define _XEvent  gws_event_d
+
 #define GWS_EVENT_SIZE  (sizeof(struct gws_event_d))
 
 //struct gws_event_d *CurrentEvent;
 extern struct gws_event_d *CurrentEvent;
+
+
+//
+// ==================================
+//
+
 
 #endif    
 

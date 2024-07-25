@@ -128,6 +128,10 @@ const char *app2_name = "editor.bin";
 
 //static const char *cmdline1 = "gramland -1 -2 -3 --tb";
 
+
+struct gws_display_d *Display;
+const char *display_name = "display:name.0";
+
 //
 // == Private functions: prototypes ====================
 //
@@ -160,7 +164,9 @@ updateStatusBar(
 
 
 static void __initialize_client_list(void);
-void pump(int fd, int wid);
+
+static void pump(int fd, int wid);
+static void pump2(void);
 
 static int 
 create_start_menu(
@@ -730,7 +736,7 @@ static void __initialize_client_list(void)
     };
 }
 
-void pump(int fd, int wid)
+static void pump(int fd, int wid)
 {
     struct gws_event_d lEvent;
     lEvent.used = FALSE;
@@ -765,6 +771,70 @@ void pump(int fd, int wid)
         fd, 
         e->window, e->type, e->long1, e->long2 );
 }
+
+static void pump2(void)
+{
+    struct _XDisplay *dpy;
+    struct _XEvent e;
+    int fd = -1;
+    int wid = -1;
+
+    dpy = (struct _XDisplay *) Display;
+    if ((void*)dpy == NULL)
+    {
+        printf("pump2: Invalid dpy\n");
+        exit(1);
+        return;
+    }
+    if (dpy->magic != 1234)
+    {
+        printf("pump2: dpy->magic\n");
+        exit(1);
+        return;
+    }
+
+// Get
+    fd = (int) dpy->fd ;
+    wid = (int) dpy->main_wid;
+// Validation
+    if (fd<0)
+    {
+        printf("pump2: Invalid fd\n");
+        exit(1);
+        return;
+    }
+
+    if (wid<0)
+    {
+        printf("pump2: Invalid wid\n");
+        exit(1);
+        return;
+    }
+
+// Request next event
+    int Status = (int) XNextEvent( (struct _XDisplay *) dpy, (struct _XEvent *) &e );
+    if (Status < 0){
+        return;
+    }
+
+// Handle the event.
+    //if ((void*) e == NULL){
+        //printf("pump2: Invalid e\n");
+        //return;
+    //}
+    if (e.magic != 1234){
+        printf("pump2: e.magic\n");
+        return;
+    }
+    if (e.type < 0){
+        printf("pump2: e.type\n");
+        return;
+    }
+
+// Process event
+    tbProcedure( fd, e.window, e.type, e.long1, e.long2 );
+}
+
 
 static int 
 create_start_menu(
@@ -854,6 +924,7 @@ int main(int argc, char *argv[])
     //    sc80(897,0,0,0);
     //}
 
+/*
 //================================
 // Connection
 // Only connect. Nothing more.
@@ -863,6 +934,29 @@ int main(int argc, char *argv[])
     {
         gws_debug_print("taskbar.bin: __initialization fail\n");
         printf         ("taskbar.bin: __initialization fail\n");
+        exit(1);
+    }
+*/
+
+    Display = (struct gws_display_d *) gws_open_display(display_name);
+    if ((void*) Display == NULL)
+    {
+        debug_print("xtb: Couldn't open display\n");
+        printf     ("xtb: Couldn't open display\n");
+        exit(1);
+    }
+    if (Display->magic != 1234)
+    {
+        debug_print("xtb: Display->magic\n");
+        printf     ("xtb: Display->magic\n");
+        exit(1);
+    }
+
+// Socket fd.
+    client_fd = (int) Display->fd;
+    if (client_fd <= 0){
+        debug_print("xtb: bad fd\n");
+        printf     ("xtb: bad fd\n");
         exit(1);
     }
 
@@ -961,8 +1055,10 @@ int main(int argc, char *argv[])
         printf ("taskbar.bin: main_window\n");
         exit(1);
     }
-
     gws_set_active( client_fd, main_window );
+
+// Save into the display structure
+    Display->main_wid = (int) main_window;
 
 // ========================
 // Create th start menu button 
@@ -1306,8 +1402,10 @@ int main(int argc, char *argv[])
         //if (isTimeToQuit == TRUE)
             //break;
 
-        pump(client_fd,main_window);
+        //pump(client_fd,main_window);
+        pump2();
     };
+
 
 /*
 //=================================
