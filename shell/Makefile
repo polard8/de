@@ -1,12 +1,9 @@
-
 # Client-side GUI applications.
 
 all:
 
-#
 # API: 
 # Libraries and toolkits.
-#
 
 	make -C api/
 
@@ -39,6 +36,11 @@ all:
 	# with an embedded command line interpreter.
 	make -C programs/terminal/
 
+#
+# xapps
+#
+
+	make -C xapps/xtb/
 
 clean:
 	-rm bin/*.BIN

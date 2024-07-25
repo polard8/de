@@ -12,7 +12,13 @@ all:
 
 # Gramado Window System
 # Client-side library for the Display server.
+# Using Gramado Protocol
 	make -C libgws/
+
+# Gramado X Window System
+# Client-side library for the Display server.
+# Using a modifield version on old X protocol
+	make -C libx/
 
 # I/O ports in ring3.
 	make -C libio01/
@@ -32,6 +38,9 @@ clean:
 
 	-rm -f libgws/*.o
 	-rm -f libgws/obj/*.o
+
+	-rm -f libx/*.o
+	-rm -f libx/obj/*.o
 
 	-rm -f libio01/*.o
 	-rm -f libio01/obj/*.o
