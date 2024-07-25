@@ -1,9 +1,7 @@
-
-# GRAMLAND.BIN
-# GWS - Gramland Window Server.
+# Display server
 # 2020 - Created by Fred Nora.
 
-linkTarget = GRAMLAND.BIN
+linkTarget = DS00.BIN
 
 # See: https://linux.die.net/man/1/ld
 # -s --strip-all:   Omit all symbol information from the output file.

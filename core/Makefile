@@ -1,10 +1,15 @@
-
-# server - Gramado display server.
+# Gramado display server.
 
 all:
+
+# Libraries
 	make -C libs/
-	make -C server/
-	#...
+
+# Display servers
+	make -C ds00/
+#	make -C ds01/
 
 clean:
-	-rm -f server/bin/*.BIN
+	-rm -f ds00/bin/*.BIN
+#	-rm -f ds01/bin/*.BIN
+
