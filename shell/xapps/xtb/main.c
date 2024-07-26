@@ -510,6 +510,8 @@ tbProcedure(
         // One button was clicked
         case GWS_MouseClicked:
             printf("taskbar: GWS_MouseClicked\n");
+            // #test: Clear main window when clicking the button.
+            XClearWindow(Display,Display->main_wid);
             break;
        
         // Add new client. Given the wid.

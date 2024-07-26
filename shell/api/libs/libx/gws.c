@@ -3987,6 +3987,28 @@ void gws_clear_window(int fd, wid_t wid)
     gws_async_command( fd, 14, 0, wid );
 }
 
+
+int XClearWindow(struct _XDisplay *display, int wid)
+{
+    int target_fd = -1;
+
+    if ((void*) display == NULL)
+        goto fail;
+    if (wid<0)
+        goto fail;
+
+// Get the socket
+    target_fd = (int) display->fd;
+    if (target_fd<0)
+        goto fail;
+
+// Clear
+    gws_clear_window(target_fd,wid);
+    return 0;
+fail:
+    return (int) -1;
+}
+
 // Send async request.
 // No response.
 // #todo
