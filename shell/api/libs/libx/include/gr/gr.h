@@ -1,8 +1,7 @@
-/*
- * File: gr.h
- *     Client-side 3D graphics support for libgws.
- *     This header should be included by including "gws.h".
- */
+// gr.h
+// Client-side 3D graphics support for libgws.
+// This header should be included by including "libx.h".
+// Created by Fred Nora.
 
 #ifndef __LIBGWS_GR_H
 #define __LIBGWS_GR_H   1

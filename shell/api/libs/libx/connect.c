@@ -1,7 +1,6 @@
-
 // connect.c
-// Os códigos da libgws podem usar as funções desse módulo
-// pra se conectarem com o Window Server.
+// Use this code to connect with the display server.
+// Created by Fred Nora.
 
 // rtl
 #include <types.h>

@@ -1,6 +1,6 @@
-
 // grambase.h
 // System components, not user interactive components.
+// Created by Fred Nora.
 
 #ifndef __LIBGWS_GRAMBASE_H_
 #define __LIBGWS_GRAMBASE_H_    1

@@ -177,7 +177,6 @@ __gws_gettext_request (
     char *string );
 static char *__gws_gettext_response(int fd);
 
-
 // ----------------------
 
 static int 
@@ -193,7 +192,6 @@ static int __gws_clone_and_execute_response(int fd);
 // == ... ==========================
 
 static void __gws_clear_msg_buff(void);
-
 
 //
 // == Functions ====================
@@ -246,16 +244,14 @@ void gws_debug_print(const char *string)
 // Initialize the library.
 int gws_initialize_library(void)
 {
-    pid_t ws_pid = -1;    // PID do window server.
-
+    pid_t ds_pid = -1;    // Display server's PID.
     int __ApplicationFD = -1;
 
     __gws_clear_msg_buff();
 
-    ws_pid = (pid_t) gws_initialize_connection();
-    if (ws_pid < 0)
-    {
-        gws_debug_print("gws_initialize_library: [fail] ws_pid\n");
+    ds_pid = (pid_t) gws_initialize_connection();
+    if (ds_pid < 0){
+        gws_debug_print("gws_initialize_library: [fail] ds_pid\n");
         return (int) -1;
     }
 
@@ -268,7 +264,7 @@ int gws_initialize_library(void)
     //CurrentEvent = (void *) gws_malloc(sizeof(struct gws_event_d));
 
     return 0;
-    // return (int) ws_pid;
+    // return (int) ds_pid;
 }
 
 void *gws_malloc(size_t size)
@@ -303,9 +299,15 @@ static int __gws_get_window_info_request( int fd, int wid )
 {
     unsigned long *message_buffer = 
         (unsigned long *) &__gws_message_buffer[0]; 
-    int n_writes = 0;
+    register int n_writes = 0;
 
-    //gws_debug_print ("__gws_get_window_info_request: wr\n");
+// Parameters:
+    if (fd<0){
+        goto fail;
+    }
+    if (wid<0){
+        goto fail;
+    }
 
 // window id.
     message_buffer[0] = wid;
@@ -315,13 +317,6 @@ static int __gws_get_window_info_request( int fd, int wid )
     message_buffer[2] = (unsigned long) 1234;
     message_buffer[3] = (unsigned long) 5678;
     //...
-
-    if (fd<0){
-        return (int) -1;
-    }
-    if (wid<0){
-        return (int) -1;
-    }
 
 // Write
 
@@ -333,10 +328,12 @@ static int __gws_get_window_info_request( int fd, int wid )
                   0 );
 
     if (n_writes <= 0){
-        return (int) -1;
+        goto fail;
     }
 
     return (int) n_writes; 
+fail:
+    return (int) -1;
 }
 
 // get window info response ===================
@@ -357,22 +354,15 @@ static struct gws_window_info_d *__gws_get_window_info_response(
     int sig2=0;
     register int i=0;
 
-// #todo:
-// Check fd.
-    //if (fd <0)
-        //return NULL;
-
-    if ((void*) window_info == NULL){
-        return NULL;
-    }
-
-// fail
-    window_info->used = FALSE;
-    window_info->magic = 0;
-
+// Parameters:
     if (fd<0){
         return NULL;
     }
+    if ((void*) window_info == NULL){
+        return NULL;
+    }
+    window_info->used = FALSE;
+    window_info->magic = 0;
 
 // read
 
@@ -504,6 +494,12 @@ static int __gws_get_next_event_request(int fd,int wid)
     int n_writes = 0;
     register int i=0;
 
+// Parameters:
+    if (fd<0){
+        return (int) -1;
+    }
+    // #todo: wid
+
 // --------------------
 // Clean the main buffer.
     for (i=0; i<512; i++)
@@ -517,12 +513,7 @@ static int __gws_get_next_event_request(int fd,int wid)
     message_buffer[3] = 0;
     //...
 
-    if (fd<0){
-        return (int) -1;
-    }
-
 // Write
-
     n_writes = 
         (int) send ( 
                   fd, 
@@ -556,8 +547,7 @@ static struct gws_event_d *__gws_get_next_event_response (
     unsigned long sig2=0;
     register int i=0;
 
-    //gws_debug_print ("__gws_get_next_event_response: rd\n"); 
-
+// Parameters:
     if (fd<0){
         return NULL;
     }
@@ -572,7 +562,6 @@ static struct gws_event_d *__gws_get_next_event_response (
 // and then populate with some data.
     for (i=0; i<512; i++)
         __gws_message_buffer[i] = 0;
-
 
     n_reads = 
         (ssize_t) recv ( 
@@ -691,8 +680,7 @@ static int __gws_refresh_window_request( int fd, int window )
         (unsigned long *) &__gws_message_buffer[0];
     int n_writes=0;
 
-    //gws_debug_print ("__gws_refresh_window_request: wr\n");
-
+// Parameters:
     if (fd<0){
         return (int) -1;
     }
@@ -701,7 +689,6 @@ static int __gws_refresh_window_request( int fd, int window )
     }
 
 // Get info.
-
     message_buffer[0] = window; 
 // Message code
     message_buffer[1] = GWS_RefreshWindow;
@@ -710,7 +697,6 @@ static int __gws_refresh_window_request( int fd, int window )
     //...
 
 // Write
-
     n_writes = 
         (int) send ( 
                   fd, 
@@ -719,7 +705,7 @@ static int __gws_refresh_window_request( int fd, int window )
                   0 );
 
     if (n_writes<=0){
-            return (int) -1;
+        return (int) -1;
     }
 
     return (int) n_writes;
@@ -735,8 +721,7 @@ __gws_redraw_window_request (
         (unsigned long *) &__gws_message_buffer[0];
     int n_writes = 0;
 
-    //gws_debug_print ("__gws_redraw_window_request: wr\n");
-
+// Parameters:
     if (fd<0){
         return (int) -1;
     }
@@ -751,7 +736,6 @@ __gws_redraw_window_request (
     //...
 
 // Write
-
     n_writes = 
         (int) send ( 
                   fd, 
@@ -778,8 +762,7 @@ __gws_change_window_position_request (
     int n_writes = 0;
     register int i=0;
 
-    //gws_debug_print ("__gws_change_window_position_request: wr\n");
-
+// Parameters:
     if (fd<0){
         return (int) -1;
     }
@@ -840,6 +823,7 @@ static int __gws_change_window_position_reponse(int fd)
 // Waiting for response.
 // We can stay here for ever.
 
+// Parameter:
     if (fd<0){
         return (int) -1;
     }
@@ -935,8 +919,7 @@ __gws_resize_window_request (
     int n_writes = 0;
     register int i=0;
 
-    //gws_debug_print ("__gws_resize_window_request: wr\n");
-
+// Parameter:
     if (fd<0){
         return (int) -1;
     }
@@ -996,6 +979,7 @@ static int __gws_resize_window_reponse(int fd)
 // Waiting for response.
 // We can stay here for ever.
 
+// Parameter:
     if (fd<0){
         return (int) -1;
     }
@@ -1092,8 +1076,7 @@ __gws_refresh_rectangle_request (
         (unsigned long *) &__gws_message_buffer[0];
     int n_writes = 0;
 
-    //gws_debug_print ("__gws_refresh_rectangle_request: wr\n");
-
+// Parameter:
     if (fd<0){
         return (int) -1;
     }
@@ -1113,7 +1096,6 @@ __gws_refresh_rectangle_request (
     // ...
 
 // Write
-
     n_writes = 
         (int) send ( 
                   fd, 
@@ -1137,8 +1119,7 @@ static int __gws_refresh_rectangle_response(int fd)
     ssize_t n_reads=0;
     register int i=0;
 
-    //gws_debug_print ("__gws_refresh_rectangle_response: rd\n");      
-
+// Parameter:
     if (fd<0){
         return (int) -1;
     }
@@ -1204,8 +1185,7 @@ __gws_drawchar_request (
         (unsigned long *) &__gws_message_buffer[0];
     int n_writes = 0;
 
-    //gws_debug_print ("__gws_drawchar_request: wr\n");      
-
+// Parameter:
     if (fd<0){
         return (int) -1;
     }
@@ -1262,14 +1242,10 @@ __gws_drawtext_request (
     register int i=0;
     char LocalString[256];
 
-    //gws_debug_print ("gws_drawtext_request: wr\n");
-
+// Parameters:
     if (fd<0){
         goto fail;
     }
-
-//--------------------------
-// String validation
     if ((void*) string == NULL)
         goto fail;
     if (*string == 0)
@@ -1326,7 +1302,6 @@ __gws_drawtext_request (
     // Finalize the string
     *target_base = 0;
 
-
 // Write
 
     n_writes = 
@@ -1362,17 +1337,14 @@ __gws_settext_request (
     int n_writes = 0;
     register int i=0;
 
-    //gws_debug_print ("gws_drawtext_request: wr\n");
-
+// Parameters:
     if (fd<0){
         return (int) -1;
     }
-
     if ((void*) string == NULL)
         return -1;
     if (*string == 0)
         return -1;
-
 
     message_buffer[0] = 0;
 // Message code
@@ -1431,8 +1403,7 @@ __gws_gettext_request (
     //unsigned long *string_buffer = (unsigned long *) &__gws_message_buffer[128];
     int n_writes = 0;
 
-    //gws_debug_print ("gws_drawtext_request: wr\n");
-
+// Parameters:
     if (fd<0){
         return (int) -1;
     }
@@ -1616,13 +1587,10 @@ __gws_clone_and_execute_request (
     int n_writes = 0;
     register int i=0;
 
-    //gws_debug_print ("__gws_clone_and_execute_request: wr\n");
-
+// Parameters:
     if (fd<0){
         return (int) -1;
     }
-
-// path
     if ((void*) string == NULL)
         return -1;
     if (*string == 0)

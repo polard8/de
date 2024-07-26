@@ -1,6 +1,5 @@
-
 // gwstypes.h
-// #todo: Not include in gws.h yet.
+// Created by Fred Nora.
 
 #ifndef __GWSTYPES_H
 #define __GWSTYPES_H    1

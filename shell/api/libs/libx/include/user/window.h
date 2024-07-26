@@ -1,6 +1,6 @@
-
 // window.h
 // This header should be included by including "gws.h".
+// Created by Fred Nora.
 
 #ifndef  __LIBGWS_WINDOW_H
 #define  __LIBGWS_WINDOW_H    1

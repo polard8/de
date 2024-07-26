@@ -1,6 +1,6 @@
-
 // colors.h
 // Client-side colors.
+// Created by Fred Nora.
 
 #ifndef __LIBGWS_COLORS_H
 #define __LIBGWS_COLORS_H  1

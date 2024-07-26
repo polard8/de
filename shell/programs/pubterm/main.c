@@ -114,8 +114,10 @@ int main(int argc, char *argv[])
 // --------------------------------
 // #test
 // Telling to the kernel that we are a terminal.
-// This way the kernel will create connectors
-// where we clone ourself.
+// This way the kernel will create connectors when we clone ourself.
+// Probably for linking with the child.
+// This connector is gonna be our new stdin.
+// See: __input_from_connector() in terminal.c
 // #todo
 // Explain and document this connectors.
 

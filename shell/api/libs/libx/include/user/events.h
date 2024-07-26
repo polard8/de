@@ -1,9 +1,7 @@
-/*
- * File: events.h
- * 
- *     Events support for libgws.
- *     This header should be included by including "gws.h".
- */
+// events.h
+// Events support for libgws.
+// This header should be included by including "libx.h".
+// Created by Fred Nora.
 
 #ifndef __LIBGWS_EVENTS_H
 #define __LIBGWS_EVENTS_H  1

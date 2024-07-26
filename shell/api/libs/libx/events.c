@@ -1,5 +1,6 @@
-
 // events.c
+// Events support.
+// Created by Fred Nora.
 
 #include <types.h>
 #include <stdio.h>
@@ -21,11 +22,14 @@ char __gws_events_message_buffer[512];
 // the window server return the next event
 // from the queue of a client.
 
+// #todo
 struct gws_event_d *gws_next_event(int fd)
 {
-    gws_debug_print ("gws_next_event: [TODO]\n"); 
+    if (fd<0)
+        return NULL;
 
-    return (struct gws_event_d *) 0;
+    printf("gws_next_event: #todo\n"); 
+    return NULL;
 }
 
 // Send event.
@@ -57,7 +61,7 @@ gws_send_event (
     unsigned long long1=0;
     unsigned long long2=0;
 
-    if ( (void*) event == NULL ){
+    if ((void*) event == NULL){
         gws_debug_print ("gws_send_event: event\n");
         return; 
     }

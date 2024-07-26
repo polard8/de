@@ -1,6 +1,7 @@
-
 // gr.c
-// ring3 3d library.
+// goal: 3D routines in client-side.
+// Created by Fred Nora.
+
 // #todo
 // We gotta create functions to handle
 // the surfaces to paint into it.
@@ -86,10 +87,8 @@ interpolate_color(
 unsigned int invert_color(unsigned int color)
 {
     unsigned int Color = (unsigned int) (color ^ 0x00FFFFFF);
-
     return (unsigned int) Color;
 }
-
 
 void 
 gr_MultiplyMatrixVector(
@@ -128,7 +127,6 @@ gr_MultiplyMatrixVector(
         o->z /= w;
     }
 }
-
 
 // Transforme from the (x,y,z) coordinates of the 'view space'
 // to the (x,y) coordinates of the 2d screen space.
@@ -178,7 +176,6 @@ __transform_from_viewspace_to_screespace(
 // model space.
 // Been the reference for all the 'object spaces'.
 
-
 // ===================================================
 // X::
 
@@ -191,11 +188,11 @@ __transform_from_viewspace_to_screespace(
     {
         // x positivo, para direita.
         if (x >= 0 ){
-            X = (int) ( hotspotx + x );
+            X = (int) (hotspotx + x);
         }
         // x negativo, para esquerda.
         if (x < 0 ){ x = abs(x);   
-            X = (int) ( hotspotx - x );
+            X = (int) (hotspotx - x);
         }
         goto done;
     }
@@ -224,11 +221,11 @@ done:
 // Y::
      // y positivo, para cima.
      if ( y >= 0 ){
-         Y = (int) ( hotspoty - y );
+        Y = (int) (hotspoty - y);
      }
      // y negativo, para baixo
      if ( y < 0 ){ y = abs(y);
-         Y = (int) ( hotspoty + y );
+        Y = (int) (hotspoty + y);
      }
 
 // ===================================================
@@ -273,25 +270,21 @@ done:
         }
     }
 
-
-
 // ===================================================
 // Return values:
 
     // fail
-    if ( (void*) res_x == NULL ){ return (int) -1; }
-    if ( (void*) res_y == NULL ){ return (int) -1; }
+    if ((void*) res_x == NULL){ goto fail; }
+    if ((void*) res_y == NULL){ goto fail; }
 
     *res_x = (int) X;
     *res_y = (int) Y;
 
     // ok
     return 0;
+fail:
+    return (int) -1;
 }
-
-
-
-
 
 // #todo: We don't have a surface in ring3 yet.
 // We can create different functions for ploting pixels,
@@ -317,7 +310,6 @@ gws_plot0 (
     
     return 0;
 }
-
 
 // Plot a 2d point using int.
 int 
@@ -409,7 +401,6 @@ gr_plotLine3d (
    int dm = grMAX3(dx,dy,dz);
    register int i = dm;
 
-
     // x1 = y1 = z1 = dm/2; /* error offset */
  
     x1 = (dm >> 1);
@@ -418,7 +409,6 @@ gr_plotLine3d (
 
     for (;;) 
     {
-
         //grPlot0 ( NULL, z0, x0, y0, color );
 
          // Plot a 3d point using int.
@@ -469,7 +459,6 @@ plotLine3d2 (
 
     flag=0;
 
-
 //
 // Loop 
 //
@@ -494,7 +483,6 @@ plotLine3d2 (
         z1 -= dz; if (z1 < 0) { z1 += dm; z0 += sz; } 
     };
 }
-
 
 void 
 plotCircleZ ( 
@@ -560,30 +548,26 @@ plotCircleZ (
              color,  //color
              rop );  //rop
 
-
-      r = err;
+        r = err;
       
-      // #ugly routine.
+        // #ugly routine.
       
-      /* e_xy+e_y < 0 */
-      if (r <= y) 
-      { 
-           err += ++y * 2 + 1; 
-      }           
+        /* e_xy+e_y < 0 */
+        if (r <= y) 
+        { 
+            err += ++y * 2 + 1; 
+        }           
       
-      /* e_xy+e_x > 0 or no 2nd y-step */
-      if (r > x || err > y) 
-      { 
-          err += ++x * 2+1; 
-      }
+        /* e_xy+e_x > 0 or no 2nd y-step */
+        if (r > x || err > y) 
+        { 
+            err += ++x * 2+1; 
+        }
       
     } while (x < 0);
 }
 
-
-
-
-// plot rectangle
+// Plot rectangle
 // #todo
 // Incluir nessa rotina se o retãngulo será 'filled'
 // ou não. E poderemos chamar mais de uma rotina para isso.
@@ -609,11 +593,9 @@ gws_plotcube (
 int gr_initialize(void)
 {
     __initializing_hotspot();
+    // ...
     return 0;
 }
-
-
-
 
 
 

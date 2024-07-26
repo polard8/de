@@ -18,6 +18,8 @@
 #include "include/terminal.h"
 
 
+const char *child_image_name = "pubsh.bin";
+
 // network ports.
 #define PORTS_WS  4040
 #define PORTS_NS  4041
@@ -2920,9 +2922,7 @@ static int __input_from_connector(int fd)
     register int C=0;
     int client_fd = fd;
     int window_id = Terminal.client_window_id;
-    //const char *test_app = "shell.bin";
-    const char *test_app = "pubsh.bin";
-
+    int launch_status = -1;
 
 // Parameter
     if (fd < 0)
@@ -2936,15 +2936,19 @@ RelaunchShell:
 // The terminal is clonning himself and launching the child.
 // It can't be rtl_clone_and_execute2(), where the server
 // will clone and launch it.
-
-    rtl_clone_and_execute(test_app);
+    if ((void*) child_image_name == NULL){
+        goto fail;
+    }
+    launch_status = (int) rtl_clone_and_execute(child_image_name);
+    //if (launch_status<0)
+        //goto fail;
 
 // ------------------------------
 // New stdin.
 // Reaproveitando a estrutura em ring3 do stderr.
-    //new_stdin = (FILE *) fopen("gramado.txt","a+");
-    //new_stdin = stderr;
-    __terminal_input_fp = stderr;   //save global.
+// Save it globally.
+
+    __terminal_input_fp = stderr;
     if ((void*) __terminal_input_fp == NULL){
         printf("__input_from_connector: __terminal_input_fp\n");
         goto fail;
@@ -2953,21 +2957,24 @@ RelaunchShell:
 // --------------------------------------
 // #test
 // Let's get the fd for the connector0.
-// We already told to the kernel that we're a terminal.
-// We did that in main().
+// We already told to the kernel that we're a terminal 
+// when we called syscall 901 in main(), so this way 
+// we're able to get out connector.
+// Our connector is gonna be our new stdin.
+// We need to call this routine after the rtl_clone_and_execute().
 
     int connector0_fd = -1;
     connector0_fd = (int) sc82(902,0,0,0);
-
-    if (connector0_fd < 0)
+    if (connector0_fd < 0){
         goto fail;
-
+    }
 // The terminal is reading from connector 0.
     __terminal_input_fp->_file = (int) connector0_fd;
 
 // -----------------------
 // Loop
-// Reading from stderr, with a new fd.
+// Reading from your connector, it's our new stdin.
+// Probably this is the output file of our connected client.
 // Process the char.
 // IN: socket, wid, msg, data1, data2
 
@@ -3110,17 +3117,17 @@ static int terminal_run(int fd)
 {
     int InputStatus = -1;
 
-// Parameter
-    if (fd<0)
-        goto fail;
-
     isUsingEmbeddedShell = FALSE;
 
+// Parameter
+    if (fd<0){
+        goto fail;
+    }
 // Loop
     while (1)
     {
-        InputStatus = __input_from_connector(fd);
-        if(InputStatus == 0)
+        InputStatus = (int) __input_from_connector(fd);
+        if (InputStatus == 0)
             break;
     };
     return 0;
@@ -3458,12 +3465,11 @@ int terminal_init(unsigned short flags)
 // ------------------------------------
 
     int client_fd = -1;
-
     unsigned long w=0;
     unsigned long h=0;
 
     debug_print ("pubterm: Initializing\n");
-    
+
     __initialize_basics();
 
 // Device info

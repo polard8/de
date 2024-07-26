@@ -198,8 +198,8 @@ static int __initialization(void)
 
     //gws_debug_print ("-------------------------\n"); 
     //printf          ("-------------------------\n"); 
-    gws_debug_print("taskbar.bin: Initializing\n");
-    //printf       ("taskbar.bin: Initializing ...\n");
+    gws_debug_print("xtb.bin: Initializing\n");
+    //printf       ("xtb.bin: Initializing ...\n");
 
 // Socket:
 // Create a socket. 
@@ -214,11 +214,9 @@ static int __initialization(void)
             SOCK_RAW,  // Type
             0 );       // Protocol
 
-    if (client_fd < 0)
-    {
-       gws_debug_print("taskbar.bin: on socket()\n");
-       printf         ("taskbar.bin: on socket()\n");
-       exit(1);  //#bugbug Cuidado.
+    if (client_fd < 0){
+       printf ("xtb.bin: on socket()\n");
+       goto FatalError;
     }
 
 // Connect
@@ -231,12 +229,17 @@ static int __initialization(void)
 
     while (TRUE){
         if (connect(client_fd, (void *) &addr_in, sizeof(addr_in)) < 0){ 
-            debug_print("taskbar.bin: Connection Failed\n"); 
-            printf     ("taskbar.bin: Connection Failed\n"); 
-        }else{ break; }; 
+            printf("xtb.bin: Connection Failed\n"); 
+        }else{ 
+            break;
+        }; 
     };
 
     return (int) client_fd;
+
+FatalError:
+    exit(1);
+    return (int) -1;
 }
 
 static void doPrompt(int fd)
@@ -263,7 +266,7 @@ static void doPrompt(int fd)
 
     // Prompt
     printf("\n");
-    //printf("taskbar.bin: Type something\n");
+    //printf("xtb.bin: Type something\n");
     printf("$ ");
     fflush(stdout);
 
@@ -390,7 +393,7 @@ static void compareStrings(int fd)
 
     if ( strncmp(prompt,"about",5) == 0 )
     {
-        printf("taskbar.bin: Command line application\n");
+        printf("xtb.bin: Command line application\n");
         goto exit_cmp;
     }
 
@@ -484,9 +487,9 @@ tbProcedure(
 {
     int f12Status = -1;
 
+// Parameters:
     if (fd<0)
         return -1;
-
     if(event_type<=0){
         return (-1);
     }
@@ -534,16 +537,16 @@ tbProcedure(
         
         case MSG_COMMAND:
             /*
-            printf("taskbar.bin: MSG_COMMAND %d \n",long1);
+            printf("xtb.bin: MSG_COMMAND %d \n",long1);
             switch(long1){
             case 4001:  //app1
-            printf("taskbar.bin: 4001\n");
+            printf("xtb.bin: 4001\n");
             gws_clone_and_execute("browser.bin");  break;
             case 4002:  //app2
-            printf("taskbar.bin: 4002\n");
+            printf("xtb.bin: 4002\n");
             gws_clone_and_execute("editor.bin");  break;
             case 4003:  //app3
-            printf("taskbar.bin: 4003\n");
+            printf("xtb.bin: 4003\n");
             gws_clone_and_execute("terminal.bin");  break;
             };
             */
@@ -661,12 +664,10 @@ tbProcedure(
             break;
     };
 
-    // ok
-    // retorna TRUE quando o diálogo chamado 
-    // consumiu o evento passado à ele.
-
+// ok
+// retorna TRUE quando o diálogo chamado 
+// consumiu o evento passado à ele.
 done:
-    //check_victory(fd);
     return 0;
     //return (int) gws_default_procedure(fd,0,msg,long1,long2);
 }
@@ -736,6 +737,8 @@ static void __initialize_client_list(void)
     };
 }
 
+// Good old method.
+// see: pump2() for method using X function.
 static void pump(int fd, int wid)
 {
     struct gws_event_d lEvent;
@@ -766,75 +769,62 @@ static void pump(int fd, int wid)
     if (e->type <0)
         return;
 
-
     tbProcedure( 
         fd, 
         e->window, e->type, e->long1, e->long2 );
 }
 
+// Method using X function.
 static void pump2(void)
 {
     struct _XDisplay *dpy;
     struct _XEvent e;
-    int fd = -1;
-    int wid = -1;
+    register int fd = -1;
+    register int wid = -1;
 
+// Check our display structure.
     dpy = (struct _XDisplay *) Display;
-    if ((void*)dpy == NULL)
-    {
-        printf("pump2: Invalid dpy\n");
-        exit(1);
-        return;
+    if ((void*)dpy == NULL){
+        printf("pump2: dpy\n");
+        goto FatalError;
     }
-    if (dpy->magic != 1234)
-    {
+    if (dpy->magic != 1234){
         printf("pump2: dpy->magic\n");
-        exit(1);
-        return;
+        goto FatalError;
     }
 
-// Get
+// Get parameters we need.
     fd = (int) dpy->fd ;
     wid = (int) dpy->main_wid;
 // Validation
-    if (fd<0)
-    {
-        printf("pump2: Invalid fd\n");
-        exit(1);
-        return;
+    if (fd<0){
+        printf("pump2: fd\n");
+        goto FatalError;
+    }
+    if (wid<0){
+        printf("pump2: wid\n");
+        goto FatalError;
     }
 
-    if (wid<0)
-    {
-        printf("pump2: Invalid wid\n");
-        exit(1);
-        return;
-    }
-
-// Request next event
+// Request next event and process it.
     int Status = (int) XNextEvent( (struct _XDisplay *) dpy, (struct _XEvent *) &e );
     if (Status < 0){
         return;
     }
-
-// Handle the event.
-    //if ((void*) e == NULL){
-        //printf("pump2: Invalid e\n");
-        //return;
-    //}
     if (e.magic != 1234){
-        printf("pump2: e.magic\n");
         return;
     }
     if (e.type < 0){
-        printf("pump2: e.type\n");
         return;
     }
-
-// Process event
     tbProcedure( fd, e.window, e.type, e.long1, e.long2 );
-}
+    return;
 
+FatalError:
+    printf("pump2: FatalError\n");
+    exit(1);
+    return;
+}
 
 static int 
 create_start_menu(
@@ -865,9 +855,8 @@ create_start_menu(
                      style, 
                      COLOR_GRAY, 
                      COLOR_GRAY );
-    if (tmp1<0)
-    {
-        printf("taskbar.bin: tmp1\n");
+    if (tmp1<0){
+        printf("xtb.bin: tmp1\n");
         exit(1);
     }
 
@@ -892,12 +881,10 @@ int main(int argc, char *argv[])
     int client_fd = -1;
 
 // hello
-    //gws_debug_print ("taskbar.bin: Hello world \n");
-    //printf          ("taskbar.bin: Hello world \n");
+    //printf          ("xtb.bin: Hello world \n");
 
 // interrupts
-    //gws_debug_print ("taskbar.bin: Enable interrupts \n");
-    //printf          ("taskbar.bin: Enable interrupts \n");
+    //printf          ("xtb.bin: Enable interrupts \n");
     //asm ("int $199 \n");
 
 
@@ -906,15 +893,13 @@ int main(int argc, char *argv[])
 // Unlock the scheduler embedded into the base kernel.
 // Only the init process is able to do this.
 
-    //gws_debug_print ("taskbar.bin: Unlock taskswitching and scheduler\n");
-    //printf          ("taskbar.bin: Unlock taskswitching and scheduler\n");
+    //printf          ("xtb.bin: Unlock taskswitching and scheduler\n");
 
     //sc80 (641,0,0,0);
     //sc80 (643,0,0,0);
 
 // Create the rectangle
-    //gws_debug_print ("taskbar.bin: Create rectangle\n");
-    //printf          ("taskbar.bin: Create rectangle\n");
+    //printf          ("xtb.bin: Create rectangle\n");
     //sc80(897,0,0,0);
 
 //
@@ -932,23 +917,19 @@ int main(int argc, char *argv[])
     client_fd = (int) __initialization();
     if (client_fd < 0)
     {
-        gws_debug_print("taskbar.bin: __initialization fail\n");
-        printf         ("taskbar.bin: __initialization fail\n");
+        gws_debug_print("xtb.bin: __initialization fail\n");
+        printf         ("xtb.bin: __initialization fail\n");
         exit(1);
     }
 */
 
     Display = (struct gws_display_d *) gws_open_display(display_name);
-    if ((void*) Display == NULL)
-    {
-        debug_print("xtb: Couldn't open display\n");
-        printf     ("xtb: Couldn't open display\n");
+    if ((void*) Display == NULL){
+        printf ("xtb: Couldn't open display\n");
         exit(1);
     }
-    if (Display->magic != 1234)
-    {
-        debug_print("xtb: Display->magic\n");
-        printf     ("xtb: Display->magic\n");
+    if (Display->magic != 1234){
+        printf ("xtb: Display->magic\n");
         exit(1);
     }
 
@@ -956,12 +937,12 @@ int main(int argc, char *argv[])
     client_fd = (int) Display->fd;
     if (client_fd <= 0){
         debug_print("xtb: bad fd\n");
-        printf     ("xtb: bad fd\n");
+        printf ("xtb: bad fd\n");
         exit(1);
     }
 
 // #debug
-    //printf(":: Entering taskbar.bin pid{%d} fd{%d}\n",
+    //printf(":: Entering xtb.bin pid{%d} fd{%d}\n",
         //getpid(), client_fd);
     //while(1){}
 
@@ -1003,7 +984,7 @@ int main(int argc, char *argv[])
     unsigned long w = gws_get_system_metrics(1);
     unsigned long h = gws_get_system_metrics(2);
     if ( w == 0 || h == 0 ){
-        printf ("taskbar.bin: w h\n");
+        printf ("xtb.bin: w h\n");
         exit(1);
     }
     // Saving display properties.
@@ -1050,9 +1031,8 @@ int main(int argc, char *argv[])
                   style, 
                   HONEY_COLOR_TASKBAR, HONEY_COLOR_TASKBAR );
 
-    if (main_window < 0)
-    {
-        printf ("taskbar.bin: main_window\n");
+    if (main_window < 0){
+        printf ("xtb.bin: main_window\n");
         exit(1);
     }
     gws_set_active( client_fd, main_window );
@@ -1071,7 +1051,7 @@ int main(int argc, char *argv[])
         (8*10),   // 8 chars width. 
         tb_h -4 );
 
-    //printf ("taskbar.bin: main_window created\n");
+    //printf ("xtb.bin: main_window created\n");
     //while(1){}
 
 
@@ -1089,24 +1069,23 @@ int main(int argc, char *argv[])
 /*
 // barra azul no topo.
 //===============================
-    gws_debug_print ("taskbar.bin:  Creating  window \n");
-    //printf        ("taskbar.bin: Creating main window \n");
+    gws_debug_print ("xtb.bin:  Creating  window \n");
+    //printf        ("xtb.bin: Creating main window \n");
     int tmp1 = -1;
     tmp1 = (int) gws_create_window (
                      client_fd,
                      WT_SIMPLE, 1, 1, "status",
                      0, 0, w, 24,
                      0, 0, COLOR_BLUE, COLOR_BLUE );
-    if (tmp1<0)
-    {
-        printf ("taskbar.bin: tmp1\n");
+    if (tmp1<0){
+        printf ("xtb.bin: tmp1\n");
         exit(1);
     }
     //status_window = tmp1;
 //========================
 */
 
-    //printf ("taskbar.bin: status_window created\n");
+    //printf ("xtb.bin: status_window created\n");
     //while(1){}
 
     //printf("gws.bin: [2] after create simple gray bar window :)\n");
@@ -1119,8 +1098,8 @@ int main(int argc, char *argv[])
 //===================
 // Drawing a char just for fun,not for profit.
 
-    gws_debug_print ("taskbar.bin: 2 Drawing a char \n");
-    //printf        ("taskbar.bin: Drawing a char \n");
+    gws_debug_print ("xtb.bin: 2 Drawing a char \n");
+    //printf        ("xtb.bin: Drawing a char \n");
     if(status_window>0)
     {
         gws_draw_char ( 
@@ -1197,8 +1176,8 @@ int main(int argc, char *argv[])
     // The custon status bar?
     // Maybe the custon status bar can be a window.
 
-    gws_debug_print ("taskbar.bin: 4 Testing Plot cube\n");
-    //printf        ("taskbar.bin: 4 Testing Plot cube\n");
+    gws_debug_print ("xtb.bin: 4 Testing Plot cube\n");
+    //printf        ("xtb.bin: 4 Testing Plot cube\n");
 
 // back
     int backLeft   = (-(w/8)); 
@@ -1308,7 +1287,7 @@ int main(int argc, char *argv[])
 // Set cursor position.
     sc80 ( 34, 2, 2, 0 );
 
-    //printf ("taskbar.bin: Gramado OS\n");
+    //printf ("xtb.bin: Gramado OS\n");
 
 /*
 //#tests
@@ -1369,12 +1348,9 @@ int main(int argc, char *argv[])
     printf("9^3 = {%d}\n", (long) r9);
 */
 
-// ===============================
-
-//#breakpoint
-    //printf("taskbar.bin: Breakpoint :)\n");
+    //#breakpoint
+    //printf("xtb.bin: Breakpoint :)\n");
     //while(1){}
-
 
 /*
 // #test
@@ -1396,14 +1372,19 @@ int main(int argc, char *argv[])
 
 
 // =======================
+// Event loop:
+// Pumping events and processing them all.
 
     while (1)
     {
         //if (isTimeToQuit == TRUE)
             //break;
 
-        //pump(client_fd,main_window);
+        // Method using the libx function.
         pump2();
+
+        // Method using the libgws function.
+        //pump(client_fd,main_window);
     };
 
 
@@ -1442,7 +1423,7 @@ int main(int argc, char *argv[])
     //gws_async_command(client_fd,2,0,0);
 
 
-    while(1){}
+    //while(1){}
     // ...
 
     /*
@@ -1472,11 +1453,10 @@ int main(int argc, char *argv[])
     */
  
 // Done:
-    gws_debug_print("taskbar.bin: bye :)\n");
+    printf("xtb.bin: EXIT_SUCCESS\n");
     return EXIT_SUCCESS;
 }
 
 //
 // End
 //
-

@@ -1,5 +1,6 @@
 // gramuser.h
 // User interactive components, not system components.
+// Created by Fred Nora.
 
 #ifndef __LIBGWS_GRAMUSER_H_
 #define __LIBGWS_GRAMUSER_H_    1

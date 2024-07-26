@@ -1,7 +1,8 @@
-
 // vk.h 
 // This header should be included by including "gws.h".
 // Virtual keys
+// Created by Fred Nora.
+
 // #bugbug: 
 // Some parts here are very windows-like.
 // We need to review this thing in the whole system.
