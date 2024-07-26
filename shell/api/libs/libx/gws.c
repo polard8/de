@@ -3419,6 +3419,65 @@ fail:
     return (wid_t) -1;
 }
 
+int 
+XCreateSimpleWindow(
+    struct _XDisplay *display, 
+    int parent_wid, 
+    int x, 
+    int y, 
+    unsigned int width, 
+    unsigned int height, 
+    unsigned int border_width, 
+    unsigned long border, 
+    unsigned long background )
+{
+// Create a simple window
+
+    int target_fd = -1;
+
+    unsigned long _x = (unsigned long) (x & 0xFFFFFFFF);  // Deslocamento em relação às margens do Desktop. 
+    unsigned long _y = (unsigned long) (y & 0xFFFFFFFF);  // Deslocamento em relação às margens do Desktop.
+    unsigned long _width  = (unsigned long) (width  & 0xFFFFFFFF);  // Largura da janela.
+    unsigned long _height = (unsigned long) (height & 0xFFFFFFFF);  // Altura da janela.
+
+    unsigned long type = WT_SIMPLE;  //WT_OVERLAPPED;
+    unsigned long status = 0;  // WINDOW_STATUS_ACTIVE;
+    unsigned long view = VIEW_NULL;
+    unsigned long style = 0;
+    unsigned int client_color = COLOR_GRAY;
+    unsigned int frame_color = COLOR_GRAY;
+    const char *windowname = "No name";
+
+    if ( (void*) display == NULL )
+        goto fail;
+    if (parent_wid<0)
+        goto fail;
+
+    target_fd = (int) display->fd;
+    if (target_fd<0)
+        goto fail;
+
+    int ret_val = 
+        gws_create_window ( 
+            (int) target_fd,
+            (unsigned long) type,         //1, Tipo de janela (popup,normal,...)
+            (unsigned long) status,       //2, Estado da janela.
+            (unsigned long) view,         //3, (min, max ...)
+            (const char *) windowname,    //4, Título.                          
+            (unsigned long) _x,           //5, Deslocamento em relação às margens do Desktop.                           
+            (unsigned long) _y,           //6, Deslocamento em relação às margens do Desktop.
+            (unsigned long) _width,       //7, Largura da janela.
+            (unsigned long) _height,      //8, Altura da janela.
+            (int) parent_wid,             //9, Endereço da estrutura da janela mãe.
+            (unsigned long) style,        //10. style
+            (unsigned int) client_color,  //11, Cor da área de cliente
+            (unsigned int) frame_color ); //12, Color (bg) (para janela simples).
+
+    return (int) ret_val;
+fail:
+    return (int) -1;
+}
+
 // Wrapper
 wid_t 
 gws_create_application_window(

@@ -153,6 +153,19 @@ gws_create_window (
     unsigned int clientcolor,  //11, Cor da área de cliente
     unsigned int color );      //12, Color (bg) (para janela simples).
 
+
+int 
+XCreateSimpleWindow(
+    struct _XDisplay *display, 
+    int parent_wid, 
+    int x, 
+    int y, 
+    unsigned int width, 
+    unsigned int height, 
+    unsigned int border_width, 
+    unsigned long border, 
+    unsigned long background );
+
 wid_t 
 gws_create_application_window(
     int fd,
