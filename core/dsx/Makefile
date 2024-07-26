@@ -15,7 +15,7 @@ linkTarget = DSX.BIN
 #-s -x -static -T ../../link.ld
 
 linkFlags  = -m elf_x86_64 \
--s -x -static -T link.ld
+-s -x -static -T ../link.ld
 
 
 VERSION = 0
@@ -171,3 +171,11 @@ clean:
 	-rm vwlib/*.o
 	-rm vwui/*.o
 	-rm $(linkTarget)
+clean-all:
+	-rm *.o
+	-rm osdep/*.o
+	-rm vwc/*.o
+	-rm vwlib/*.o
+	-rm vwui/*.o
+	-rm $(linkTarget)
+	-rm bin/*.BIN 

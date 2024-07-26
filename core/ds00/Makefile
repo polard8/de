@@ -15,7 +15,7 @@ linkTarget = DS00.BIN
 #-s -x -static -T ../../link.ld
 
 linkFlags  = -m elf_x86_64 \
--s -x -static -T link.ld
+-s -x -static -T ../link.ld
 
 
 VERSION = 0
@@ -162,7 +162,6 @@ globals.o gws.o sprite.o shutdown.o
 gws-link:
 	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)
 finalize:
-#	cp $(linkTarget) ../bin/
 	cp $(linkTarget) bin/
 clean:
 	-rm *.o
@@ -171,3 +170,12 @@ clean:
 	-rm vwlib/*.o
 	-rm vwui/*.o
 	-rm $(linkTarget)
+clean-all:
+	-rm *.o
+	-rm osdep/*.o
+	-rm vwc/*.o
+	-rm vwlib/*.o
+	-rm vwui/*.o
+	-rm $(linkTarget)
+	-rm bin/*.BIN 
+

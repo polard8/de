@@ -1,13 +1,17 @@
-# Gramland - Display server.
+# DSX - Display server.
 
 ```
- * Gramland Display Server.
- * GRAMLAND.BIN
+ * DSX Display Server.
+ * DSX.BIN
+ * codename: dsx
  * Created by Fred Nora.
 ```
 
+  The goal for this extra display server is testing the client-side library libx, 
+where we're use some of the functions found in the X protocol. Just like XNextEvent().
+
 ```
-  Gramland is a 'Display Server'. A display server provides a way for the applications to draw 
+  DSX is a 'Display Server'. A display server provides a way for the applications to draw 
   in the display device, and receive input events from keyboard and mouse devices. 
   The display server needs to access the display device driver to touch 
   the real display device.

@@ -1,13 +1,16 @@
-# Gramland - Display server.
+# ds00 - Display server.
+
+This is the main display server for Gramado OS.
 
 ```
- * Gramland Display Server.
- * GRAMLAND.BIN
+ * DS00 Display Server.
+ * DS00.BIN
+ * codename: Gramland
  * Created by Fred Nora.
 ```
 
 ```
-  Gramland is a 'Display Server'. A display server provides a way for the applications to draw 
+  DS00 is a 'Display Server'. A display server provides a way for the applications to draw 
   in the display device, and receive input events from keyboard and mouse devices. 
   The display server needs to access the display device driver to touch 
   the real display device.
