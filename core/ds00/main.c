@@ -75,6 +75,24 @@ See: https://wiki.osdev.org/Graphics_stack
 #define VERSION_MINOR  1
 
 
+// -------------------------------------
+// The flags in the main() routine.
+// Only main.c ca handle these values.
+static int f1= FALSE;
+static int f2= FALSE;
+static int f3= FALSE;
+static int f4= FALSE;
+static int fLaunchDM=FALSE;  // Launch the default display manager.
+static int fLaunchTB=FALSE;  // Launch the default taskbar application.
+//static int fLaunchTerminal=FALSE;  // Launch the default terminal.
+//...
+
+// -------------------------------------
+// Default values given by the main() routine.
+// Only main.c ca handle these values.
+//static int default_stuff=0;
+// ...
+
 // Types of response
 // Used in dsSendResponse().
 // See: packet.h
@@ -4158,17 +4176,6 @@ int main (int argc, char **argv)
 {
     int Status=-1;
     register int i=0;
-
-// #test: Flags
-    int f1= FALSE;
-    int f2= FALSE;
-    int f3= FALSE;
-    int f4= FALSE;
-
-    int fLaunchDM=FALSE;  // Launch the default display manager.
-    int fLaunchTB=FALSE;  // Launch the default taskbar application.
-    //int fLaunchTerminal=FALSE;  // Launch the default terminal.
-    //...
 
     if (argc>0)
     {

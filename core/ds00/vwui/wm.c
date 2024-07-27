@@ -258,6 +258,7 @@ static void wmProcessTimerEvent(unsigned long long1, unsigned long long2)
     //printf("Tick\n");
 
 // We need the keyboard_owner.
+// #todo: Only if the plain is blinking the cursor.
     window = (struct gws_window_d *) get_focus();
     if ((void*) window == NULL)
         return;
@@ -271,22 +272,18 @@ static void wmProcessTimerEvent(unsigned long long1, unsigned long long2)
     //const int MyChar = '_';
     //const int MyChar = 219;  // Rectangle
 
-    // Acende (Draw black char)
+// Acende (Draw black char)
+// #todo: Create a worker.
     if (window->ip_on != TRUE){
-        // #todo: Create a worker.
-        wm_draw_char_into_the_window(
-            window, (int) '_',  COLOR_BLACK );
-        wm_draw_char_into_the_window(
-            window, (int) VK_BACK,  COLOR_WHITE );
+        wm_draw_char_into_the_window( window, (int)     '_', COLOR_BLACK );
+        wm_draw_char_into_the_window( window, (int) VK_BACK, COLOR_WHITE );
         window->ip_on = TRUE;
 
-    // Apaga (Draw white char)
+// Apaga (Draw white char)
+// #todo: Create a worker.
     } else if (window->ip_on == TRUE ){
-        // #todo: Create a worker.
-        wm_draw_char_into_the_window(
-            window, (int) '_',  COLOR_WHITE );
-        wm_draw_char_into_the_window(
-            window, (int) VK_BACK,  COLOR_WHITE );
+        wm_draw_char_into_the_window( window, (int)     '_', COLOR_WHITE );
+        wm_draw_char_into_the_window( window, (int) VK_BACK, COLOR_WHITE );
         window->ip_on = FALSE;
     };
 }
@@ -679,8 +676,9 @@ wmProcessMouseEvent(
         } else if (grab_is_active != TRUE){
             is_dragging = FALSE;
         };
-        //?
-        set_refresh_pointer_status(TRUE);
+        // Set flag to erease mouse pointer.
+        // Não queremos rastro.
+        DoWeNeedToEraseMousePointer(TRUE);
         // Update the global mouse position.
         // The compositor is doing its job,
         // painting the pointer in the right position.
