@@ -220,10 +220,29 @@ int gws_show_window_rect(struct gws_window_d *window)
 
     //p = window->parent;
 
+// We can't show a minimied window.
+// We need to restore it first.
+    if (window->state == WINDOW_STATE_MINIMIZED)
+        goto fail;
+
+// If the parent is an overlapped window,
+// and the parent is minimied, so we can't show it.
+    struct gws_window_d *parent;
+    parent = (struct gws_window_d *) window->parent;
+    if ((void*) parent != NULL)
+    {
+        if (parent->magic == 1234)
+        {
+            if (parent->type == WT_OVERLAPPED)
+            {
+                if (parent->state == WINDOW_STATE_MINIMIZED)
+                    goto fail;
+            }
+        }
+    }
 
 // Refresh rectangle
 // See: rect.c   
-
     gws_refresh_rectangle ( 
         window->absolute_x, 
         window->absolute_y, 
@@ -313,7 +332,7 @@ static void draw_mouse_pointer(void)
     //if (UseBMPImage == TRUE)
     //{
         // #todo
-        // Paint the paointer using a BMP Imange.
+        // Paint the pointer using a BMP Imange.
     //}
 
 //

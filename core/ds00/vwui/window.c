@@ -723,6 +723,11 @@ void *doCreateWindow (
     window->prev = (void *) Parent;
     window->next = NULL;
 
+// Default: We still do not have an iconic window associated with us.
+    window->_iconic = NULL;
+// Default: We're not the icon for another window.
+    window->is_iconic = FALSE;
+
 // ===================================
 // Sublings
     //window->subling_list = NULL;
@@ -2395,7 +2400,10 @@ void MinimizeAllWindows(void)
                 if (tmp->magic == 1234)
                 {
                     if (tmp->type == WT_OVERLAPPED)
+                    {
                         tmp->state = WINDOW_STATE_MINIMIZED;
+                        //tmp->enabled = FALSE;
+                    }
                 }
             }
         }
@@ -2418,7 +2426,10 @@ void MaximizeAllWindows(void)
                 if (tmp->magic == 1234)
                 {
                     if (tmp->type == WT_OVERLAPPED)
+                    {
                         tmp->state = WINDOW_STATE_MAXIMIZED;
+                        //tmp->enabled = TRUE;
+                    }
                 }
             }
         }
@@ -2443,7 +2454,10 @@ void RestoreAllWindows(void)
                 if (tmp->magic == 1234)
                 {
                     if (tmp->type == WT_OVERLAPPED)
+                    {
                         tmp->state = WINDOW_STATE_NORMAL;
+                        //tmp->enabled = TRUE;
+                    }
                 }
             }
         }
@@ -2538,29 +2552,98 @@ void change_window_state(struct gws_window_d *window, int state)
 
 void maximize_window(struct gws_window_d *window)
 {
-    if ((void*)window==NULL)
+
+// Parameter:
+    if ((void*)window == NULL)
         return;
-    if (window->magic!=1234)
+    if (window->magic != 1234)
         return;
+
+// We only maximize application windows.
+    if (window->type != WT_OVERLAPPED)
+        return;
+
+// Enable input for overlapped window.
+    window->enabled = TRUE;
+
+// 
     change_window_state(window,WINDOW_STATE_MAXIMIZED);
 
-// Update the desktop respecting the current zorder.
-    //wm_update_desktop2();
+// #test
+// Using the working area
+    unsigned long l = WindowManager.wa.left;
+    unsigned long t = WindowManager.wa.top;
+    unsigned long w = WindowManager.wa.width;
+    unsigned long h = WindowManager.wa.height;
+    if ( w==0 || h==0 ){
+        return;
+    }
+    gws_resize_window( window, 
+        (w -4), 
+        (h -4));
+    gwssrv_change_window_position( window, 
+        (l +2), 
+        (t +2) );
 
-    // ...
+// Set focus
+    set_focus(window);
+// Redraw and show window
+    redraw_window(window,TRUE);
+
+// Send message to the app to repaint all the childs.
+    window_post_message( window->id, GWS_Paint, 0, 0 );
 }
 
+// #test
+// Minimize a window
+// #ps: We do not have support for iconic window yet.
 void minimize_window(struct gws_window_d *window)
 {
-    if ((void*)window==NULL)
+
+// Parameter:
+    if ((void*)window == NULL)
         return;
-    if (window->magic!=1234)
+    if (window->magic != 1234)
         return;
+
+// We only minimize application windows.
+    if (window->type != WT_OVERLAPPED)
+        return;
+
+
+// The minimized window can't receive input.
+// The iconic window that belongs to the minimized window
+// will be able to receive input.
+// To restore this window, we need to do it via the iconic window.
+    window->enabled = FALSE;
+
+// Change the state
     change_window_state(window,WINDOW_STATE_MINIMIZED);
+
+
+// Maybe we're still the active window,
+// even minimized.
+    //if (window == active_window)
+    // ...
+
+
+// Focus?
+// Is the wwf one of our childs?
+// Change the falg to 'not receiving input'.
+    struct gws_window_d *wwf;
+    wwf = (struct gws_window_d *) keyboard_owner;
+    if ((void*) wwf != NULL)
+    {
+        if (wwf->magic == 1234)
+        {
+            if (wwf->parent == window){
+                wwf->enabled = FALSE; // Can't receive input anymore.
+            }
+        }
+    }
 
 // Update the desktop respecting the current zorder.
     wm_update_desktop2();
-
     // ...
 }
 

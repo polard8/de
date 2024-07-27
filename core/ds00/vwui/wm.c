@@ -170,8 +170,7 @@ static int control_action(int msg, unsigned long long1);
 void __button_pressed(int wid);
 void __button_released(int wid);
 
-
-// Key combination.
+// Key combination
 inline int is_combination(int msg_code);
 static int wmProcessCombinationEvent(int msg_code);
 static void wmProcessTimerEvent(unsigned long long1, unsigned long long2);
@@ -1028,8 +1027,13 @@ static void on_control_clicked(struct gws_window_d *window)
                             printf("Maximize\n");
 
                             // It is minimized.
+                            // We can't press a button for an minimized window.
+                            // We need to restore it first of all.
                             if (w2->state == WINDOW_STATE_MINIMIZED)
                                 return;
+
+                            // Let's maximize, because we're not minized.
+                            maximize_window(w2);
 
                             //window_post_message ( 
                             //    w2->id,
@@ -3508,25 +3512,27 @@ void wm_update_active_window(void)
     wm_update_window_by_id(wid);
 }
 
+// Update the desktop respecting the current zorder.
 void  wm_update_desktop2(void)
 {
-// Update the desktop respecting the current zorder.
-
     struct gws_window_d *w;
-
 
     WindowManager.is_fullscreen = FALSE;
 
-// Root
-    if ((void*)__root_window != NULL)
+// Redraw the root window.
+    if ((void*)__root_window != NULL){
         redraw_window(__root_window,FALSE);
-
+    }
 
 // List
 // Get the first window.
     w = (struct gws_window_d *) first_window;
-    if ( (void*) w == NULL )
+    if ((void*) w == NULL){
         goto done;
+    }
+// Loop
+// Redraw all the application windows.
+// Not those in minimized state.
     while (1){
         // End of the list.
         if ((void*)w == NULL)
@@ -3536,8 +3542,10 @@ void  wm_update_desktop2(void)
         {
             if (w->type == WT_OVERLAPPED)
             {
-                if (w->state != WINDOW_STATE_MINIMIZED)
+                if (w->state != WINDOW_STATE_MINIMIZED){
                     redraw_window(w,FALSE);
+                    on_update_window(w,GWS_Paint);
+                }
             }
         }
         // Next window from the list.
@@ -3545,58 +3553,56 @@ void  wm_update_desktop2(void)
     };
 
 done:
-    yellowstatus0("Gramado",FALSE);
 
-//#test
-//------------------------
-// Show the taskbar created by the user.
+    //#debug
+    //yellowstatus0("Gramado",FALSE);
+
+// The taskbar created by the user.
+// Redraw it and send message to update the client area.
     if ((void*)taskbar2_window != NULL)
     {
         redraw_window(taskbar2_window,FALSE);
-        // #todo: Send message to update the client area of tb.
         on_update_window(taskbar2_window,GWS_Paint);
     }
 
-
-// Show everything
-    if ( (void*)__root_window != NULL )
-    {
+// Show root window.
+// It shows all the windows already painted in the desktop.
+    if ((void*)__root_window != NULL){
         flush_window(__root_window);
-        
-        // ------------------
-        // If i'm gonna show the whoe screen, so
-        // i need to validate all the windows
-        // to avoid the re-refresh.
-        // #todo:
-        // We can create a worker to this routine.
-        w = (struct gws_window_d *) first_window;
-        while (1){
-            // End of the list?
-            if ((void*) w == NULL)
-                break;
-            if (w->type == WT_OVERLAPPED)
-            {
-                w->dirty == FALSE;  // Validate
-                if ( (void*) w->titlebar != NULL )
-                {
-                    w->titlebar->dirty = FALSE;
-                    validate_window_by_id(
-                        w->titlebar->Controls.minimize_wid );
-                    validate_window_by_id(
-                        w->titlebar->Controls.maximize_wid );
-                    validate_window_by_id(
-                        w->titlebar->Controls.close_wid );
-                }
-            }
-            w = w->next;
-        };    
     }
 
-    window_post_message_broadcast( 
-        0,           // wid = Ignored
-        GWS_Paint,   // msg = msg code
-        0,        // long1 = 
-        0 );      // long2 = 
+// If we're showing whole screen, so i need to validate 
+// all the windows to avoid the re-refresh.
+// #todo:
+// We can create a worker to this routine.
+// Looking up the list.
+    w = (struct gws_window_d *) first_window;
+    while (1)
+    {
+        // End of the list?
+        if ((void*) w == NULL)
+            break;
+        
+        // #todo
+        // We need to create a worker, where it will validate all the childrens
+        // when we calidate an overlapped window.
+        if (w->type == WT_OVERLAPPED){
+            w->dirty == FALSE;  // Validate overlapped
+            
+            if ((void*) w->titlebar != NULL){
+                w->titlebar->dirty = FALSE;  // Validate tittle bar
+                
+                // Validate the controls
+                validate_window_by_id(w->titlebar->Controls.minimize_wid );
+                validate_window_by_id(w->titlebar->Controls.maximize_wid );
+                validate_window_by_id(w->titlebar->Controls.close_wid );
+            }
+        }
+        w = w->next;
+    };    
+
+// IN: wid (ignored), msg code, long1, long2.
+    window_post_message_broadcast( 0, GWS_Paint, 0, 0 );
 }
 
 void wm_update_desktop3(struct gws_window_d *new_active_window)
@@ -3808,8 +3814,10 @@ void set_focus(struct gws_window_d *window)
     }
 
 // We alredy have the focus.
-    if (window == keyboard_owner)
+    if (window == keyboard_owner){
+        window->enabled = TRUE;  // We can receive input again.
         return;
+    }
 
 // Save
     old_owner = keyboard_owner;
@@ -3878,6 +3886,8 @@ void set_focus(struct gws_window_d *window)
                 }
             }
         }
+
+        window->enabled = TRUE; // Now we can receive input again.
         SetForeground = TRUE;
     }
 
@@ -3890,7 +3900,6 @@ void set_focus(struct gws_window_d *window)
 
 // -----------------------------------------
 // ...:
-
 
 // Set the foreground thread.
 // That's the tid associated with this window.
@@ -3914,7 +3923,7 @@ struct gws_window_d *get_focus(void)
 // O mouse está sobre essa janela.
 void set_mouseover(struct gws_window_d *window)
 {
-    if ( (void*) window == NULL ){
+    if ((void*) window == NULL){
         return;
     }
     if (window->used != TRUE) { return; }
@@ -3930,7 +3939,7 @@ struct gws_window_d *get_mousehover(void)
     struct gws_window_d *w;
 
     w = (struct gws_window_d *) mouse_hover;
-    if ( (void*)w==NULL ){
+    if ((void*)w == NULL){
         return NULL;
     }
     if (w->used!=TRUE) { return NULL; }
@@ -4225,19 +4234,18 @@ void wm_rebuild_list(void)
     };
 }
 
-
 // not tested yet
-void wm_remove_window_from_list_and_kill( struct gws_window_d *window)
+void wm_remove_window_from_list_and_kill(struct gws_window_d *window)
 {
     struct gws_window_d *w;
     struct gws_window_d *pick_this_one;
 
-    if ( (void*) window == NULL ){
+    if ((void*) window == NULL){
         return;
     }
 
     w = (struct gws_window_d *) first_window;
-    if ( (void*) w == NULL ){
+    if ((void*) w == NULL){
         return;
     }
 
@@ -5358,11 +5366,11 @@ int wmSTDINInputReader(void)
     return (int) nreads;
 }
 
+// Handle combination code.
 static int wmProcessCombinationEvent(int msg_code)
 {
-// Handle combination code.
 
-// Invalid code.
+// Parameter:
     if (msg_code < 0){
         goto fail;
     }
@@ -5472,25 +5480,25 @@ static int wmProcessCombinationEvent(int msg_code)
 // Control + Arrow keys.
     if (msg_code == GWS_ControlArrowUp)
     {
-        yellow_status("Control + up");
+        //yellow_status("Control + up");
         dock_active_window(1);
         return 0;
     }
     if (msg_code == GWS_ControlArrowRight)
     {
-        yellow_status("Control + right");
+        //yellow_status("Control + right");
         dock_active_window(2);
         return 0;
     }
     if (msg_code == GWS_ControlArrowDown)
     {
-        yellow_status("Control + down");
+        //yellow_status("Control + down");
         dock_active_window(3);
         return 0;
     }
     if (msg_code == GWS_ControlArrowLeft)
     {
-        yellow_status("Control + left");
+        //yellow_status("Control + left");
         dock_active_window(4); 
         return 0;
     }
@@ -6395,56 +6403,44 @@ int gwsDefineInitialRootWindow (struct gws_window_d *window)
     return 0;
 }
 
-int dock_active_window(int position)
-{
-// Dock the active window into a given corner.
-
-    struct gws_window_d *w;
-    
-    //int wid=-1;
-    //wid = (int) get_active_window();
-    //if(wid<0)
-    //    return -1;
-    //if(wid>=WINDOW_COUNT_MAX)
-    //    return -1;
-    //w = (struct gws_window_d *) windowList[wid];
-
-// Structure validation
-// #todo: Use a worker. 
-// Create one if we dont have it yet.
-    w = (void*) active_window;
-    if ( (void*) w == NULL ){
-        return -1;
-    }
-    if (w->magic!=1234){
-        return -1;
-    }
-
-// Can't be the root.
-    if (w == __root_window){
-        return -1;
-    }
-// Can't be the taskbar.
-    //if (w == taskbar_window){
-    //    return -1;
-    //}
-    
-// Dock
-    dock_window(w,position);
-    return 0;
-}
-
-int dock_window( struct gws_window_d *window, int position )
-{
 // Dock a given window into a given corner.
 // Not valid in fullscreen mode.
+int dock_window( struct gws_window_d *window, int position )
+{
+
+// Parameters:
+    if ((void*) window == NULL){
+        goto fail;
+    }
+    if (window->magic != 1234){
+        goto fail;
+    }
+    if (position<0)
+        goto fail;
+
+
+// Can't be a button
+    if (window->type == WT_BUTTON){
+        goto fail;
+    }
+
+// Can't be the root
+    if (window == __root_window){
+        goto fail;
+    }
+// Can't be the active window
+    //if (window == taskbar_window){
+    //    goto fail;
+    //}
+
+// Window manager:
 
     if (WindowManager.initialized != TRUE){
-        return -1;
+        goto fail;
     }
 // Can't dock a window in fullscreen mode.
     if (WindowManager.is_fullscreen == TRUE){
-        return -1;
+        goto fail;
     }
 
 // todo
@@ -6459,40 +6455,26 @@ int dock_window( struct gws_window_d *window, int position )
     unsigned long w = WindowManager.wa.width;
     unsigned long h = WindowManager.wa.height;
     if ( w==0 || h==0 ){
-        return -1;
+        goto fail;
     }
 
-// #bugbug
-// Validate the max value.
-
-// Structure validation
-    if ( (void*) window == NULL ){
-        return -1;
-    }
-    if (window->magic!=1234){
-        return -1;
-    }
-
-// Can't be the root
-    if (window == __root_window){
-        return -1;
-    }
-// Can't be the active window
-    //if (window == taskbar_window){
-    //    return -1;
-    //}
-
-// Window type
-    if (window->type == WT_BUTTON){
-        return -1;
-    }
-
+// Dock given the position.
     switch (position){
 
         // -----------------
-        // :: top
+        // :: TOP
         // #todo: maximize in this case
+        // We can do this eve when we're minimized.
         case 1:
+            // Restore
+            if (window->state == WINDOW_STATE_MINIMIZED)
+            {
+                window->state = WINDOW_STATE_NORMAL;
+                // Now this window can receive input again.
+                if (window == keyboard_owner){
+                    window->enabled = TRUE;
+                }
+            }
             gws_resize_window( window, 
               (w -4), 
               (h -4));
@@ -6502,8 +6484,12 @@ int dock_window( struct gws_window_d *window, int position )
             break;
 
         // -----------------
-        // :: right
+        // :: RIGHT
         case 2:
+            // Can't dock on right when minimized.
+            if (window->state == WINDOW_STATE_MINIMIZED){
+                break;
+            }
             gws_resize_window( window, 
               (w>>1)-4, 
               h-4 );
@@ -6513,20 +6499,28 @@ int dock_window( struct gws_window_d *window, int position )
             break;
 
         // -----------------
-        // :: bottom
+        // :: BOTTOM (minimize)
         //#todo: restore or put it in the center.
         case 3:
-            gws_resize_window( window, 
-              (w -4), 
-              h>>1 );
-            gwssrv_change_window_position( window, 
-              (l +2), 
-              h>>2 );
+            //gws_resize_window( window, (w -4), h>>1 );
+            //gwssrv_change_window_position( window, (l +2), h>>2 );
+            
+            // #test
+            // Let's minimize the window.
+            // No iconic window for now.
+            if (window->state != WINDOW_STATE_MINIMIZED){
+                minimize_window(window);
+            }
+
             break;
 
         // -----------------
-        // :: left
+        // :: LEFT
         case 4:
+            // Can't dock on left when minimized.
+            if (window->state == WINDOW_STATE_MINIMIZED){
+                break;
+            }
             gws_resize_window( window, 
               ((w>>1) -4), 
               (h -4) );
@@ -6551,6 +6545,51 @@ int dock_window( struct gws_window_d *window, int position )
     on_update_window(window,GWS_Paint);
 
     return 0; 
+fail:
+    return (int) -1;
+}
+
+// Dock the active window into a given corner.
+int dock_active_window(int position)
+{
+    struct gws_window_d *aw;
+
+    if (position<0)
+        goto fail;
+
+    //int wid=-1;
+    //wid = (int) get_active_window();
+    //if(wid<0)
+    //    return -1;
+    //if(wid>=WINDOW_COUNT_MAX)
+    //    return -1;
+    //w = (struct gws_window_d *) windowList[wid];
+
+// Structure validation
+// #todo: Use a worker. 
+// Create one if we dont have it yet.
+    aw = (void*) active_window;
+    if ((void*) aw == NULL){
+        goto fail;
+    }
+    if (aw->magic != 1234){
+        goto fail;
+    }
+
+// Can't be the root.
+    if (aw == __root_window){
+        goto fail;
+    }
+// Can't be the taskbar.
+    //if (w == taskbar_window){
+    //    goto fail;
+    //}
+    
+// Dock
+    dock_window(aw,position);
+    return 0;
+fail:
+    return (int) -1;
 }
 
 struct gws_window_d *get_active_window (void)

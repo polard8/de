@@ -1,4 +1,3 @@
-
 // GRAMLAND.BIN
 // Gramland Display Server.
 // This is a ring3 display server and window manager.
@@ -1816,6 +1815,28 @@ int serviceRedrawWindow(void)
         goto fail;
     }
 
+
+// We can't redraw a minimied window.
+// We need to restore it first.
+    if (window->state == WINDOW_STATE_MINIMIZED)
+        goto fail;
+
+// If the parent is an overlapped window,
+// and the parent is minimied, so we can't redraw it.
+    struct gws_window_d *parent;
+    parent = (struct gws_window_d *) window->parent;
+    if ((void*) parent != NULL)
+    {
+        if (parent->magic == 1234)
+        {
+            if (parent->type == WT_OVERLAPPED)
+            {
+                if (parent->state == WINDOW_STATE_MINIMIZED)
+                    goto fail;
+            }
+        }
+    }
+
 // Redraw it.
 // IN: w, flags: 
 // flags: 
@@ -1933,7 +1954,7 @@ int serviceRefreshWindow(void)
 
 // Get the window structure given the id.
     window = (struct gws_window_d *) windowList[window_id];
-    if ( (void *) window == NULL ){
+    if ((void *) window == NULL){
         gwssrv_debug_print ("serviceRefreshWindow: window\n");
         goto fail;
         //return -1;
@@ -1942,6 +1963,27 @@ int serviceRefreshWindow(void)
         gwssrv_debug_print ("serviceRefreshWindow: window validation\n");
         goto fail;
         //return -1;
+    }
+
+// We can't show a minimied window.
+// We need to restore it first.
+    if (window->state == WINDOW_STATE_MINIMIZED)
+        goto fail;
+
+// If the parent is an overlapped window,
+// and the parent is minimied, so we can't show it.
+    struct gws_window_d *parent;
+    parent = (struct gws_window_d *) window->parent;
+    if ((void*) parent != NULL)
+    {
+        if (parent->magic == 1234)
+        {
+            if (parent->type == WT_OVERLAPPED)
+            {
+                if (parent->state == WINDOW_STATE_MINIMIZED)
+                    goto fail;
+            }
+        }
     }
 
 // #todo
@@ -1956,7 +1998,7 @@ done:
     return 0;
 fail:
     gwssrv_debug_print ("serviceRefreshWindow: fail\n");
-    return -1;
+    return (int) -1;
 }
 
 // #todo
@@ -2003,7 +2045,6 @@ void serviceCloneAndExecute(void)
 // Service 1005
 int serviceDrawText(void)
 {
-// Business Logic:
 // Draw a text.
 // Is it showing or not?
 
@@ -2066,8 +2107,8 @@ int serviceDrawText(void)
     char *p = (char *) &message_address[string_off];
     for (i=0; i<256; i++)
     {
-         buf[i] = *p;  //Get a char
-         p++;
+        buf[i] = *p;  //Get a char
+        p++;
     };
     buf[i] = 0;  // finalize the buffer.
 // ==================================
@@ -2083,18 +2124,17 @@ int serviceDrawText(void)
 // Se a janela alvo tem um índice fora dos limites
 
 // wid
-    if ( window_id < 0 || 
-         window_id >= WINDOW_COUNT_MAX )
+    if ( window_id < 0 || window_id >= WINDOW_COUNT_MAX )
     {
-        return -1;
+        goto fail;
     }
 // window structure.
     window = (struct gws_window_d *) windowList[window_id];
-    if ( (void*) window == NULL ){ 
-        return -1; 
+    if ((void*) window == NULL){ 
+        goto fail;
     }
     if (window->magic != 1234){
-        return -1; 
+        goto fail; 
     }
 
 // If this window is overlapped window,
@@ -2102,6 +2142,29 @@ int serviceDrawText(void)
     if (window->type == WT_OVERLAPPED){
         x += window->rcClient.left;
         y += window->rcClient.top;
+    }
+
+// ----------------
+
+// We can't show a minimied window.
+// We need to restore it first.
+    if (window->state == WINDOW_STATE_MINIMIZED)
+        goto fail;
+
+// If the parent is an overlapped window,
+// and the parent is minimied, so we can't show it.
+    struct gws_window_d *parent;
+    parent = (struct gws_window_d *) window->parent;
+    if ((void*) parent != NULL)
+    {
+        if (parent->magic == 1234)
+        {
+            if (parent->type == WT_OVERLAPPED)
+            {
+                if (parent->state == WINDOW_STATE_MINIMIZED)
+                    goto fail;
+            }
+        }
     }
 
 // Draw text
@@ -2121,9 +2184,9 @@ int serviceDrawText(void)
         __buffer[i] = 0;
 
     return 0;
-crazy_fail:
-    debug_print("serviceDrawText: [ERROR] crazy_fail\n");
-    return -1;
+fail:
+    debug_print("serviceDrawText: fail\n");
+    return (int) -1;
 }
 
 // Put the text into the buffer
