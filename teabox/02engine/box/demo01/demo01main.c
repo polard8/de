@@ -72,6 +72,9 @@ See: https://wiki.osdev.org/Graphics_stack
 #include "gram3d.h"
 
 
+// See: gram3d.h
+struct viewport_info_d ViewportInfo;
+
 #define VERSION  "0.1"
 #define VERSION_MAJOR  0
 #define VERSION_MINOR  1
@@ -1417,7 +1420,6 @@ static int initGraphics(void)
 // See: gws.c
 
     __init_status = (int) gwsInit();
-
     if (__init_status != 0)
     {
         debug_print ("initGraphics: [PANIC] Couldn't initialize the graphics\n");
@@ -3225,8 +3227,6 @@ void __init_ws_structure(void)
 }
 
 
-
-
 // Init Graphics:
 // Draw something.
 // Init ws infrastructure.
@@ -3239,9 +3239,7 @@ static int InitHot(void)
     //#todo: Is it the first time?
 
     graphics_status = (int) initGraphics();
-
-    if(graphics_status<0)
-    {
+    if (graphics_status < 0){
         printf("InitHot: initGraphics failed\n");
         return -1;
         //while(1){}
@@ -3305,6 +3303,10 @@ static int on_execute(void)
     server_address.sa_data[1] = 'r';
     addrlen = sizeof(server_address);
 //==================
+
+// Not using the event loop here,
+// lets return to the UI and use its event loop.
+    int UseEventLoop = FALSE;
 
     //int ShowDemo=FALSE;
     int ShowDemo=TRUE;
@@ -3518,18 +3520,19 @@ static int on_execute(void)
     }
 
 // The working area.
-    
+
+/*    
     WindowManager.wa_left = 0;
     WindowManager.wa_top = 0;
     WindowManager.wa_width = WindowManager.root->width;
     WindowManager.wa_height =(WindowManager.root->height - WindowManager.taskbar->height);
-
-/*
-    WindowManager.wa_left = 100;
-    WindowManager.wa_top = 100;
-    WindowManager.wa_width = 320;
-    WindowManager.wa_height = 200;
 */
+
+
+    WindowManager.wa_left   = ViewportInfo.left;
+    WindowManager.wa_top    = ViewportInfo.top;
+    WindowManager.wa_width  = ViewportInfo.width;
+    WindowManager.wa_height = ViewportInfo.height;
 
     WindowManager.initialized = TRUE;
 
@@ -3653,6 +3656,16 @@ static int on_execute(void)
         demoFlyingCubeSetup();
     }
 
+// Not using the event loop here,
+// lets return to the UI and use its event loop.
+
+    if (UseEventLoop != TRUE)
+    {
+        IsTimeToQuit = TRUE;
+        printf("demo01: Not using event loop\n");
+        return 0;
+    }
+
     while (running == TRUE){
 
         beginTick = (unsigned long) rtl_jiffies();
@@ -3755,14 +3768,68 @@ static inline void __outb(uint16_t port, uint8_t val)
 */
 
 
+
+// Testing demos.
+    //demoCat();
+    //demoCurve();
+    //demoLines();
+    //demoPolygon();
+    //demoPolygon2();
+    //demoTriangle();
+int demo01_tests(int index)
+{
+    int i=0;
+    printf("demo01_tests:\n");
+
+    switch (index){
+
+        // 2D
+        // Running in the viewport.
+        case 1:
+            demoCat();
+            break;
+        
+        // 3D
+        // Running in fullscreen for now.
+        case 2:
+            demoFlyingCubeSetup();
+            for  (i=0 ; i<10000; i++){
+                demoFlyingCube(FALSE,COLOR_BLACK);   
+            }
+            break;
+        
+        // Windows
+        case 3:
+            break;
+    };
+    return 0;
+}
+
 // Gramado game engine.
 // main: entry point
 // see: gramado.h
-int demo01main(void)
+// IN: The viewport.
+//     The viewport is the client area of the applications frame window.
+int demo01main(
+    unsigned long viewport_left,
+    unsigned long viewport_top,
+    unsigned long viewport_width,
+    unsigned long viewport_height )
 {
 // Called by ui.c
 
     int Status = -1;
+
+
+// Saving the viewport
+
+    ViewportInfo.left = viewport_left;
+    ViewportInfo.top  = viewport_top;
+    ViewportInfo.width = viewport_width;
+    ViewportInfo.height = viewport_height;
+    ViewportInfo.initialized = TRUE;
+
+    printf ("demo01: ViewportInfo values gotten\n");
 
 // #todo
 // Parse the parameters and select the flags.
@@ -3781,13 +3848,14 @@ int demo01main(void)
     if (Status != 0){
         goto fail;
     }
+
     // Wrong time to quit the server.
     if (IsTimeToQuit != TRUE){
         goto fail;
     }
-    return EXIT_SUCCESS;
+    return 0;
 fail:
-    return EXIT_FAILURE;
+    return (int) -1;
 }
 
 //

@@ -20,7 +20,26 @@
 
 // Importing from demo01/
 //#include "../02engine/box/demo01/gram3d.h"
-extern int demo01main (void);
+// see: main.c
+// Gramado game engine.
+// main: entry point
+// see: gramado.h
+// IN: The viewport.
+//     The viewport is the client area of the applications frame window.
+extern int demo01main(
+    unsigned long viewport_left,
+    unsigned long viewport_top,
+    unsigned long viewport_width,
+    unsigned long viewport_height );
+
+extern int demo01_tests(int index);
+
+// The view port.
+// DEFAULT VALUES.
+unsigned long cw_left   = 4;
+unsigned long cw_top    = 4;
+unsigned long cw_width  = 40;
+unsigned long cw_height = 40;
 
 
 // network ports.
@@ -193,6 +212,8 @@ browserProcedure(
     unsigned long long2 )
 {
 
+    int status;
+
 // Parameters
     if (fd<0){
         return -1;
@@ -243,9 +264,17 @@ browserProcedure(
     // A button was clicked,
     case GWS_MouseClicked:
         printf("browser: GWS_MouseClicked\n");
+        if (event_window == __button_window){
+            printf("browser: button clicked\n");
+        }
         // #test
         // Initializing the 3D engine.
-        demo01main();  //see: main function in demo01main.c in box/demo01/.
+        //see: main function in demo01main.c in box/demo01/.
+        status = (int) demo01main(cw_left, cw_top, cw_width, cw_height);  
+        if (status != 0){
+            printf ("ui.c: demo01 initialization failed\n");
+            exit(1);
+        }
         return 0;
         break;
 
@@ -258,6 +287,13 @@ browserProcedure(
 
     case MSG_CLOSE:
         printf ("browser.bin: MSG_CLOSE\n");
+        
+        // #test
+        demo01_tests(1);
+        demo01_tests(2);
+        //demo01_tests(3);
+        //demo01_tests(4);
+
         gws_destroy_window(fd,__button_window);
         gws_destroy_window(fd,__main_window);
         exit(0);
@@ -519,10 +555,10 @@ int uiInitialize( int argc, char *argv[] )
 // Se a janela mãe é overlapped,
 // pinta na client area.
 
-    unsigned long cw_left = 4;
-    unsigned long cw_top = 4 +24 +4;
-    unsigned long cw_width  = (w_width>>1);
-    unsigned long cw_height = (w_height>>1);
+    cw_left = 4;
+    cw_top = 4 +24 +4;
+    cw_width  = (w_width>>1);
+    cw_height = (w_height>>1);
 
     client_window = 
         (int) gws_create_window (
@@ -530,7 +566,7 @@ int uiInitialize( int argc, char *argv[] )
                   WT_SIMPLE, 1, 1, cw_name,
                   cw_left, cw_top, cw_width, cw_height,
                   main_window,
-                  0, COLOR_WHITE, COLOR_WHITE );
+                  0, COLOR_RED, COLOR_RED );
 
     if (client_window < 0)
         debug_print("browser: client_window fail\n"); 

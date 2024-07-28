@@ -197,12 +197,40 @@ char __buffer[MSG_BUFFER_SIZE];
 #define NEXTRESPONSE_BUFFER_SIZE  32
 unsigned long next_response[32];
 
+
+
+struct viewport_info_d 
+{
+    int initialized;
+
+    unsigned long left;
+    unsigned long top;
+    unsigned long width;
+    unsigned long height;
+};
+// see demo01main.c
+extern struct viewport_info_d ViewportInfo;
+
 //
 // prototypes =============================
 //
 
 // see: main.c
-int demo01main (void);
+// Gramado game engine.
+// main: entry point
+// see: gramado.h
+// IN: The viewport.
+//     The viewport is the client area of the applications frame window.
+int demo01main(
+    unsigned long viewport_left,
+    unsigned long viewport_top,
+    unsigned long viewport_width,
+    unsigned long viewport_height );
+
+int demo01_tests(int index);
+
+
+
 void gramado_terminate(void);
 
 // These functions belong to another module

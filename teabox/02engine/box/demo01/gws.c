@@ -476,6 +476,9 @@ int gwsInit(void)
 
 // Hotspot
 // Center of the screen
+// #todo
+// The center of the screen needs to be the center of the viewport.
+// Let's change this when setting up the working area.
 
     DeviceScreen->hotspot_x = ( DeviceScreen->width  >> 1 );
     DeviceScreen->hotspot_y = ( DeviceScreen->height >> 1 );

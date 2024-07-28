@@ -636,10 +636,10 @@ void __init_wm_structure(void)
 
 // Working area.
 // Área de trabalho.
-    WindowManager.wa_left   = 0;
-    WindowManager.wa_top    = 0;
-    WindowManager.wa_width  = 0;
-    WindowManager.wa_height = 0;
+    WindowManager.wa_left   = ViewportInfo.left;
+    WindowManager.wa_top    = ViewportInfo.top;
+    WindowManager.wa_width  = ViewportInfo.width;
+    WindowManager.wa_height = ViewportInfo.height;
 
     WindowManager.is_fullscreen = FALSE;
     //WindowManager.is_fullscreen = TRUE;
