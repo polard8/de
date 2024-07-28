@@ -144,7 +144,7 @@ struct gr_camera_d
 int gr_initialize(void);
 
 unsigned int 
-interpolate_color(
+gr_interpolate_color(
     unsigned int color1, 
     unsigned int color2, 
     unsigned int fraction );
@@ -152,7 +152,7 @@ interpolate_color(
 unsigned int invert_color(unsigned int color);
 
 void 
-gr_MultiplyMatrixVector(
+libgws_gr_MultiplyMatrixVector(
     struct gr_vecF3D_d *i, 
     struct gr_vecF3D_d *o, 
     struct gr_mat4x4_d *m );
@@ -194,7 +194,7 @@ gr_plotLine3d (
     unsigned long rop );
 
 void 
-plotLine3d2 (
+libgws_plotLine3d2 (
     int fd,
     int x0, int y0, int z0, unsigned int color1,
     int x1, int y1, int z1, unsigned int color2, 

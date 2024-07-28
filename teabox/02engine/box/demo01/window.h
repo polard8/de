@@ -1361,7 +1361,7 @@ setup_surface_rectangle (
     unsigned long width, 
     unsigned long height );
 
-void invalidate_surface_retangle (void);
+void rect_invalidate_surface_rectangle (void);
 
 void 
 gws_refresh_rectangle ( 
@@ -1553,7 +1553,7 @@ void set_top_window (struct gws_window_d *window);
 int get_zorder ( struct gws_window_d *window );
 
 int 
-gws_resize_window ( 
+wm_resize_window ( 
     struct gws_window_d *window, 
     unsigned long cx, 
     unsigned long cy );

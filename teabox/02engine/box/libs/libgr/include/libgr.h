@@ -51,12 +51,12 @@ multiply4(
 
 // Interpolation
 unsigned int 
-interpolate_color(
+libgr_interpolate_color(
     unsigned int color1, 
     unsigned int color2, 
     unsigned int fraction );
 
-unsigned int invert_color(unsigned int color);
+unsigned int libgr_invert_color(unsigned int color);
 
 // Fibonacci Series using Recursion 
 // #todo: Create fib_int and fib_long

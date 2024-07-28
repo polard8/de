@@ -12,4 +12,4 @@ clean:
 	-rm -f *.o 
 clean-all:
 	-rm -f *.o 
-	-rm -f bin/*.BIN
+#	-rm -f bin/*.BIN

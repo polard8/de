@@ -1486,7 +1486,7 @@ static int initGraphics(void)
 
     //gws_show_backbuffer();
 // invalidate the surface in ring0.
-    invalidate_surface_retangle();
+    rect_invalidate_surface_rectangle();
 
     comp_initialize_mouse();
 
@@ -2719,7 +2719,7 @@ int serviceResizeWindow(void)
     //if (window == __root_window)
         //return -1;
 
-    gws_resize_window ( 
+    wm_resize_window ( 
         (struct gws_window_d *) window, 
         (unsigned long) w, 
         (unsigned long) h );
@@ -3752,7 +3752,7 @@ static inline void __outb(uint16_t port, uint8_t val)
 // Gramado game engine.
 // main: entry point
 // see: gramado.h
-int main(int argc, char **argv)
+int demo01main(int argc, char **argv)
 {
     int Status = -1;
 

@@ -240,14 +240,14 @@ static void run_selected_option(void)
     if (current_option == OPTION_NOTHING)
     {
         gwssrv_change_window_position(w,20,20);
-        gws_resize_window(w,100,100);
+        wm_resize_window(w,100,100);
         redraw_window(w,TRUE);
         current_option=OPTION_NOTHING;
         return;
     }
 
     if (current_option == OPTION_MINIMIZE){
-        gws_resize_window(w,100,100);
+        wm_resize_window(w,100,100);
         redraw_window(w,TRUE);
         current_option=OPTION_NOTHING;
         return;
@@ -1988,7 +1988,7 @@ static void __Tile(void)
                 
                 w2 = Width;
                 h2 = Height -4;
-                gws_resize_window(w, w2, h2);
+                wm_resize_window(w, w2, h2);
 
                 // positions.
                 // left: comaça na metade da área de tranalho.
@@ -2021,7 +2021,7 @@ static void __Tile(void)
                     Height = (unsigned long) WindowManager.wa_height;
                     w2 = Width  -4;
                     h2 = Height -4;
-                    gws_resize_window(w, w2, h2);
+                    wm_resize_window(w, w2, h2);
 
                     // positions.
                     // Canto superior esquerdo. Com padding.
@@ -2086,7 +2086,7 @@ void wm_update_window_by_id(int wid)
     if (WindowManager.mode == WM_MODE_TILED)
     {
         gwssrv_change_window_position(w,0,0);
-        gws_resize_window(
+        wm_resize_window(
             w,
             WindowManager.wa_width,
             WindowManager.wa_height);
@@ -2110,7 +2110,7 @@ void wm_update_window_by_id(int wid)
         fullWidth  = gws_get_device_width();
         fullHeight = gws_get_device_height();
         gwssrv_change_window_position(w,0,0);
-        gws_resize_window(
+        wm_resize_window(
             w,
             fullWidth,
             fullHeight);
@@ -5454,7 +5454,7 @@ struct gws_window_d *wmCreateRootWindow(void)
 // Setup the surface in ring0
     setup_surface_rectangle(left,top,width,height);
 // invalidate the surface in ring0.
-    invalidate_surface_retangle();
+    rect_invalidate_surface_rectangle();
 
     w->dirty = TRUE;  // Invalidate again.
     w->locked = TRUE;
@@ -5540,19 +5540,19 @@ int dock_window( struct gws_window_d *window, int position )
     switch (position){
         case 1:  //top
             gwssrv_change_window_position( window, 0, 0); 
-            gws_resize_window( window, w, h>>1 );
+            wm_resize_window( window, w, h>>1 );
             break;
         case 2:  //right
             gwssrv_change_window_position( window, (w>>1), 0); 
-            gws_resize_window( window, (w>>1)-4, h-4 );
+            wm_resize_window( window, (w>>1)-4, h-4 );
             break;
         case 3:  //bottom
             gwssrv_change_window_position( window, 0, h>>1); 
-            gws_resize_window( window, w, h>>1 );
+            wm_resize_window( window, w, h>>1 );
             break;
         case 4:  //left
             gwssrv_change_window_position( window, 0, 0); 
-            gws_resize_window( window, (w>>1)-4, h-4 );
+            wm_resize_window( window, (w>>1)-4, h-4 );
             break;
 
         default:
@@ -5949,7 +5949,7 @@ int create_main_menu(int position_x, int position_y)
 }
 
 int 
-gws_resize_window ( 
+wm_resize_window ( 
     struct gws_window_d *window, 
     unsigned long cx, 
     unsigned long cy )

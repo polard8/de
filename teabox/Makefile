@@ -60,11 +60,29 @@ LIBCOBJ   = 02engine/box/libs/rtl/obj
 LIBGWS    = 02engine/box/libs/libgws/include/
 LIBGWSOBJ = 02engine/box/libs/libgws/obj
 
+#LIBBOX = 02engine/box/bin/
+LIBBOXOBJ = 02engine/box/bin
+
 # Objects
 myObjects = crt0.o main.o ui.o rtl.o \
 ctype.o stdio.o fcntl.o stdlib.o string.o \
 unistd.o termios.o ioctl.o socket.o \
-libgws.o   
+libgws.o    
+
+myObjects += demo01main.o
+myObjects += globals.o 
+myObjects += libdisp.o
+myObjects += libgr.o
+myObjects += libgr3d.o
+myObjects += archive_basics1.o
+myObjects += archive_basics2.o
+myObjects += archive_fx.o    
+myObjects += archive_extra.o    
+myObjects += wm.o   
+
+
+myObjects += math.o   
+
 
 .PHONY: all all-c hello-link finalize clean
 
@@ -79,6 +97,7 @@ all-c:
 # We need to compile the libraries before getting them.
 
 	make -C 02engine/box/libs/
+	make -C 02engine/box/demo01/
 
 	cp $(LIBCOBJ)/crt0.o   .
 	cp $(LIBCOBJ)/rtl.o  .
@@ -97,7 +116,21 @@ all-c:
 # libgws
 	cp $(LIBGWSOBJ)/libgws.o .
 
-#todo: Import the rest of the libs.
+# todo: 
+# Import the rest of the libs from box/
+
+	cp $(LIBBOXOBJ)/demo01main.o  .
+	cp $(LIBBOXOBJ)/globals.o  .
+	cp $(LIBBOXOBJ)/libdisp.o  .
+	cp $(LIBBOXOBJ)/libgr.o  .
+	cp $(LIBBOXOBJ)/libgr3d.o  .
+	cp $(LIBBOXOBJ)/archive_basics1.o  .
+	cp $(LIBBOXOBJ)/archive_basics2.o  .
+	cp $(LIBBOXOBJ)/archive_fx.o  .
+	cp $(LIBBOXOBJ)/archive_extra.o  .
+	cp $(LIBBOXOBJ)/wm.o  .
+
+	cp $(LIBBOXOBJ)/math.o  .
 
 
 hello-link:
@@ -111,4 +144,8 @@ clean-all:
 	-rm *.o
 	-rm $(linkTarget)
 	-rm bin/*.BIN 
+
+	-rm 02engine/box/bin/*.o
+	-rm 02engine/box/libs/*.o
+	-rm 02engine/box/demo01/*.o
 

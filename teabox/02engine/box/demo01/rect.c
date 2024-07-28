@@ -522,7 +522,7 @@ setup_surface_rectangle (
 }
 
 
-void invalidate_surface_retangle (void)
+void rect_invalidate_surface_rectangle (void)
 {
     gramado_system_call ( 893, 0, 0, 0 );
 }

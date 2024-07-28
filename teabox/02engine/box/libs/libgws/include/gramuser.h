@@ -87,7 +87,7 @@ setup_surface_retangle (
 // #todo: 
 // change to gws_invalidate_surface_rectangle,
 // or gws_invalidate-surface.
-void invalidate_surface_retangle (void);
+void libgws_invalidate_surface_rectangle (void);
 
 // ==========================
 

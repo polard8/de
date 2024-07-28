@@ -303,7 +303,7 @@ void __print_fib(int max)
 
 //#todo: Explain it better.
 unsigned int 
-interpolate_color(
+libgr_interpolate_color(
     unsigned int color1, 
     unsigned int color2, 
     unsigned int fraction )
@@ -328,7 +328,7 @@ interpolate_color(
 
 //??
 //#todo: Explain it better.
-unsigned int invert_color(unsigned int color)
+unsigned int libgr_invert_color(unsigned int color)
 {
     unsigned int Color = (unsigned int) (color ^ 0x00FFFFFF);
     return (unsigned int) Color;

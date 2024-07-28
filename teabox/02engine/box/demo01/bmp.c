@@ -678,7 +678,7 @@ gwssrv_display_system_icon (
     {
         // #bugbug #todo
         // We need to use the routine to refresh the rectangle. 
-        invalidate_surface_retangle();
+        rect_invalidate_surface_rectangle();
         //gws_show_backbuffer();
     }
 

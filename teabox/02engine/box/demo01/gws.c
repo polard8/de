@@ -701,7 +701,7 @@ int gwsInit(void)
 // The kernel side will flush the surface rectangle 
 // into the framebuffer.
 
-    // invalidate_surface_retangle();
+    // rect_invalidate_surface_rectangle();
 
 // #debug
 // Let's see the messages above.

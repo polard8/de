@@ -202,7 +202,7 @@ unsigned long next_response[32];
 //
 
 // see: main.c
-int main (int argc, char **argv);
+int demo01main (int argc, char **argv);
 void gramado_terminate(void);
 
 // These functions belong to another module
@@ -259,8 +259,6 @@ unsigned long gws_get_device_height(void);
 int serverInit (void);
 
 void gws_show_backbuffer(void);
-
-
 
 void gwssrv_wait_message(void);
 void gwssrv_yield(void);

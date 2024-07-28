@@ -3253,7 +3253,7 @@ setup_surface_retangle (
     sc80 ( 892, (unsigned long) &buf[0], 0, 0 );
 }
 
-void invalidate_surface_retangle(void)
+void libgws_invalidate_surface_rectangle(void)
 {
     sc80( 893, 0, 0, 0 );
 }

@@ -4,7 +4,7 @@
 # It's called by the init process.
 # 2022 - Created by Fred Nora.
 
-linkTarget = DEMO01.BIN
+#linkTarget = DEMO01.BIN
 
 # See: https://linux.die.net/man/1/ld
 # -s --strip-all:   Omit all symbol information from the output file.
@@ -95,7 +95,7 @@ WS_INCLUDES       = include/
 WS_INCLUDES_LOCAL = .
 
 # Objects
-myObjects = crt0.o main.o rtl.o \
+myObjects = crt0.o demo01main.o rtl.o \
 ctype.o stdio.o stdlib.o string.o conio.o socket.o signal.o unistd.o \
 termios.o ioctl.o fcntl.o    
 
@@ -119,8 +119,8 @@ all: main.o all-c gws-link finalize clean
 	@echo "Ok?"
 
 main.o:
-	$(CC)  -c  main.c     $(user_ccflags) $(CINCLUDES) -o main.o
-	$(CC)  -c  globals.c  $(user_ccflags) $(CINCLUDES) -o globals.o
+	$(CC)  -c  demo01main.c  $(user_ccflags) $(CINCLUDES) -o demo01main.o
+	$(CC)  -c  globals.c     $(user_ccflags) $(CINCLUDES) -o globals.o
 
 all-c:
 
@@ -197,7 +197,7 @@ finalize:
 
 clean:
 	-rm *.o
-	-rm $(linkTarget) 
+#	-rm $(linkTarget) 
 clean2:
 	-rm *.o
 
