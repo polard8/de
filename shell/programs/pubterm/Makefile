@@ -12,7 +12,7 @@ EXTRAVERSION =
 #NAME = 
 
 
-linkFlags  = -m elf_x86_64 \
+linkFlags = -m elf_x86_64 \
 -s -x -static -T ../../link.ld
 
 linkTarget = PUBTERM.BIN 

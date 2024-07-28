@@ -21,7 +21,6 @@ all:
 # Internal shell: The applications.
 #
 
-	make -C programs/browser/
 	# First client (GWS.BIN)
 	make -C programs/client/
 	make -C programs/cmdline/
