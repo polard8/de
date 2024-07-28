@@ -18,6 +18,11 @@
 // The client-side library.
 #include <gws.h>
 
+// Importing from demo01/
+//#include "../02engine/box/demo01/gram3d.h"
+extern int demo01main (void);
+
+
 // network ports.
 #define PORTS_WS  4040
 #define PORTS_NS  4041
@@ -235,8 +240,12 @@ browserProcedure(
         return 0;
         break;
 
+    // A button was clicked,
     case GWS_MouseClicked:
         printf("browser: GWS_MouseClicked\n");
+        // #test
+        // Initializing the 3D engine.
+        demo01main();  //see: main function in demo01main.c in box/demo01/.
         return 0;
         break;
 

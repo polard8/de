@@ -6,10 +6,11 @@
 
 // Registering the display server in Gramado Kernel.
 int registerDS(void);
+// Registering a browser server in Gramado Kernel.
+int registerBrowser(void);
 
 #endif
 
 //
 // End
 //
-

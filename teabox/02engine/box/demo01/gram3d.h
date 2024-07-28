@@ -202,7 +202,7 @@ unsigned long next_response[32];
 //
 
 // see: main.c
-int demo01main (int argc, char **argv);
+int demo01main (void);
 void gramado_terminate(void);
 
 // These functions belong to another module

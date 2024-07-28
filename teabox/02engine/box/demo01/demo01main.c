@@ -3301,8 +3301,8 @@ static int on_execute(void)
     struct sockaddr server_address;
     socklen_t addrlen;
     server_address.sa_family = AF_GRAMADO;
-    server_address.sa_data[0] = 'd';  // Display server
-    server_address.sa_data[1] = 's';
+    server_address.sa_data[0] = 'b';  // Display server
+    server_address.sa_data[1] = 'r';
     addrlen = sizeof(server_address);
 //==================
 
@@ -3402,7 +3402,8 @@ static int on_execute(void)
 // mais de um display server.
 // See: connect.c
 
-    _status = (int) registerDS();
+    //_status = (int) registerDS();
+    _status = (int) registerBrowser();
     if (_status < 0){
         printf ("eng.bin: Couldn't register the server\n");
         goto fail;
@@ -3520,11 +3521,16 @@ static int on_execute(void)
     
     WindowManager.wa_left = 0;
     WindowManager.wa_top = 0;
-// #danger
-    WindowManager.wa_width = 
-        WindowManager.root->width;
-    WindowManager.wa_height =
-        (WindowManager.root->height - WindowManager.taskbar->height);
+    WindowManager.wa_width = WindowManager.root->width;
+    WindowManager.wa_height =(WindowManager.root->height - WindowManager.taskbar->height);
+
+/*
+    WindowManager.wa_left = 100;
+    WindowManager.wa_top = 100;
+    WindowManager.wa_width = 320;
+    WindowManager.wa_height = 200;
+*/
+
     WindowManager.initialized = TRUE;
 
     //#debug
@@ -3752,8 +3758,10 @@ static inline void __outb(uint16_t port, uint8_t val)
 // Gramado game engine.
 // main: entry point
 // see: gramado.h
-int demo01main(int argc, char **argv)
+int demo01main(void)
 {
+// Called by ui.c
+
     int Status = -1;
 
 // #todo

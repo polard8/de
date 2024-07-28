@@ -406,16 +406,13 @@ int gwsInit(void)
 //
 
     CurrentDisplay = (void *) malloc (sizeof(struct gws_display_d));
-
-    if ( (void*) CurrentDisplay == NULL )
+    if ((void*) CurrentDisplay == NULL)
     {
         debug_print("gwsInit: [FAIL] CurrentDisplay\n");
         printf     ("gwsInit: [FAIL] CurrentDisplay\n");
         exit(1); 
     }
-
     memset( CurrentDisplay, 0, sizeof(struct gws_display_d) );
-
     CurrentDisplay->id = 0;
     CurrentDisplay->fd = 0;
     CurrentDisplay->used  = TRUE;
@@ -429,16 +426,13 @@ int gwsInit(void)
 //
 
     DeviceScreen  = (void *) malloc (sizeof(struct gws_screen_d));
-
     if ( (void*) DeviceScreen == NULL )
     {
         debug_print("gwsInit: [FAIL] DeviceScreen\n");
         printf     ("gwsInit: [FAIL] DeviceScreen\n");
         exit(1);
     }
-
     memset( DeviceScreen, 0, sizeof(struct gws_screen_d) );
-
     DeviceScreen->id = 0; 
     DeviceScreen->flags = 0;
 
