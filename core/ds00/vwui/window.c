@@ -1918,10 +1918,10 @@ void *CreateWindow (
                          FrameColor, ClientAreaColor, 
                          (unsigned long) __rop_flags ); 
 
-         if ( (void *) __w == NULL ){
-             gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
-             goto fail;
-         }
+        if ((void *) __w == NULL){
+            gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
+            goto fail;
+        }
 
         //--------------------
         // Let's setup the buffer for the text.
@@ -2148,6 +2148,15 @@ draw_frame:
     if ((void*) pWindow == NULL){
         __w->level = 0;
     }
+
+
+// ================================
+
+    /*
+    if (type == WT_OVERLAPPED)
+    {
+    }
+    */
 
 // ===============
 // Unlock the window

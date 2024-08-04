@@ -1,4 +1,3 @@
-
 // bmp.c
 // Very basic support for BMP files.
 // We get an address calling the kernel given an index
