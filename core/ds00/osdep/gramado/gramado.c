@@ -1,7 +1,8 @@
 // gramado.c
 // Created by Fred Nora.
 
-#include <gwsint.h>
+
+#include "../../gwsint.h"
 
 static gramado_initialized = FALSE;
 // #todo:

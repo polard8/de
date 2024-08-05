@@ -5,8 +5,9 @@
 // Version?
 // See protocol version in protocol.h.
 
-// ...
-extern int current_mode;
+
+extern int os_mode;      // GRAMADO_P1 ...
+extern int server_mode;  // DEMO ...
 
 // rtl
 #include <types.h>
@@ -20,43 +21,42 @@ extern int current_mode;
 #include <sys/socket.h>
 #include <rtl/gramado.h>
 
-
-// Gramado Window Server
-#include "gws.h"
-#include "callback.h"
+// Gramado Window System
+#include "ui/gws.h"
+#include "osdep/gramado/callback.h"
 
 // Configuration and debug support.
 #include "config/config.h"
 #include "protocol.h"
 #include "async.h"
-#include "globals.h"
-#include "vwui/colors.h"
-#include "vwui/themes/humility.h"
-#include "vwui/themes/honey.h"
+#include "srv/globals.h"
+#include "ui/colors.h"
+#include "ui/themes/humility.h"
+#include "ui/themes/honey.h"
 
 // #imported
 // Display device library.
 #include <libdisp.h>
 
-#include "vwlib/char.h"
-#include "vwlib/dtext.h"
-#include "vwlib/line.h"
+#include "libui/char.h"
+#include "libui/dtext.h"
+#include "libui/line.h"
 
-#include "vwui/wt.h"
-#include "vwui/menu.h"
+#include "ui/wt.h"
+#include "ui/menu.h"
 //#include "zres/grinput.h"   //#test
-#include "vwui/metrics.h"
-#include "vwui/window.h"
-#include "vwui/areas/bar.h"    // Notification bar. (yellow)
-#include "vwui/areas/wa.h"     // Working Area
-#include "vwui/areas/swamp.h"  // Swamp
-#include "vwui/wm.h"
+#include "ui/metrics.h"
+#include "ui/window.h"
+#include "ui/areas/bar.h"    // Notification bar. (yellow)
+#include "ui/areas/wa.h"     // Working Area
+#include "ui/areas/swamp.h"  // Swamp
+#include "ui/wm.h"
 
-#include "vwlib/bitblt.h"
+#include "libui/bitblt.h"
 
-#include "vwui/vdesktop.h"
-#include "vwui/painter.h"
-#include "vwui/bmp.h"
+#include "ui/vdesktop.h"
+#include "ui/painter.h"
+#include "ui/bmp.h"
 
 // h:0.0
 #include "osdep/gramado/screen.h"   // X-like
@@ -67,10 +67,10 @@ extern int current_mode;
 #include "osdep/gramado/gramado.h"
 
 
-#include "vwui/gui.h"
+#include "ui/gui.h"
 
 // Compositor
-#include "vwc/comp.h"
+#include "comp/comp.h"
 
 #include "event.h"    // view inputs
 
@@ -79,21 +79,23 @@ extern int current_mode;
 #include <grprim0.h>
 #include <libgr.h>
 
-#include "vwlib/grprim.h"
-#include "vwlib/camera.h"
-#include "vwlib/proj.h"
+#include "libui/grprim.h"
+#include "libui/camera.h"
+#include "libui/proj.h"
 
-#include "sprite.h"
-#include "demos.h"
+#include "ui/sprite.h"
+#include "ui/demos.h"
 
 #include "osdep/gramado/packet.h"
 #include "osdep/gramado/connect.h"
 
-#include "vwui/font.h"
+#include "ui/font.h"
 
 // Client structure.
 // O proprio servidor poderia ser o cliente 0??
-#include "client.h"
+#include "srv/client.h"
+
+#include "srv/shutdown.h"
 
 // Device Context.
 // This is the structure that is gonna be used by the

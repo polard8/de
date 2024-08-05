@@ -211,7 +211,8 @@ static void __initialize_server_state(void);
 static int __initializeGraphics(void);
 static void __initializeBackground(void);
 static void __initialize_kernel_module(void);
-static int ServerInitialization(int launch_tb);
+static int ServerInitialization(void);
+static int ServerLoop(int launch_tb);
 
 //
 // == Functions ======================================================
@@ -872,7 +873,7 @@ int serviceAsyncCommand(void)
     // See: demos.c
     case ASYNC_REQUEST_START_ANIMATION:
         gwssrv_debug_print("serviceAsyncCommand: [4]\n");
-        if (current_mode == GRAMADO_JAIL){
+        if (os_mode == GRAMADO_JAIL){
             gwssrv_debug_print("serviceAsyncCommand: [request 4] demo\n"); 
             demos_startup_animation(subrequest_id);
             gwssrv_show_backbuffer();
@@ -885,7 +886,7 @@ int serviceAsyncCommand(void)
     // #bugbug: trava ...
     //case 5:
        //gwssrv_debug_print ("serviceAsyncCommand: [5] \n");
-       //if (current_mode == GRAMADO_JAIL){
+       //if (os_mode == GRAMADO_JAIL){
            //rectBackbufferDrawRectangle ( 
            //    0, 0, 28, 8, COLOR_GREEN, TRUE,
            //    0 );  //rop_flags
@@ -3351,7 +3352,7 @@ static void __initializeBackground(void)
 // Testing bmp.
 // See: gramado/themes
 /*
-    if (current_mode == GRAMADO_JAIL){
+    if (os_mode == GRAMADO_JAIL){
         gwssrv_display_system_icon ( 1, 8, 8 );
     }else{
         gwssrv_display_system_icon ( 2, 8, 8 );
@@ -3361,8 +3362,8 @@ static void __initializeBackground(void)
 // See: 
 // gws.c
 
-    if (current_mode == GRAMADO_JAIL){
-        gwssrv_debug_print ("gwssrv: __initializeBackground: Calling refresh_screen\n");
+    if (os_mode == GRAMADO_JAIL){
+        //gwssrv_debug_print ("gwssrv: __initializeBackground: Calling refresh_screen\n");
         //refresh_screen();
     }
 
@@ -3625,53 +3626,14 @@ static void __initialize_kernel_module(void)
 }
 
 /*
- * ServerInitialization: 
  *     + Initializes the gws infrastructure.
  *     + Create the background.
  *     + Create the taskbar.
  *     + Register display server as the current display server 
  *       for this desktop.
- *     + Create the server socket.
- *     + bind it.
- *     + Spawn a client process. (Or not).
- *     + Enter in the main loop, waiting for some types of event.
- *       The possible events are: Reading messages from the kernel,
- *       or Reading a socket. At this moment we can send a response. 
- *       It depends on the type of message found in the socket we readed.
  */
-// IN:
-// dm = Launch the default Display Manager.
-// ...
-static int ServerInitialization(int launch_tb)
+static int ServerInitialization(void)
 {
-
-//==================
-    struct sockaddr server_address;
-    socklen_t addrlen;
-    server_address.sa_family = AF_GRAMADO;
-    server_address.sa_data[0] = 'd';  // Display server
-    server_address.sa_data[1] = 's';
-    addrlen = sizeof(server_address);
-//==================
-
-    // #bugbug
-    int UseCompositor = TRUE;   // #debug flags
-// Files
-    int server_fd = -1; 
-    int newconn = -1;
-    int curconn = -1;
-// Status
-    int bind_status = -1;
-    int _status = -1;
-// Buffer
-    char buf[32];
-    int CanRead = -1;
-
-    IsTimeToQuit = FALSE;
-
-    IsAcceptingInput = TRUE;
-    IsAcceptingConnections = TRUE;
-    IsComposing= TRUE;
 
 // ==========================================
 // Starting the initialization phases.
@@ -3693,6 +3655,7 @@ static int ServerInitialization(int launch_tb)
 // Window manager
     wmInitializeGlobals();
     wmInitializeStructure();
+
 
 /*
     FILE *input_fp;
@@ -3751,6 +3714,8 @@ static int ServerInitialization(int launch_tb)
         //exit(0);
     }
 
+    int _status = -1;
+
 // Register
 // #bugbug
 // I don't know if we can register more than one time.
@@ -3785,6 +3750,148 @@ static int ServerInitialization(int launch_tb)
         //callbackInitialize();
         //Initialization.setup_callback_checkpoint = TRUE;
     }
+
+// ==================================================
+// Init GUI
+
+    int gui_status = -1;
+    gui_status = (int) __initialize_gui();
+    if (gui_status < 0){
+        printf("ServerLoop: __initialize_gui failed\n");
+        goto fail;
+    }
+
+// ==================================================
+// Init Graphics
+
+    int graphics_status = (int) __initializeGraphics();
+    if (graphics_status < 0){
+        printf("ServerLoop: __initializeGraphics failed\n");
+        goto fail;
+    }
+    Initialization.setup_graphics_interface_checkpoint = TRUE;
+
+// ----------------------------------------------
+// Check window manager,
+// Is it initialized?
+
+    if (WindowManager.initialized != TRUE)
+    {
+       // Ohhhh
+    }
+
+    if ( (void*) WindowManager.root == NULL ){
+        gwssrv_debug_print("gwssrv: WindowManager.root fail\n");
+                    printf("gwssrv: WindowManager.root fail\n");
+        goto fail;
+        //exit(0);
+    }
+    /*
+    if ( (void*) WindowManager.taskbar == NULL )
+    {
+        gwssrv_debug_print("WindowManager.taskbar fail\n");
+        printf("WindowManager.taskbar fail\n");
+        return -1;
+        //exit(0);
+    }
+    */
+
+// The working area.
+// Container.
+    WindowManager.wa.left = 0;
+    WindowManager.wa.top = 0;
+// #danger
+    WindowManager.wa.width = 
+        WindowManager.root->width;
+    WindowManager.wa.height =
+        (WindowManager.root->height - 28); // menos taskbar height.
+    //WindowManager.wa.height =
+        //(WindowManager.root->height - WindowManager.taskbar->height);
+
+// ---------------
+// #test
+// Creating room for the status bar on top.
+    // #warning: This is optional.
+    // #bugbug: It breaks the consistence.
+    //WindowManager.wa.top = WindowManager.wa.top + 24;
+    //WindowManager.wa.height = WindowManager.wa.height - 24;
+
+// We already did that before. Its ok.
+    WindowManager.initialized = TRUE;
+
+    //#debug
+    //Not working
+    /*
+    printf ("wa: %d %d %d %d",
+        WindowManager.wa.left,
+        WindowManager.wa.top,
+        WindowManager.wa.width,
+        WindowManager.wa.height );
+    */
+// ===============
+
+    //gws_show_backbuffer();
+    //while(1){}
+    // #debug
+    //printf ("fd: %d\n", serverClient->fd);
+    //while(1){}
+
+
+// ------------------------------------
+// Let's initialize the ring0 kernel module called MOD0.BIN.
+    __initialize_kernel_module();
+
+
+    return 0;
+
+fail:
+    return (int) -1;
+}
+
+
+/*
+ * ServerLoop: 
+ *     + Create the server socket.
+ *     + bind it.
+ *     + Spawn a client process. (Or not).
+ *     + Enter in the main loop, waiting for some types of event.
+ *       The possible events are: Reading messages from the kernel,
+ *       or Reading a socket. At this moment we can send a response. 
+ *       It depends on the type of message found in the socket we readed.
+ */
+// IN:
+// dm = Launch the default Display Manager.
+// ...
+static int ServerLoop(int launch_tb)
+{
+
+//==================
+    struct sockaddr server_address;
+    socklen_t addrlen;
+    server_address.sa_family = AF_GRAMADO;
+    server_address.sa_data[0] = 'd';  // Display server
+    server_address.sa_data[1] = 's';
+    addrlen = sizeof(server_address);
+//==================
+
+    // #bugbug
+    int UseCompositor = TRUE;   // #debug flags
+// Files
+    int server_fd = -1; 
+    int newconn = -1;
+    int curconn = -1;
+// Status
+    int bind_status = -1;
+    int _status = -1;
+// Buffer
+    char buf[32];
+    int CanRead = -1;
+
+    IsTimeToQuit = FALSE;
+
+    IsAcceptingInput = TRUE;
+    IsAcceptingConnections = TRUE;
+    IsComposing= TRUE;
 
 // ===============================================
 // #todo
@@ -3863,93 +3970,8 @@ static int ServerInitialization(int launch_tb)
 // Checkpoint
     Initialization.setup_connection_checkpoint = TRUE;
 
-// ==================================================
-// Init GUI
 
     Initialization.current_phase = 2;
-
-    int gui_status = -1;
-    gui_status = (int) __initialize_gui();
-    if (gui_status < 0){
-        printf("ServerInitialization: __initialize_gui failed\n");
-        goto fail;
-    }
-
-// ==================================================
-// Init Graphics
-
-    int graphics_status = (int) __initializeGraphics();
-    if (graphics_status < 0){
-        printf("ServerInitialization: __initializeGraphics failed\n");
-        goto fail;
-    }
-    Initialization.setup_graphics_interface_checkpoint = TRUE;
-
-// ----------------------------------------------
-// Check window manager,
-// Is it initialized?
-
-    if (WindowManager.initialized != TRUE)
-    {
-       // Ohhhh
-    }
-
-    if ( (void*) WindowManager.root == NULL ){
-        gwssrv_debug_print("gwssrv: WindowManager.root fail\n");
-                    printf("gwssrv: WindowManager.root fail\n");
-        goto fail;
-        //exit(0);
-    }
-    /*
-    if ( (void*) WindowManager.taskbar == NULL )
-    {
-        gwssrv_debug_print("WindowManager.taskbar fail\n");
-        printf("WindowManager.taskbar fail\n");
-        return -1;
-        //exit(0);
-    }
-    */
-
-// The working area.
-// Container.
-    WindowManager.wa.left = 0;
-    WindowManager.wa.top = 0;
-// #danger
-    WindowManager.wa.width = 
-        WindowManager.root->width;
-    WindowManager.wa.height =
-        (WindowManager.root->height - 28); // menos taskbar height.
-    //WindowManager.wa.height =
-        //(WindowManager.root->height - WindowManager.taskbar->height);
-
-// ---------------
-// #test
-// Creating room for the status bar on top.
-    // #warning: This is optional.
-    // #bugbug: It breaks the consistence.
-    //WindowManager.wa.top = WindowManager.wa.top + 24;
-    //WindowManager.wa.height = WindowManager.wa.height - 24;
-
-// We already did that before. Its ok.
-    WindowManager.initialized = TRUE;
-
-    //#debug
-    //Not working
-    /*
-    printf ("wa: %d %d %d %d",
-        WindowManager.wa.left,
-        WindowManager.wa.top,
-        WindowManager.wa.width,
-        WindowManager.wa.height );
-    */
-// ===============
-
-    //gws_show_backbuffer();
-    //while(1){}
-    // #debug
-    //printf ("fd: %d\n", serverClient->fd);
-    //while(1){}
-
 
 // Child
 
@@ -3978,14 +4000,14 @@ static int ServerInitialization(int launch_tb)
 // com muitas janelas filhas.
 
     int tb_status = -1;
-    if (launch_tb == TRUE){
-        tb_status = (int) rtl_clone_and_execute(app_taskbar);
-        //#todo: Check
+    if (launch_tb == TRUE)
+    {
+        if (server_mode == SERVER_MODE_SERVER)
+        {
+            tb_status = (int) rtl_clone_and_execute(app_taskbar);
+            //#todo: Check
+        }
     }
-
-// ------------------------------------
-// Let's initialize the ring0 kernel module called MOD0.BIN.
-    __initialize_kernel_module();
 
 // ------------------------------------
 
@@ -4077,6 +4099,9 @@ static int ServerInitialization(int launch_tb)
     demoTriangle();
     demoCurve();
     */
+
+    if (server_mode == SERVER_MODE_DEMO)
+        IsAcceptingConnections = FALSE;
 
 // Server state
     ServerState.state = SERVER_STATE_RUNNING;
@@ -4177,6 +4202,8 @@ int main (int argc, char **argv)
     int Status=-1;
     register int i=0;
 
+    server_mode = SERVER_MODE_SERVER;
+
     if (argc>0)
     {
         for (i=0; i<argc; i++)
@@ -4239,7 +4266,6 @@ int main (int argc, char **argv)
     Initialization.setup_graphics_interface_checkpoint = FALSE;
     Initialization.inloop_checkpoint = FALSE;
     
-
     // ##
     // Sincronizaçao provisoria.
     // Vamos precisar disso antes de tudo;
@@ -4270,10 +4296,17 @@ int main (int argc, char **argv)
    //while(1){}
 
 //0 = Time to quit.
-    Status = (int) ServerInitialization(fLaunchTB);
+    Status = (int) ServerInitialization();
     if (Status != 0){
         goto fail;
     }
+
+//0 = Time to quit.
+    Status = (int) ServerLoop(fLaunchTB);
+    if (Status != 0){
+        goto fail;
+    }
+
     ServerShutdown(____saved_server_fd);
     return EXIT_SUCCESS;
 

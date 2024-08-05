@@ -2,8 +2,7 @@
 // Register the window server in the system.
 // Created by Fred Nora.
 
-#include "../gwsint.h"
-
+#include "../../gwsint.h"
 
 // Flag:
 // The display server is alread registered.

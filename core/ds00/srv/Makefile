@@ -1,5 +1,5 @@
 
-# rtl/
+# comp/
 
 # GRAMLAND.BIN
 # GWS - Gramland Window Server.
@@ -96,9 +96,7 @@ CINCLUDES += -I .
 CINCLUDES += -I ../
     
 # Objects
-myObjects = char.o \
-dtext.o proj.o grprim.o camera.o line.o rect.o bitblt.o   
-
+myObjects = client.o globals.o shutdown.o    
 
 .PHONY: all all-c gws-link finalize clean
 
@@ -107,20 +105,15 @@ all: main.o all-c gws-link finalize clean
 main.o:
 #	$(CC)  -c grinput.c  $(CFLAGS) $(CINCLUDES) -o grinput.o
 all-c:
-	$(CC)  -c char.c    $(CFLAGS) $(CINCLUDES) -o char.o
-	$(CC)  -c dtext.c   $(CFLAGS) $(CINCLUDES) -o dtext.o
-	$(CC)  -c proj.c    $(CFLAGS) $(CINCLUDES) -o proj.o
-	$(CC)  -c grprim.c  $(CFLAGS) $(CINCLUDES) -o grprim.o
-	$(CC)  -c camera.c  $(CFLAGS) $(CINCLUDES) -o camera.o
-	$(CC)  -c line.c    $(CFLAGS) $(CINCLUDES) -o line.o
-	$(CC)  -c rect.c    $(CFLAGS) $(CINCLUDES) -o rect.o
-	$(CC)  -c bitblt.c  $(CFLAGS) $(CINCLUDES) -o bitblt.o
+	$(CC) -c client.c    $(CFLAGS) $(CINCLUDES) -o client.o
+	$(CC) -c globals.c   $(CFLAGS) $(CINCLUDES) -o globals.o
+	$(CC) -c shutdown.c  $(CFLAGS) $(CINCLUDES) -o shutdown.o
 
 gws-link:
 #	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)
 # link
-	$(LD) -r -o o2_vwlib.o $(myObjects)
-	cp o2_vwlib.o ../
+	$(LD) -r -o p1_srv.o $(myObjects)
+	cp p1_srv.o ../
 	rm *.o
 
 finalize:

@@ -6,7 +6,7 @@
 // But maybe it will be useful for effects.
 // Created by Fred Nora.
 
-#include "gwsint.h"
+#include "../gwsint.h"
 
 int gUseDemos = TRUE;
 
@@ -191,8 +191,8 @@ void demoLine1(void)
     int x1 = 0, y1 = 0,
         x2 = 0, y2 = height;
 
-// Valid mode.
-    if (current_mode != GRAMADO_JAIL){
+// Valid os mode
+    if (os_mode != GRAMADO_JAIL){
         return;
     }
 

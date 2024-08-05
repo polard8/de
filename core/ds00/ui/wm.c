@@ -3012,7 +3012,7 @@ static void wm_tile(void)
     if (CONFIG_USE_TILE != 1){
         return;
     }
-    if (current_mode == GRAMADO_JAIL){
+    if (os_mode == GRAMADO_JAIL){
         return;
     }
     if (WindowManager.initialized != TRUE){

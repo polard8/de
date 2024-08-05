@@ -2,7 +2,7 @@
 // Part of the display server.
 // 2019 - Created by Fred Nora.
 
-#include "gwsint.h"
+#include "../gwsint.h"
 
 // Flag for the whole screen.
 static int __dirty = FALSE;
@@ -277,9 +277,9 @@ static int __gwssrv_init_globals(void)
 // jail, p1, home, p2, castle ...
 // Check validation and panic if fail.
  
-    current_mode = gwssrv_get_system_metrics(130);
-    if (current_mode < 0){
-        printf ("gwssrv_init_globals: [FAIL] current_mode\n");
+    os_mode = gwssrv_get_system_metrics(130);
+    if (os_mode < 0){
+        printf ("__gwssrv_init_globals: os_mode\n");
         exit(1);
     }
 

@@ -2,7 +2,7 @@
 // Sprite support.
 // Created by Fred Nora.
 
-#include "gwsint.h"
+#include "../gwsint.h"
 
 /*
 // #todo

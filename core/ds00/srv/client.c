@@ -1,8 +1,7 @@
-
 // client.c
+// Created by Fred Nora.
 
-#include "gwsint.h"
-
+#include "../gwsint.h"
 
 // "... and the house of God will overflow ..."
 unsigned long clientList[CLIENT_COUNT_MAX];

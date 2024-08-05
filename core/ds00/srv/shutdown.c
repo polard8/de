@@ -1,7 +1,7 @@
-
 // shutdown.c
+// Created by Fred Nora.
 
-#include "gwsint.h"
+#include "../gwsint.h"
 
 const char *shutdown_name = "shutdown.bin";
 
