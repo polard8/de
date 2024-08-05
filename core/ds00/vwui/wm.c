@@ -366,7 +366,7 @@ wmProcessKeyboardEvent(
     unsigned long long2 )
 {
     struct gws_window_d *window;
-    struct gws_window_d *tmp;
+    //struct gws_window_d *tmp;
     unsigned long Result=0;
     //char name_buffer[64];
 
@@ -794,7 +794,7 @@ static void on_mouse_pressed(void)
 // Title bar
 //
 
-    struct gws_window_d *p;
+    //struct gws_window_d *p;
 
     // When we pressed the titlebar,
     // actually we're grabbing the parent.
@@ -1157,9 +1157,9 @@ static void on_mouse_released(void)
 
     int ButtonWID = -1;
 
-    struct gws_window_d *p;
-    struct gws_window_d *tmp;
-    struct gws_window_d *old_focus;
+    //struct gws_window_d *p;
+    //struct gws_window_d *tmp;
+    //struct gws_window_d *old_focus;
 
     unsigned long x=0;
     unsigned long y=0;
@@ -3253,6 +3253,19 @@ fail:
     return (int) (-1);
 }
 
+void wm_update_active_window(void)
+{
+    int wid = -1;
+    if ((void*) active_window == NULL){
+        return;
+    }
+    if (active_window->magic != 1234){
+        return;
+    }
+    wid = (int) active_window->id;
+    wm_update_window_by_id(wid);
+}
+
 // Repinta todas as janelas seguindo a ordem da lista
 // que está em last_window.
 // No teste isso é chamado pelo kernel através do handler.
@@ -3490,24 +3503,10 @@ end:
 // >>> Isso eh muito legal.
 //     pois atualiza todas janelas quando em tile mode
 //     e mostra qual nao esta pegando eventos.
-    window_post_message_broadcast( 
-        0,           // wid = Ignored
-        GWS_Paint,   // msg = msg code
-        0,        // long1 = 
-        0 );      // long2 = 
-}
 
-void wm_update_active_window(void)
-{
-    int wid = -1;
-    if ((void*) active_window == NULL){
-        return;
-    }
-    if (active_window->magic != 1234){
-        return;
-    }
-    wid = (int) active_window->id;
-    wm_update_window_by_id(wid);
+// Send Paint message to all clients.
+// IN: wid, msgcode, data1, data2
+    window_post_message_broadcast( 0, GWS_Paint, 0, 0 );
 }
 
 // Update the desktop respecting the current zorder.
@@ -3542,7 +3541,7 @@ void  wm_update_desktop2(void)
             {
                 if (w->state != WINDOW_STATE_MINIMIZED){
                     redraw_window(w,FALSE);
-                    on_update_window(w,GWS_Paint);
+                    //on_update_window(w,GWS_Paint);
                 }
             }
         }
@@ -3599,8 +3598,20 @@ done:
         w = w->next;
     };    
 
+// ----------------
+// Send Paint message to all clients.
+// #bugbug:
+// There is a delay and the z-order is not fully working yet.
 // IN: wid (ignored), msg code, long1, long2.
-    window_post_message_broadcast( 0, GWS_Paint, 0, 0 );
+    //window_post_message_broadcast( 0, GWS_Paint, 0, 0 );
+
+// ----------------
+// Send pessage only to the top window.
+    if ((void*) active_window != NULL){
+        if (active_window->magic == 1234){
+            window_post_message( active_window->id, GWS_Paint, 0, 0 );
+        }
+    }
 }
 
 void wm_update_desktop3(struct gws_window_d *new_active_window)
@@ -3627,17 +3638,15 @@ void wm_update_desktop3(struct gws_window_d *new_active_window)
 
 // Se ela for a primeira da lista, 
 // entao a segunda vira a primeira da lista
-    if (new_active_window == first_window)
+    if (new_active_window == first_window){
         first_window = new_active_window->next;
+    }
 
+// Activate window and update desktop respecting the list.
 done:
-// Activate
     set_active_window(new_active_window);
-// Update the desktop, respecting the list.
     wm_update_desktop2();
 }
-
-
 
 void restore_desktop_windows(void)
 {
