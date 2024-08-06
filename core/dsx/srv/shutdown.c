@@ -1,7 +1,7 @@
-
 // shutdown.c
+// Created by Fred Nora.
 
-#include "gwsint.h"
+#include "../gwsint.h"
 
 const char *shutdown_name = "shutdown.bin";
 
@@ -36,8 +36,7 @@ void ServerShutdown(int server_fd)
 // Tell to the apps to close.
     gwssrv_broadcast_close();
 
-
-    //gwssrv_debug_print ("GRAMLAND: ServerShutdown\n");
+    //server_debug_print ("GRAMLAND: ServerShutdown\n");
     //printf             ("GRAMLAND: ServerShutdown\n");
 
     memset(shutdown_string, 0 , 64);

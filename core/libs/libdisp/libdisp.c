@@ -1,5 +1,4 @@
-
-// libgd.c 
+// libdisp.c 
 // These are display device routines.
 // #todo
 // The goal here is building a graphics library interface.
@@ -86,7 +85,7 @@ libgd_put_pixel(
 // Initialize the library.
 int libgd_initialize(void)
 {
-    libgd_current_mode = gwssrv_get_system_metrics(130);
+    libgd_current_mode = server_get_system_metrics(130);
     if (libgd_current_mode < 0){
         printf("libgd_initialize: [FAIL] libgd_current_mode\n");
         goto fail;
@@ -97,9 +96,9 @@ int libgd_initialize(void)
     libgd_BACKBUFFER_VA  = (unsigned long) rtl_get_system_metrics(12);
 // Screen
 // Width, Height and Bits Per Pixel.
-    libgd_device_width  = (unsigned long) gwssrv_get_system_metrics(1);
-    libgd_device_height = (unsigned long) gwssrv_get_system_metrics(2);
-    libgd_device_bpp    = (unsigned long) gwssrv_get_system_metrics(9);
+    libgd_device_width  = (unsigned long) server_get_system_metrics(1);
+    libgd_device_height = (unsigned long) server_get_system_metrics(2);
+    libgd_device_bpp    = (unsigned long) server_get_system_metrics(9);
 // Saving
     libgd_SavedX   = (unsigned long) libgd_device_width;
     libgd_SavedY   = (unsigned long) libgd_device_height;
@@ -559,7 +558,7 @@ putpixel0 (
 // #todo: It needs to be a valid ring3 address.
     if (buffer_va == 0){
         //panic("putpixel0: buffer_va\n");
-        gwssrv_debug_print("putpixel0: buffer_va\n");
+        //server_debug_print("putpixel0: buffer_va\n");
         return 0;  // 0 changed pixels.
     }
 
@@ -584,7 +583,7 @@ putpixel0 (
     //    bytes_count = 1;
     //    break;
     default:
-        gwssrv_debug_print("putpixel0: bpp\n");
+        //server_debug_print("putpixel0: bpp\n");
         printf            ("putpixel0: bpp\n");
         exit(1);
         while(1){}

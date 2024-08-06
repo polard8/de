@@ -19,7 +19,7 @@ void initClientStruct(struct gws_client_d *c)
     register int i=0;
 
     if ((void *) c == NULL){
-        gwssrv_debug_print("initClientStruct: [FAIL] c\n");
+        //server_debug_print("initClientStruct: [FAIL] c\n");
         return;
     }
 
@@ -86,7 +86,7 @@ void initClientSupport(void)
 {
     register int i=0;
 
-    //gwssrv_debug_print ("initClientSupport:\n");
+    //server_debug_print ("initClientSupport:\n");
 
 // Clear the client list.
     for (i=0; i<CLIENT_COUNT_MAX; i++){
@@ -114,7 +114,7 @@ void initClientSupport(void)
         (struct gws_client_d *) malloc( sizeof(struct gws_client_d) );
     if ((void *) serverClient == NULL)
     {
-        gwssrv_debug_print("initClientSupport: [FATAL] Couldn't create serverClient\n");
+        //server_debug_print("initClientSupport: [FATAL] Couldn't create serverClient\n");
         printf            ("initClientSupport: [FATAL] Couldn't create serverClient\n");
         exit(1);
     }

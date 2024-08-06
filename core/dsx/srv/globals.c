@@ -1,7 +1,13 @@
 // globals.c
 // 2022 - Created by Fred Nora.
 
-#include "gwsint.h"
+#include "../gwsint.h"
+
+// os mode = GRAMADO_P1 ...
+int os_mode=0;  
+
+// server mode = demo, server ...
+int server_mode = 0;
 
 // =========================
 // h:d.s
@@ -36,7 +42,6 @@ unsigned long next_response[32];
 int refresh_device_screen_flag=FALSE;
 int refresh_valid_screen_flag=FALSE;
 
-int current_mode=0;
 int gUseCallback=TRUE;
 
 int gUseMouse=FALSE;

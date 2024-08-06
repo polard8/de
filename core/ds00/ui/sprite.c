@@ -59,23 +59,23 @@ PlotSprite3D (
     int number_of_elements = sprite_list_size;
     int Max = SPRITE_MAX_NUMBER;
 
-    gwssrv_debug_print("PlotSprite3D: [TODO] \n");
+    //server_debug_print("PlotSprite3D: [TODO] \n");
  
     // Invalid address
     if (sprite_list_address == 0){
-        gwssrv_debug_print("PlotSprite3D: [FAIL] sprite_list_address\n");
+        //server_debug_print("PlotSprite3D: [FAIL] sprite_list_address\n");
         goto fail;
     }
 
     // No elements
     if (number_of_elements <= 0){
-        gwssrv_debug_print("PlotSprite3D: [FAIL] no elements\n");
+        //server_debug_print("PlotSprite3D: [FAIL] no elements\n");
         goto fail;
     }
 
     // Too much elements
     if (number_of_elements >= SPRITE_MAX_NUMBER){
-        gwssrv_debug_print("PlotSprite3D: [FAIL] number_of_elements\n");
+        //server_debug_print("PlotSprite3D: [FAIL] number_of_elements\n");
         goto fail;
     }
 
@@ -91,12 +91,11 @@ PlotSprite3D (
 
     // last one.
     if ( (void*) sprite == NULL ){
-        gwssrv_debug_print("PlotSprite3D: [ERROR] sprite \n");
+        //server_debug_print("PlotSprite3D: [ERROR] sprite \n");
         break;
     }
-
     if ( sprite->used != 1 || sprite->magic != 1234 ){
-        gwssrv_debug_print("PlotSprite3D: [ERROR] sprite validation\n");
+        //server_debug_print("PlotSprite3D: [ERROR] sprite validation\n");
         break;
     }
 
@@ -108,11 +107,11 @@ PlotSprite3D (
         // Insert here the primitives.
         
         case SPRITE_NULL:
-            gwssrv_debug_print("PlotSprite3D: [SPRITE_NULL] \n");
+            //server_debug_print("PlotSprite3D: [SPRITE_NULL] \n");
             break;
         
         case SPRITE_POINT:
-            gwssrv_debug_print("PlotSprite3D: [SPRITE_POINT] \n");
+            //server_debug_print("PlotSprite3D: [SPRITE_POINT] \n");
             grPlot0 (
                 NULL, 
                 (int) (z + sprite->z1), 
@@ -123,7 +122,7 @@ PlotSprite3D (
             break;
 
         case SPRITE_LINE:
-            gwssrv_debug_print("PlotSprite3D: [SPRITE_LINE] \n");
+            //server_debug_print("PlotSprite3D: [SPRITE_LINE] \n");
             plotLine3d ( 
                (int) (x + sprite->x1), 
                (int) (y + sprite->y1), 
@@ -135,7 +134,7 @@ PlotSprite3D (
             break;
 
         case SPRITE_CIRCLE:
-            gwssrv_debug_print("PlotSprite3D: [SPRITE_CIRCLE] \n");
+            //server_debug_print("PlotSprite3D: [SPRITE_CIRCLE] \n");
             plotCircleZ ( 
                 (int) (x + sprite->x1),           // xm 
                 (int) (y + sprite->y1),           // ym 
@@ -147,20 +146,20 @@ PlotSprite3D (
         // ...
         
         default:
-            gwssrv_debug_print("PlotSprite3D: [default] \n");
+            //server_debug_print("PlotSprite3D: [default] \n");
             break;
 
     };
-    
-        if ( just_one == TRUE ){  break;  }
+        if (just_one == TRUE){ 
+            break;
+        }
     };
 
-
-    // #todo
-    // Restaura para o padrao os elemento da estrutura display.
-    // device context
+// #todo
+// Restaura para o padrao os elemento da estrutura display.
+// device context
     
-    gwssrv_debug_print("PlotSprite3D: done\n");
+    //server_debug_print("PlotSprite3D: done\n");
     return 0;
 fail:
     return -1;

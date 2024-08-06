@@ -26,11 +26,16 @@ static long __new_mouse_x=0;
 static long __new_mouse_y=0;
 static int __mouse_initialized = FALSE;
 
-static int refresh_pointer_status= FALSE;
+// Apaga mouse pointer.
+// Let's clear the area where the mouse was painted.
+// Flushing the area from backbuffer to LFB.
+// It erases the pointer in the screen.
+static int __clear_mousebox = FALSE;
+
 
 // --------------------------
 
-static void draw_mouse_pointer(void);
+static void direct_draw_mouse_pointer(void);
 
 // --------------------------
 
@@ -220,10 +225,29 @@ int gws_show_window_rect(struct gws_window_d *window)
 
     //p = window->parent;
 
+// We can't show a minimied window.
+// We need to restore it first.
+    if (window->state == WINDOW_STATE_MINIMIZED)
+        goto fail;
+
+// If the parent is an overlapped window,
+// and the parent is minimied, so we can't show it.
+    struct gws_window_d *parent;
+    parent = (struct gws_window_d *) window->parent;
+    if ((void*) parent != NULL)
+    {
+        if (parent->magic == 1234)
+        {
+            if (parent->type == WT_OVERLAPPED)
+            {
+                if (parent->state == WINDOW_STATE_MINIMIZED)
+                    goto fail;
+            }
+        }
+    }
 
 // Refresh rectangle
 // See: rect.c   
-
     gws_refresh_rectangle ( 
         window->absolute_x, 
         window->absolute_y, 
@@ -240,14 +264,16 @@ fail:
     return (int) -1;
 }
 
-void set_refresh_pointer_status(int value)
+// Sinaliza que precisamos apagar o ponteiro do mouse,
+// copiando o conteudo do backbuffer no LFB.
+void DoWeNeedToEraseMousePointer(int value)
 {
     if ( value != FALSE && 
          value != TRUE )
     {
         return;
     }
-    refresh_pointer_status = value;
+    __clear_mousebox = (int) value;
 }
 
 // Onde esta o mouse? em que janela?
@@ -295,34 +321,38 @@ long comp_get_mouse_y_position(void)
 // #todo
 // We need to put this routine in another file.
 // maybe mouse.c
-static void draw_mouse_pointer(void)
+// #ps: 
+// This is a low level routine. 
+// Associated with the display device driver.
+static void direct_draw_mouse_pointer(void)
 {
-    unsigned long rectLeft = __new_mouse_x;
-    unsigned long rectTop = __new_mouse_y;
-    unsigned long rectWidth = 8;
+
+// The rectangle
+    unsigned long rectLeft   = __new_mouse_x;
+    unsigned long rectTop    = __new_mouse_y;
+    unsigned long rectWidth  = 8;
     unsigned long rectHeight = 8;
+
     unsigned int rectColor = COLOR_RED;
     unsigned long rectROP = 0;
 
     //int UseBMPImage= TRUE;
 
-//
 // BMP Image
-//
-
-    //if (UseBMPImage == TRUE)
-    //{
+    //if (UseBMPImage == TRUE){
         // #todo
-        // Paint the paointer using a BMP Imange.
+        // Paint the pointer using a BMP Imange.
     //}
 
 //
 // Rectangle
 //
 
-// #todo: 
-// print directly into the lfb.
-// DRAW
+// Printing directly into the LFB.
+// #ps: 
+// This is a low level routine. 
+// Associated with the display device driver.
+
     frontbuffer_draw_rectangle( 
         (unsigned long) rectLeft, (unsigned long) rectTop, 
         (unsigned long) rectWidth, (unsigned long) rectHeight, 
@@ -337,9 +367,13 @@ void __display_mouse_cursor(void)
     unsigned long rWidth = 16;
     unsigned long rHeight = 16;
 
+// Display server not initialized yet.
     if ((void*) display_server == NULL)
         return;
     if (display_server->initialized != TRUE)
+        return;
+// Mouse not initialized yet.
+    if (gUseMouse != TRUE)
         return;
 
 // #todo Limits
@@ -353,23 +387,25 @@ void __display_mouse_cursor(void)
     if ( __new_mouse_y<0 ){ __new_mouse_y=0; }
 
 //------
-//#dangerdanger
-//#todo: show the backbuffer
-
-// Apaga se houve algum evento, como movimento.
-    if (refresh_pointer_status == TRUE)
+// We need to clear the mousebox,
+// refreshing the content from backbuffer to LFB.
+// We call it when we receive an 'mouse move' event.
+    if (__clear_mousebox == TRUE)
     {
         gws_refresh_rectangle( 
             __old_mouse_x, __old_mouse_y, rWidth, rHeight );
-        set_refresh_pointer_status(FALSE);
+        DoWeNeedToEraseMousePointer(FALSE);
     }
 
 // save
     __old_mouse_x = __new_mouse_x;
     __old_mouse_y = __new_mouse_y;
 
-// Draw direcly into the lfb.
-    draw_mouse_pointer();
+// ---------------------------
+// Draw the pointer direcly into the LFB.
+// Not printing it into the backbuffer.
+// It uses the new values.
+    direct_draw_mouse_pointer();
 //------ 
 }
 
@@ -481,7 +517,7 @@ void comp_set_mouse_position(long x, long y)
     if ( x<0 ){ x=0; }
     if ( y<0 ){ y=0; }
     if ( x>w ){
-         x=w;
+        x=w;
     }
     if ( y>h ){
         y=h;

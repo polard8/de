@@ -182,6 +182,21 @@ extern struct display_server_d  *display_server;
 // == Prototypes =============================
 //
 
+//
+// Function in main.c
+//
+
+int server_is_accepting_input(void);
+void server_set_input_status(int is_accepting);
+void server_debug_print (char *string);
+unsigned long server_get_system_metrics (int index);
+void server_enter_critical_section (void);
+void server_exit_critical_section (void);
+void server_quit(void);
+char *gwssrv_get_version(void);
+
+// --------------------------
+
 void invalidate(void);
 void validate(void);
 int isdirty(void);
@@ -205,24 +220,11 @@ void gwssrv_start_thread (void *thread);
 // Drain input
 int service_drain_input (void);
 
-void gwssrv_debug_print (char *string);
-
-unsigned long gwssrv_get_system_metrics (int index);
-
-void gwssrv_enter_critical_section (void);
-void gwssrv_exit_critical_section (void);
-
-char *gwssrv_get_version(void);
-
 unsigned long gws_get_device_width(void);
 unsigned long gws_get_device_height(void);
 
 void gws_show_backbuffer(void);
-void gwssrv_quit(void);
 void gwssrv_broadcast_close(void);
-
-int is_accepting_input(void);
-void set_input_status(int is_accepting);
 
 void ServerShutdown(int server_fd);
 

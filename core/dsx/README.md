@@ -1,17 +1,16 @@
-# DSX - Display server.
+# ds00 - Display server.
+
+This is the main display server for Gramado OS.
 
 ```
- * DSX Display Server.
- * DSX.BIN
- * codename: dsx
+ * DS00 Display Server.
+ * DS00.BIN
+ * codename: Gramland
  * Created by Fred Nora.
 ```
 
-  The goal for this extra display server is testing the client-side library libx, 
-where we're use some of the functions found in the X protocol. Just like XNextEvent().
-
 ```
-  DSX is a 'Display Server'. A display server provides a way for the applications to draw 
+  DS00 is a 'Display Server'. A display server provides a way for the applications to draw 
   in the display device, and receive input events from keyboard and mouse devices. 
   The display server needs to access the display device driver to touch 
   the real display device.

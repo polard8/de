@@ -1,5 +1,4 @@
-
-// DSX.BIN
+// DS00.BIN
 // Gramland Display Server.
 // This is a ring3 display server and window manager.
 
@@ -75,6 +74,24 @@ See: https://wiki.osdev.org/Graphics_stack
 #define VERSION_MAJOR  0
 #define VERSION_MINOR  1
 
+
+// -------------------------------------
+// The flags in the main() routine.
+// Only main.c ca handle these values.
+static int f1= FALSE;
+static int f2= FALSE;
+static int f3= FALSE;
+static int f4= FALSE;
+static int fLaunchDM=FALSE;  // Launch the default display manager.
+static int fLaunchTB=FALSE;  // Launch the default taskbar application.
+//static int fLaunchTerminal=FALSE;  // Launch the default terminal.
+//...
+
+// -------------------------------------
+// Default values given by the main() routine.
+// Only main.c ca handle these values.
+//static int default_stuff=0;
+// ...
 
 // Types of response
 // Used in dsSendResponse().
@@ -164,19 +181,23 @@ const char *cmd_shutdown = "shutdown.bin";  // Shutdown command.
 
 // Client-side GUI applications.
 const char *app_gdm = "gdm.bin";          // Display manager GUI app.
-//const char *app_taskbar = "taskbar.bin";  // Taskbar GUI app.
-const char *app_taskbar = "xtb.bin";  // Taskbar GUI app.
+const char *app_taskbar = "taskbar.bin";  // Taskbar GUI app.
 
 //
 // == Private functions: Prototypes ========
 //
 
+// #test
+// Compositor thread.
+// Actually We don't want threads here.
+static void xxxxCompositor_Thread(void);
 
-// Worker
+// Send responses
 // There is a vetor with values for the next response.
 // Called by dispatcher().
 static int dsSendResponse(int fd, int is_error);
 
+// Process requests
 static int
 dsProcedure (
     int client_fd,
@@ -184,18 +205,21 @@ dsProcedure (
     unsigned long long1,
     unsigned long long2 );
 
+// Dispatcher
 static void dispacher(int fd);
 
 // Initializations
-
-static int __initialize_gui(void);
+static void __initializeBackground(void);
+static int __initializeGraphics(void);
 static void __initialize_ds_structure(void);
 static void __initialize_server_profiler(void);
 static void __initialize_server_state(void);
-static int __initializeGraphics(void);
-static void __initializeBackground(void);
+static int __initialize_gui(void);
 static void __initialize_kernel_module(void);
-static int ServerInitialization(int launch_tb);
+static int ServerInitialization(void);
+
+// Game loop
+static int ServerLoop(int launch_tb);
 
 //
 // == Functions ======================================================
@@ -203,7 +227,7 @@ static int ServerInitialization(int launch_tb);
 
 // This way the module is able to know
 // if the server is accepting input or not.
-int is_accepting_input(void)
+int server_is_accepting_input(void)
 {
     return (int) IsAcceptingInput;
 }
@@ -211,7 +235,7 @@ int is_accepting_input(void)
 // This way a module is able to deactivating the input
 // temporarilly while he is very busy
 // with a heavy drawing routine. Just like updating the desktop.
-void set_input_status(int is_accepting)
+void server_set_input_status(int is_accepting)
 {
     if (is_accepting != TRUE && is_accepting != FALSE)
         return;
@@ -219,7 +243,7 @@ void set_input_status(int is_accepting)
 }
 
 // Print a simple string in the serial port.
-void gwssrv_debug_print(char *string)
+void server_debug_print(char *string)
 {
     if ((void*) string == NULL){
         return;
@@ -232,7 +256,7 @@ void gwssrv_debug_print(char *string)
 }
 
 // We can use the rtl or the library
-unsigned long gwssrv_get_system_metrics (int index)
+unsigned long server_get_system_metrics (int index)
 {
 
     //if (index<0){
@@ -247,10 +271,9 @@ unsigned long gwssrv_get_system_metrics (int index)
                                (unsigned long) index );
 }
 
-
 // enter critical section
 // close the gate
-void gwssrv_enter_critical_section (void)
+void server_enter_critical_section (void)
 {
     int S=0;
 
@@ -274,12 +297,12 @@ done:
 
 // exit critical section
 // open the gate.
-void gwssrv_exit_critical_section (void)
+void server_exit_critical_section (void)
 {
     gramado_system_call ( 228, 0, 0, 0 );
 }
 
-void gwssrv_quit(void)
+void server_quit(void)
 {
     IsTimeToQuit = TRUE;
 }
@@ -295,13 +318,11 @@ char *gwssrv_get_version(void)
  //Send the message in the buffer to all the clients.
  //This is a great opportunity to shutdown the clients
  //if it is not connected.
-
 void gwssrv_message_all_clients(void);
 void gwssrv_message_all_clients(void)
 {
 }
 */
-
 
 //
 // =============================================================
@@ -319,7 +340,6 @@ void client_shutdown (int fd)
 }
 */
 
-
 //?? Die after to handle a request.
 // no multiple requests.
 /*
@@ -330,7 +350,6 @@ void client_die(int fd)
 }
 */
 
-
 // ??
 /*
 int client_start(int fd);
@@ -340,7 +359,6 @@ int client_start(int fd)
 }
 */
 
-
 /*
 int client_send_error_response(int fd);
 int client_send_error_response(int fd)
@@ -348,7 +366,6 @@ int client_send_error_response(int fd)
     return -1;//todo
 }
 */
-
 
 // Getting the server pid.
 /*
@@ -368,7 +385,6 @@ int get_client_id()
 }
 */
 
-
 // setting the client id
 /*
 void set_client_id ( int id );
@@ -378,7 +394,6 @@ void set_client_id ( int id )
     //____client_id = id;
 }
 */
-
 
 /*
 int
@@ -424,7 +439,7 @@ __again:
     // #todo:
     // while(1){...}
     
-    gwssrv_debug_print ("gwssrv: Sending response ...\n");
+    server_debug_print ("gwssrv: Sending response ...\n");
 
     //
     // Send
@@ -449,7 +464,7 @@ __again:
     for(c=0; c<32; c++)  //todo: 512
         next_response[c] = 0;
 
-    gwssrv_debug_print ("gwssrv: Response sent\n");  
+    server_debug_print ("gwssrv: Response sent\n");  
     
     return (int) n_writes;
 }
@@ -457,12 +472,18 @@ __again:
 
 // Not used for now!
 // Maybe in the future with smp.
-void Compositor_Thread(void)
+static void xxxxCompositor_Thread(void)
 {
     // #debug
     printf ("f\n");
     wmReactToPaintEvents();
 }
+
+
+//
+// $$ 
+// SERVICE HANDLERS
+//
 
 //
 // == Services ==============================================
@@ -787,7 +808,7 @@ int serviceAsyncCommand(void)
     register int i=0;
 
     //#debug
-    //gwssrv_debug_print ("serviceAsyncCommand:\n");
+    //server_debug_print ("serviceAsyncCommand:\n");
     //asm("cli");
 
 // Parameters
@@ -812,7 +833,7 @@ int serviceAsyncCommand(void)
 // Validate our message number.
     if (message_id != GWS_AsyncCommand)
     {
-        gwssrv_debug_print ("serviceAsyncCommand: [ERROR] message_id\n");
+        //server_debug_print ("serviceAsyncCommand: [ERROR] message_id\n");
                     printf ("serviceAsyncCommand: [ERROR] message_id\n");
         goto fail;
         //return (int) (-1);
@@ -829,15 +850,15 @@ int serviceAsyncCommand(void)
     // 1 =  Exit GWS
     // Shutdown the server.
     case ASYNC_REQUEST_EXIT:
-        gwssrv_debug_print("serviceAsyncCommand: [1] Exit\n");
+        //server_debug_print("serviceAsyncCommand: [1] Exit\n");
         printf            ("serviceAsyncCommand: [1] Exit\n");
-        gwssrv_quit();
+        server_quit();
         goto done;
         break;
 
     // 2 - Hello
     case ASYNC_REQUEST_HELLO2:
-        gwssrv_debug_print ("serviceAsyncCommand: [2] hello\n");
+        //server_debug_print ("serviceAsyncCommand: [2] hello\n");
         printf("HELLO 2\n");
         //exit(0);
         //return 0;
@@ -845,7 +866,7 @@ int serviceAsyncCommand(void)
 
     // 3 - Hello
     case ASYNC_REQUEST_HELLO3:
-        gwssrv_debug_print ("serviceAsyncCommand: [3] hello\n");
+        //server_debug_print ("serviceAsyncCommand: [3] hello\n");
         printf("HELLO 3\n");
         //exit(0);
         //return 0;
@@ -855,9 +876,9 @@ int serviceAsyncCommand(void)
     // 4 - Start animation
     // See: demos.c
     case ASYNC_REQUEST_START_ANIMATION:
-        gwssrv_debug_print("serviceAsyncCommand: [4]\n");
-        if (current_mode == GRAMADO_JAIL){
-            gwssrv_debug_print("serviceAsyncCommand: [request 4] demo\n"); 
+        //server_debug_print("serviceAsyncCommand: [4]\n");
+        if (os_mode == GRAMADO_JAIL){
+            //server_debug_print("serviceAsyncCommand: [request 4] demo\n"); 
             demos_startup_animation(subrequest_id);
             gwssrv_show_backbuffer();
             goto done;
@@ -868,8 +889,8 @@ int serviceAsyncCommand(void)
     // Draw black rectangle.
     // #bugbug: trava ...
     //case 5:
-       //gwssrv_debug_print ("serviceAsyncCommand: [5] \n");
-       //if (current_mode == GRAMADO_JAIL){
+       //server_debug_print ("serviceAsyncCommand: [5] \n");
+       //if (os_mode == GRAMADO_JAIL){
            //rectBackbufferDrawRectangle ( 
            //    0, 0, 28, 8, COLOR_GREEN, TRUE,
            //    0 );  //rop_flags
@@ -879,7 +900,7 @@ int serviceAsyncCommand(void)
 
     // 6 - Setup if we will show or not the 'fps window'.
     case ASYNC_REQUEST_FPS_FLAG:
-        gwssrv_debug_print ("serviceAsyncCommand: [6]\n");
+        //server_debug_print ("serviceAsyncCommand: [6]\n");
         if (subrequest_id == TRUE){ show_fps_window = TRUE;  goto done; }
         if (subrequest_id != TRUE){ show_fps_window = FALSE; goto done; }
         //show_fps_window = FALSE;
@@ -890,7 +911,7 @@ int serviceAsyncCommand(void)
     // #suspended: o wm fica no ws por enquanto.
     // Register wm pid
     case 7:
-        //gwssrv_debug_print ("serviceAsyncCommand: [7] Register wm pid\n");
+        //server_debug_print ("serviceAsyncCommand: [7] Register wm pid\n");
         //printf ("serviceAsyncCommand: [7] [BREAKPOINT] Register wm pid\n");
         //____saved_wm_magic_pid = (int) data;
         //exit(0);
@@ -904,7 +925,7 @@ int serviceAsyncCommand(void)
     // As mensages aqui interessam somente ao window manager
     // que esta dentro do display server.
     case 8:
-        //gwssrv_debug_print ("serviceAsyncCommand: [8] \n");
+        //server_debug_print ("serviceAsyncCommand: [8] \n");
         //printf ("serviceAsyncCommand: [8] \n");
         //if (subrequest_id = 1)
         //{
@@ -915,7 +936,7 @@ int serviceAsyncCommand(void)
 
     // 9 - Set focus
     case ASYNC_REQUEST_SET_FOCUS_BY_WID:
-        // gwssrv_debug_print ("serviceAsyncCommand: [9]\n");
+        // server_debug_print ("serviceAsyncCommand: [9]\n");
         if (data<0){
             goto done;
         }
@@ -928,7 +949,7 @@ int serviceAsyncCommand(void)
     // drawing a rect using ring0 and ring3 routines.
     // TRUE = use kgws ; FALSE =  do not use kgws.
     case 10:
-        //gwssrv_debug_print("serviceAsyncCommand: [10]\n");
+        //server_debug_print("serviceAsyncCommand: [10]\n");
         //            printf("serviceAsyncCommand: [10]\n");
 
         //rectBackbufferDrawRectangle0(
@@ -981,7 +1002,7 @@ int serviceAsyncCommand(void)
     // 15 - Set active widnow.
     // Set the active widnow given the wid.
     case ASYNC_REQUEST_SET_ACTIVE_WINDOW_BY_WID:
-        // gwssrv_debug_print ("serviceAsyncCommand: [9]\n");
+        // server_debug_print ("serviceAsyncCommand: [9]\n");
         wid = (int) (data & 0xFFFFFFFF);
         if (wid<0){
             goto done;
@@ -1027,7 +1048,7 @@ int serviceAsyncCommand(void)
     // Set flag to quit the server.
     case ASYNC_REQUEST_QUIT:
         printf("88: IsTimeToQuit\n");
-        gwssrv_quit();
+        server_quit();
         goto done;
         break;
 
@@ -1079,7 +1100,7 @@ int serviceAsyncCommand(void)
     // ...
 
     default:
-        gwssrv_debug_print("serviceAsyncCommand: Bad request\n");
+        //server_debug_print("serviceAsyncCommand: Bad request\n");
                 // printf ("serviceAsyncCommand: Bad request\n");
         goto fail;
         break;
@@ -1095,7 +1116,7 @@ done:
     return 0;
 
 fail:
-    gwssrv_debug_print("serviceAsyncCommand: Fail\n");
+    //server_debug_print("serviceAsyncCommand: Fail\n");
     return (int) (-1);
 }
 
@@ -1154,7 +1175,7 @@ int serviceCreateWindow(int client_fd)
     unsigned long my_style=0;
 
     //#debug
-    //gwssrv_debug_print ("serviceCreateWindow:\n");
+    //server_debug_print ("serviceCreateWindow:\n");
     //asm("cli");
 //
 // Get the arguments.
@@ -1382,7 +1403,7 @@ int serviceCreateWindow(int client_fd)
 
     if ((void *) Window == NULL)
     {
-       gwssrv_debug_print ("serviceCreateWindow: on CreateWindow()\n");
+       //server_debug_print ("serviceCreateWindow: on CreateWindow()\n");
        next_response[1] = 0;
        goto fail;
     }
@@ -1391,7 +1412,7 @@ int serviceCreateWindow(int client_fd)
     wid = (int) RegisterWindow(Window);
     if (wid<0 || wid>=WINDOW_COUNT_MAX)
     {
-        gwssrv_debug_print("serviceCreateWindow: on RegisterWindow()\n");
+        //server_debug_print("serviceCreateWindow: on RegisterWindow()\n");
         next_response[1] = 0;  // msg code.
         goto fail;
     }
@@ -1529,7 +1550,7 @@ int serviceCreateWindow(int client_fd)
     return 0;
 
 fail:
-    gwssrv_debug_print("serviceCreateWindow: FAIL\n");
+    //server_debug_print("serviceCreateWindow: FAIL\n");
     //#debug
     //printf("serviceCreateWindow: FAIL\n");
     //exit(0);
@@ -1556,7 +1577,7 @@ int serviceDrawChar(void)
     unsigned char _string[4];
 
     // #debug
-    // gwssrv_debug_print ("serviceDrawChar: \n");
+    // server_debug_print ("serviceDrawChar: \n");
 
 // Get message parameters.
     window_id = message_address[4];
@@ -1572,17 +1593,17 @@ int serviceDrawChar(void)
 
 // Window ID limits
     if ( window_id < 0 || window_id >= WINDOW_COUNT_MAX ){
-        gwssrv_debug_print ("gwssrv: serviceDrawChar window_id\n");
+        //server_debug_print ("gwssrv: serviceDrawChar window_id\n");
         return -1;
     }
 // Get the window structure given the id.
     window = (struct gws_window_d *) windowList[window_id];
     if ( (void *) window == NULL ){
-        gwssrv_debug_print ("gwssrv: serviceDrawChar window\n");
+        //server_debug_print ("gwssrv: serviceDrawChar window\n");
         return -1;
     }
     if ( window->used != TRUE || window->magic != 1234 ){
-        gwssrv_debug_print ("gwssrv: serviceDrawChar window validation\n");
+        //server_debug_print ("gwssrv: serviceDrawChar window validation\n");
         return -1;
     }
 
@@ -1656,7 +1677,7 @@ int serviceChangeWindowPosition(void)
     register int i=0;
 
     // #debug
-    //gwssrv_debug_print ("gwssrv: serviceChangeWindowPosition\n");
+    //server_debug_print ("gwssrv: serviceChangeWindowPosition\n");
 
 // Get
     window_id = message_address[0];  //wid
@@ -1666,17 +1687,17 @@ int serviceChangeWindowPosition(void)
 
 // Window ID limits
     if ( window_id < 0 || window_id >= WINDOW_COUNT_MAX ){
-        gwssrv_debug_print ("gwssrv: serviceChangeWindowPosition window_id\n");
+        //server_debug_print ("gwssrv: serviceChangeWindowPosition window_id\n");
         return -1;
     }
 // Get the window structure given the id.
     window = (struct gws_window_d *) windowList[window_id];
     if ( (void *) window == NULL ){
-        gwssrv_debug_print ("gwssrv: serviceChangeWindowPosition window\n");
+        //server_debug_print ("gwssrv: serviceChangeWindowPosition window\n");
         return -1;
     }
     if ( window->used != TRUE || window->magic != 1234 ){
-        gwssrv_debug_print ("gwssrv: serviceChangeWindowPosition validation\n");
+        //server_debug_print ("gwssrv: serviceChangeWindowPosition validation\n");
         return -1;
     }
 
@@ -1709,7 +1730,7 @@ int serviceResizeWindow(void)
     register int i=0;
 
     // #debug
-    //gwssrv_debug_print ("gwssrv: serviceResizeWindow\n");
+    //server_debug_print ("gwssrv: serviceResizeWindow\n");
 
     // #todo
     // Check all the header.
@@ -1724,19 +1745,19 @@ int serviceResizeWindow(void)
     if ( window_id < 0 || 
          window_id >= WINDOW_COUNT_MAX )
     {
-        gwssrv_debug_print ("gwssrv: serviceResizeWindow window_id\n");
+        //server_debug_print ("gwssrv: serviceResizeWindow window_id\n");
         return -1;
     }
 
 // Get the window structure given the id.
     window = (struct gws_window_d *) windowList[window_id];
     if ( (void *) window == NULL ){
-        gwssrv_debug_print ("gwssrv: serviceResizeWindow window\n");
+        //server_debug_print ("gwssrv: serviceResizeWindow window\n");
         return -1;
     }
     if ( window->used != TRUE || 
          window->magic != 1234 ){
-        gwssrv_debug_print ("gwssrv: serviceResizeWindow validation\n");
+        //server_debug_print ("gwssrv: serviceResizeWindow validation\n");
         return -1;
     }
 
@@ -1763,7 +1784,7 @@ int serviceDrawButton(void)
 // Business Logic:
 
     // Deprecated !!
-    gwssrv_debug_print("serviceDrawButton: deprecated\n");
+    //server_debug_print("serviceDrawButton: deprecated\n");
     printf            ("serviceDrawButton: deprecated\n");
     exit(1);
     return -1;
@@ -1784,7 +1805,7 @@ int serviceRedrawWindow(void)
     unsigned long flags = 0;
 
     // #debug
-    // gwssrv_debug_print ("serviceRedrawWindow:\n");
+    // server_debug_print ("serviceRedrawWindow:\n");
 
 // #todo: (types)
 // Get wid, msg code and flag.
@@ -1796,25 +1817,47 @@ int serviceRedrawWindow(void)
 // #todo
 //  Not tested yet.
     //if ( msg_code <= 0 ){
-    //    gwssrv_debug_print ("serviceRedrawWindow:\n");
+    //    server_debug_print ("serviceRedrawWindow:\n");
     //    goto fail;
     //}
 
 // Window ID
     window_id = (int) (window_id & 0xFFFF);
     if (window_id < 0 || window_id >= WINDOW_COUNT_MAX){
-        gwssrv_debug_print ("serviceRedrawWindow: [FAIL] window_id\n");
+        //server_debug_print ("serviceRedrawWindow: [FAIL] window_id\n");
         goto fail;
     }
 // Get the window structure given the id.
     window = (struct gws_window_d *) windowList[window_id];
     if ( (void *) window == NULL ){
-        gwssrv_debug_print ("serviceRedrawWindow: window\n");
+        //server_debug_print ("serviceRedrawWindow: window\n");
         goto fail;
     }
     if (window->used != TRUE || window->magic != 1234){
-        gwssrv_debug_print ("serviceRedrawWindow: window validation\n");
+        //server_debug_print ("serviceRedrawWindow: window validation\n");
         goto fail;
+    }
+
+
+// We can't redraw a minimied window.
+// We need to restore it first.
+    if (window->state == WINDOW_STATE_MINIMIZED)
+        goto fail;
+
+// If the parent is an overlapped window,
+// and the parent is minimied, so we can't redraw it.
+    struct gws_window_d *parent;
+    parent = (struct gws_window_d *) window->parent;
+    if ((void*) parent != NULL)
+    {
+        if (parent->magic == 1234)
+        {
+            if (parent->type == WT_OVERLAPPED)
+            {
+                if (parent->state == WINDOW_STATE_MINIMIZED)
+                    goto fail;
+            }
+        }
     }
 
 // Redraw it.
@@ -1906,7 +1949,7 @@ int serviceRefreshWindow(void)
     //char *text_buffer;    // #todo
 
     // #debug
-    // gwssrv_debug_print ("serviceRefreshWindow:\n");
+    // server_debug_print ("serviceRefreshWindow:\n");
 
     // #todo
     // Check all the header.
@@ -1918,8 +1961,8 @@ int serviceRefreshWindow(void)
 // Will be used in the ghost frame routines.
 // ??
     if (window_id == (-4)){
-        gwssrv_debug_print("serviceRefreshWindow:\n");  //debug
-        gwssrv_debug_print("== R (extra) ==\n");        //debug
+        //server_debug_print("serviceRefreshWindow:\n");  //debug
+        //server_debug_print("== R (extra) ==\n");        //debug
         refresh_device_screen();
         goto done;
         //return 0;
@@ -1927,22 +1970,43 @@ int serviceRefreshWindow(void)
 // wid limits
     if ( window_id < 0 || window_id >= WINDOW_COUNT_MAX ){
         //printf("%d\n",window_id);
-        gwssrv_debug_print ("serviceRefreshWindow: window_id\n");
+        //server_debug_print ("serviceRefreshWindow: window_id\n");
         goto fail;
         //return -1;
     }
 
 // Get the window structure given the id.
     window = (struct gws_window_d *) windowList[window_id];
-    if ( (void *) window == NULL ){
-        gwssrv_debug_print ("serviceRefreshWindow: window\n");
+    if ((void *) window == NULL){
+        //server_debug_print ("serviceRefreshWindow: window\n");
         goto fail;
         //return -1;
     }
     if ( window->used != TRUE || window->magic != 1234 ){
-        gwssrv_debug_print ("serviceRefreshWindow: window validation\n");
+        //server_debug_print ("serviceRefreshWindow: window validation\n");
         goto fail;
         //return -1;
+    }
+
+// We can't show a minimied window.
+// We need to restore it first.
+    if (window->state == WINDOW_STATE_MINIMIZED)
+        goto fail;
+
+// If the parent is an overlapped window,
+// and the parent is minimied, so we can't show it.
+    struct gws_window_d *parent;
+    parent = (struct gws_window_d *) window->parent;
+    if ((void*) parent != NULL)
+    {
+        if (parent->magic == 1234)
+        {
+            if (parent->type == WT_OVERLAPPED)
+            {
+                if (parent->state == WINDOW_STATE_MINIMIZED)
+                    goto fail;
+            }
+        }
     }
 
 // #todo
@@ -1956,8 +2020,8 @@ int serviceRefreshWindow(void)
 done:
     return 0;
 fail:
-    gwssrv_debug_print ("serviceRefreshWindow: fail\n");
-    return -1;
+    //server_debug_print ("serviceRefreshWindow: fail\n");
+    return (int) -1;
 }
 
 // #todo
@@ -2004,7 +2068,6 @@ void serviceCloneAndExecute(void)
 // Service 1005
 int serviceDrawText(void)
 {
-// Business Logic:
 // Draw a text.
 // Is it showing or not?
 
@@ -2023,7 +2086,7 @@ int serviceDrawText(void)
     register int i=0;
 
     // #debug
-    // gwssrv_debug_print ("gwssrv: serviceDrawText\n");
+    // server_debug_print ("gwssrv: serviceDrawText\n");
 
 // Get values.
 // #todo: Check the message code.
@@ -2042,7 +2105,7 @@ int serviceDrawText(void)
     unsigned char *text_buffer = (unsigned char *) &message_address[MSG_OFFSET_LONGSTRING];
     int s = sizeof(text_buffer);
     if(s<0 || s>= 256){
-        gwssrv_debug_print ("gwssrv: serviceDrawText [DEBUG]   SIZE \n");
+        server_debug_print ("gwssrv: serviceDrawText [DEBUG]   SIZE \n");
         exit(1);
     }
     */
@@ -2067,8 +2130,8 @@ int serviceDrawText(void)
     char *p = (char *) &message_address[string_off];
     for (i=0; i<256; i++)
     {
-         buf[i] = *p;  //Get a char
-         p++;
+        buf[i] = *p;  //Get a char
+        p++;
     };
     buf[i] = 0;  // finalize the buffer.
 // ==================================
@@ -2084,18 +2147,17 @@ int serviceDrawText(void)
 // Se a janela alvo tem um índice fora dos limites
 
 // wid
-    if ( window_id < 0 || 
-         window_id >= WINDOW_COUNT_MAX )
+    if ( window_id < 0 || window_id >= WINDOW_COUNT_MAX )
     {
-        return -1;
+        goto fail;
     }
 // window structure.
     window = (struct gws_window_d *) windowList[window_id];
-    if ( (void*) window == NULL ){ 
-        return -1; 
+    if ((void*) window == NULL){ 
+        goto fail;
     }
     if (window->magic != 1234){
-        return -1; 
+        goto fail; 
     }
 
 // If this window is overlapped window,
@@ -2103,6 +2165,29 @@ int serviceDrawText(void)
     if (window->type == WT_OVERLAPPED){
         x += window->rcClient.left;
         y += window->rcClient.top;
+    }
+
+// ----------------
+
+// We can't show a minimied window.
+// We need to restore it first.
+    if (window->state == WINDOW_STATE_MINIMIZED)
+        goto fail;
+
+// If the parent is an overlapped window,
+// and the parent is minimied, so we can't show it.
+    struct gws_window_d *parent;
+    parent = (struct gws_window_d *) window->parent;
+    if ((void*) parent != NULL)
+    {
+        if (parent->magic == 1234)
+        {
+            if (parent->type == WT_OVERLAPPED)
+            {
+                if (parent->state == WINDOW_STATE_MINIMIZED)
+                    goto fail;
+            }
+        }
     }
 
 // Draw text
@@ -2122,9 +2207,9 @@ int serviceDrawText(void)
         __buffer[i] = 0;
 
     return 0;
-crazy_fail:
-    debug_print("serviceDrawText: [ERROR] crazy_fail\n");
-    return -1;
+fail:
+    debug_print("serviceDrawText: fail\n");
+    return (int) -1;
 }
 
 // Put the text into the buffer
@@ -2150,7 +2235,7 @@ int serviceSetText(void)
     //unsigned long deviceHeight = (__device_height & 0xFFFF );
 
     // #debug
-    // gwssrv_debug_print ("gwssrv: serviceDrawText\n");
+    // server_debug_print ("gwssrv: serviceDrawText\n");
 
 // Get values.
 // #todo: Check the message code.
@@ -2169,7 +2254,7 @@ int serviceSetText(void)
     unsigned char *text_buffer = (unsigned char *) &message_address[MSG_OFFSET_LONGSTRING];
     int s = sizeof(text_buffer);
     if(s<0 || s>= 256){
-        gwssrv_debug_print ("serviceSetText: serviceDrawText [DEBUG]   SIZE \n");
+        server_debug_print ("serviceSetText: serviceDrawText [DEBUG]   SIZE \n");
         exit(1);
     }
     */
@@ -2326,7 +2411,7 @@ int serviceGetText(void)
     int gotten=0;
 
     // #debug
-    // gwssrv_debug_print ("gwssrv: serviceDrawText\n");
+    // server_debug_print ("gwssrv: serviceDrawText\n");
 
 // Get values.
 // #todo: Check the message code.
@@ -2345,7 +2430,7 @@ int serviceGetText(void)
     unsigned char *text_buffer = (unsigned char *) &message_address[MSG_OFFSET_LONGSTRING];
     int s = sizeof(text_buffer);
     if(s<0 || s>= 256){
-        gwssrv_debug_print ("serviceGetText: serviceDrawText [DEBUG]   SIZE \n");
+        server_debug_print ("serviceGetText: serviceDrawText [DEBUG]   SIZE \n");
         exit(1);
     }
     */
@@ -2473,7 +2558,12 @@ servicelineBackbufferDrawHorizontalLine(void)
     return 0;
 }
 
-//======================================
+//===============================================================
+
+//
+// $$ 
+// SEND RESPONSE
+//
 
 // dsSendResponse:
 // Worker
@@ -2561,7 +2651,7 @@ static int dsSendResponse(int fd, int type)
 //
 
     // #debug
-    //gwssrv_debug_print ("dsSendResponse: Sending response ...\n");
+    //server_debug_print ("dsSendResponse: Sending response ...\n");
 
     // #todo:
     // while(1){...}
@@ -2618,7 +2708,7 @@ static int dsSendResponse(int fd, int type)
     if (n_writes <= 0)
     {
         //#debug
-        gwssrv_debug_print ("dsSendResponse: response fail\n");
+        //server_debug_print ("dsSendResponse: response fail\n");
         printf             ("dsSendResponse: Couldn't send reply\n");
         //close(fd);
         Status = -1;
@@ -2664,6 +2754,11 @@ exit0:
     rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_REPLY );
     return (int) Status;
 }
+
+//
+// $$ 
+// PROCESS REQUESTS
+//
 
 /*
  * ==============================
@@ -2720,20 +2815,21 @@ dsProcedure (
     // screen_window = __root_window
     case GWS_Hello:
         // #todo: Put this routine inside a worker.
-        gwssrv_debug_print ("gwssrv: Message number 1000\n");
+        //server_debug_print ("gwssrv: Message number 1000\n");
         //#bugbug: Esse endereço de estrutura esta mudando para um valor
         //que nao podemos acessar em ring3.
         //if ( (void*) gui == NULL){
         //    NoReply = FALSE;
         //    break;
         //}
-        if ( (void*) gui->screen_window != NULL )
+
+        if ((void*) gui->screen_window != NULL)
         {
             //if ( gui->screen->used == 1 && gui->screen->magic == 1234 ){
                 dtextDrawText ( 
                     (struct gws_window_d *) gui->screen_window,
                     long1, long2, COLOR_GREEN,
-                    "gramland.bin: Hello from Gramland!");
+                    "DS00.bin: Hello from Gramland");
 
                 gws_show_backbuffer();
             //}
@@ -2830,7 +2926,7 @@ dsProcedure (
     // shutdown.
     // Um cliente quer se desconectar.
     case GWS_Disconnect:
-        gwssrv_debug_print ("gwssrv: [2010] Disconnect\n");
+        //server_debug_print ("gwssrv: [2010] Disconnect\n");
         // DisconnectCurrentClient = TRUE;  // #todo
         // NoReply = TRUE;  // #todo
         break;
@@ -2842,7 +2938,7 @@ dsProcedure (
         gws_show_backbuffer();
         // #test
         // Handle incoming inputs right after a huge service routine.
-        //if ( is_accepting_input() == TRUE )
+        //if ( server_is_accepting_input() == TRUE )
         //    xx_wmInputReader();
         //NoReply = FALSE;      // #todo
         break;
@@ -2859,7 +2955,7 @@ dsProcedure (
     // ?? #bugbug: The client only sends requests.
     // GWS_GetSendEvent
     case 2030:
-        gwssrv_debug_print ("gwssrv: [2030] Send event\n");
+        //server_debug_print ("gwssrv: [2030] Send event\n");
         //serviceClientEvent();
         //NoReply = FALSE;  // #todo
         break;
@@ -2942,7 +3038,7 @@ dsProcedure (
     // Let's get one event from the client's event queue.
     // Send it as a response.
     case GWS_DrainInput:
-        //gwssrv_debug_print("dsProcedure 8080\n");
+        //server_debug_print("dsProcedure 8080\n");
         break;
 
     // 9093: 
@@ -2974,6 +3070,11 @@ dsProcedure (
 fail:
     return (int) -1;
 }
+
+//
+// $$ 
+// DISPATCHER
+//
 
 // dispacher:
 // Get client's request from socket.
@@ -3007,11 +3108,11 @@ static void dispacher(int fd)
 // socket que usaremos ... por isso poderemos fecha-lo
 // para assim obtermos um novo da próxima vez.
 
-    //gwssrv_debug_print ("dispacher: \n");
+    //server_debug_print ("dispacher: \n");
 
     // Fail, cleaning.
     if (fd<0){
-        gwssrv_debug_print ("dispacher: fd\n");
+        //server_debug_print ("dispacher: fd\n");
         goto exit2;
     }
 
@@ -3080,7 +3181,7 @@ static void dispacher(int fd)
 // (Input port)
     n_reads = (ssize_t) read( fd, __buffer, sizeof(__buffer) );
     if (n_reads <= 0){
-        gwssrv_debug_print ("dispacher: read fail\n");
+        //server_debug_print ("dispacher: read fail\n");
         goto exit2;
     }
 
@@ -3091,7 +3192,7 @@ static void dispacher(int fd)
 // Invalid request. 
 // Clean
     if (message_buffer[1] == 0){
-        gwssrv_debug_print ("dispacher: Invalid request\n");
+        //server_debug_print ("dispacher: Invalid request\n");
         goto exit2;
     }
 
@@ -3200,6 +3301,12 @@ exit0:
     return;
 }
 
+
+//
+// $$ 
+// INITIALIZATION
+//
+
 //
 // == Initializations ==============================================
 //
@@ -3211,10 +3318,10 @@ static void __initializeBackground(void)
     unsigned long h = gws_get_device_height();
 
     // #debug
-    // gwssrv_debug_print ("__initializeBackground\n");
+    // server_debug_print ("__initializeBackground\n");
 
     if ( w==0 || h==0 ){
-        gwssrv_debug_print ("__initializeBackground: w h\n");
+        //server_debug_print ("__initializeBackground: w h\n");
         printf             ("__initializeBackground: w h\n");
         exit(1);
     }
@@ -3243,12 +3350,12 @@ static void __initializeBackground(void)
     // asm ("int $3");
 
     if ((void *) __root_window == NULL){
-        gwssrv_debug_print("__initializeBackground: __root_window\n");
+        //server_debug_print("__initializeBackground: __root_window\n");
         printf            ("__initializeBackground: __root_window\n");
         exit(1);
     }
     if ( __root_window->used != TRUE || __root_window->magic != 1234 ){
-        gwssrv_debug_print ("__initializeBackground: __root_window validation\n");
+        //server_debug_print ("__initializeBackground: __root_window validation\n");
         printf             ("__initializeBackground: __root_window validation\n");
         exit(1);
     }
@@ -3260,7 +3367,7 @@ static void __initializeBackground(void)
 // Register the window.
     WindowId = RegisterWindow(__root_window);
     if (WindowId<0){
-        gwssrv_debug_print ("__initializeBackground: Couldn't register window\n");
+        //server_debug_print ("__initializeBackground: Couldn't register window\n");
         printf             ("__initializeBackground: Couldn't register window\n");
         exit(1);
     }
@@ -3271,7 +3378,7 @@ static void __initializeBackground(void)
 // Testing bmp.
 // See: gramado/themes
 /*
-    if (current_mode == GRAMADO_JAIL){
+    if (os_mode == GRAMADO_JAIL){
         gwssrv_display_system_icon ( 1, 8, 8 );
     }else{
         gwssrv_display_system_icon ( 2, 8, 8 );
@@ -3281,13 +3388,13 @@ static void __initializeBackground(void)
 // See: 
 // gws.c
 
-    if (current_mode == GRAMADO_JAIL){
-        gwssrv_debug_print ("gwssrv: __initializeBackground: Calling refresh_screen\n");
+    if (os_mode == GRAMADO_JAIL){
+        //server_debug_print ("gwssrv: __initializeBackground: Calling refresh_screen\n");
         //refresh_screen();
     }
 
 // #debug
-    //gwssrv_debug_print ("gwssrv: __initializeBackground: done\n");
+    //server_debug_print ("gwssrv: __initializeBackground: done\n");
     //refresh_screen();
     //while(1){}
 }
@@ -3316,7 +3423,7 @@ static int __initializeGraphics(void)
 // Now we can use 3d routines.
 // See: grprim.c
     
-    //gwssrv_debug_print ("__initializeGraphics: Calling grInit() \n");
+    //server_debug_print ("__initializeGraphics: Calling grInit() \n");
     //printf ("__initializeGraphics: Calling grInit() \n");
     grInit();
 
@@ -3325,7 +3432,7 @@ static int __initializeGraphics(void)
     //while(1){}
 
     // #debug
-    //gwssrv_debug_print ("__initializeGraphics: :)\n");
+    //server_debug_print ("__initializeGraphics: :)\n");
     //printf ("__initializeGraphics: :)\n");
     //asm("int $3");
     //while(1){}
@@ -3360,7 +3467,7 @@ static void __initialize_ds_structure(void)
     display_server = 
         (struct display_server_d *) malloc ( sizeof(struct display_server_d) );
     if ((void*) display_server == NULL){
-        gwssrv_debug_print("__initialize_ds_structure: [FAIL] display_server\n");
+        //server_debug_print("__initialize_ds_structure: [FAIL] display_server\n");
         printf            ("__initialize_ds_structure: [FAIL] display_server\n");
         exit(1);
     }
@@ -3475,7 +3582,7 @@ static int __initialize_gui(void)
 // Check if we already have the root window.
 
     if ( (void*) __root_window == NULL ){
-        gwssrv_debug_print ("__initializeGraphics: [FAIL] root window doesn't exist\n");
+        //server_debug_print ("__initializeGraphics: [FAIL] root window doesn't exist\n");
         printf             ("__initializeGraphics: [FAIL] root window doesn't exist\n");
         //goto fail;
         exit(1);
@@ -3545,53 +3652,14 @@ static void __initialize_kernel_module(void)
 }
 
 /*
- * ServerInitialization: 
  *     + Initializes the gws infrastructure.
  *     + Create the background.
  *     + Create the taskbar.
  *     + Register display server as the current display server 
  *       for this desktop.
- *     + Create the server socket.
- *     + bind it.
- *     + Spawn a client process. (Or not).
- *     + Enter in the main loop, waiting for some types of event.
- *       The possible events are: Reading messages from the kernel,
- *       or Reading a socket. At this moment we can send a response. 
- *       It depends on the type of message found in the socket we readed.
  */
-// IN:
-// dm = Launch the default Display Manager.
-// ...
-static int ServerInitialization(int launch_tb)
+static int ServerInitialization(void)
 {
-
-//==================
-    struct sockaddr server_address;
-    socklen_t addrlen;
-    server_address.sa_family = AF_GRAMADO;
-    server_address.sa_data[0] = 'd';  // Display server
-    server_address.sa_data[1] = 's';
-    addrlen = sizeof(server_address);
-//==================
-
-    // #bugbug
-    int UseCompositor = TRUE;   // #debug flags
-// Files
-    int server_fd = -1; 
-    int newconn = -1;
-    int curconn = -1;
-// Status
-    int bind_status = -1;
-    int _status = -1;
-// Buffer
-    char buf[32];
-    int CanRead = -1;
-
-    IsTimeToQuit = FALSE;
-
-    IsAcceptingInput = TRUE;
-    IsAcceptingConnections = TRUE;
-    IsComposing= TRUE;
 
 // ==========================================
 // Starting the initialization phases.
@@ -3613,6 +3681,7 @@ static int ServerInitialization(int launch_tb)
 // Window manager
     wmInitializeGlobals();
     wmInitializeStructure();
+
 
 /*
     FILE *input_fp;
@@ -3648,7 +3717,7 @@ static int ServerInitialization(int launch_tb)
 // ex: OsInit();
 
     // #debug
-    gwssrv_debug_print("GRAMLAND.BIN: Initializing\n");
+    server_debug_print("DS00.BIN: Initializing\n");
 
 //
 // Client support
@@ -3671,6 +3740,8 @@ static int ServerInitialization(int launch_tb)
         //exit(0);
     }
 
+    int _status = -1;
+
 // Register
 // #bugbug
 // I don't know if we can register more than one time.
@@ -3687,7 +3758,7 @@ static int ServerInitialization(int launch_tb)
 
     _status = (int) registerDS();
     if (_status < 0){
-        gwssrv_debug_print("gramland: Couldn't register the server\n");
+        //server_debug_print("gramland: Couldn't register the server\n");
         printf            ("gramland: Couldn't register the server\n");
         goto fail;
     }
@@ -3706,92 +3777,13 @@ static int ServerInitialization(int launch_tb)
         //Initialization.setup_callback_checkpoint = TRUE;
     }
 
-// ===============================================
-// #todo
-// Daqui pra frente é conexão com cliente.
-// Lembrando que o servidor vai se conectar à mais de um cliente.
-// ...
-// #todo
-// Aqui nos podemos criar vários sockets que serão usados
-// pelo servidor.
-// ex: CreateWellKnownSockets ();
-
-// Socket
-// Creating a socket file and saving the fd in different places.
-    server_fd = 
-        (int) socket(
-            AF_GRAMADO,    // Family
-            SOCK_STREAM,   // Not UDP in AF_GRAMADO. 
-            0 );           // No protocol
-
-    if (server_fd<0)
-    {
-        gwssrv_debug_print("gramland: on socket()\n");
-        printf            ("gramland: on socket()\n");
-        goto fail;
-        //exit(1);
-    }
-// Display server structure.
-    display_server->socket = (int) server_fd;
-// The server itself has its own client structure.
-    serverClient->fd = (int) server_fd;
-// Global variable.
-    ____saved_server_fd = (int) server_fd;
-
-    // #debug Breakpoint
-    //printf ("fd: %d\n", serverClient->fd);
-    //while(1){}
-
-// Bind
-// Associate this address with the server's socket fd.
-    long BindReentry = 22;
-    while (1){
-        bind_status = 
-            (int) bind (
-                      server_fd, 
-                      (struct sockaddr *) &server_address, 
-                      addrlen );
-        // OK
-        if (bind_status >= 0)
-            break;
-        BindReentry--;
-        if (BindReentry <= 0)
-            break;
-        rtl_yield();
-    };
-
-    if (bind_status < 0){
-        gwssrv_debug_print("gramland: on bind()\n");
-        printf            ("gramland: on bind()\n");
-        goto fail;
-    }
-
-    // #debug Breakpoint
-    //printf ("fd: %d\n", serverClient->fd);
-    //while(1){}
-
-// Listen
-// Setup how many pending connections.
-// SOMAXCONN is the default limit on backlog.
-// see: sys/socket.h
-    int ListenStatus = -1;
-    ListenStatus = (int) listen(server_fd,SERVER_BACKLOG);
-    if (ListenStatus<0){
-        //#todo
-    }
-
-// Checkpoint
-    Initialization.setup_connection_checkpoint = TRUE;
-
 // ==================================================
 // Init GUI
-
-    Initialization.current_phase = 2;
 
     int gui_status = -1;
     gui_status = (int) __initialize_gui();
     if (gui_status < 0){
-        printf("ServerInitialization: __initialize_gui failed\n");
+        printf("ServerLoop: __initialize_gui failed\n");
         goto fail;
     }
 
@@ -3800,7 +3792,7 @@ static int ServerInitialization(int launch_tb)
 
     int graphics_status = (int) __initializeGraphics();
     if (graphics_status < 0){
-        printf("ServerInitialization: __initializeGraphics failed\n");
+        printf("ServerLoop: __initializeGraphics failed\n");
         goto fail;
     }
     Initialization.setup_graphics_interface_checkpoint = TRUE;
@@ -3815,7 +3807,7 @@ static int ServerInitialization(int launch_tb)
     }
 
     if ( (void*) WindowManager.root == NULL ){
-        gwssrv_debug_print("gwssrv: WindowManager.root fail\n");
+        //server_debug_print("gwssrv: WindowManager.root fail\n");
                     printf("gwssrv: WindowManager.root fail\n");
         goto fail;
         //exit(0);
@@ -3823,7 +3815,7 @@ static int ServerInitialization(int launch_tb)
     /*
     if ( (void*) WindowManager.taskbar == NULL )
     {
-        gwssrv_debug_print("WindowManager.taskbar fail\n");
+        //server_debug_print("WindowManager.taskbar fail\n");
         printf("WindowManager.taskbar fail\n");
         return -1;
         //exit(0);
@@ -3871,6 +3863,147 @@ static int ServerInitialization(int launch_tb)
     //while(1){}
 
 
+// ------------------------------------
+// Let's initialize the ring0 kernel module called MOD0.BIN.
+    __initialize_kernel_module();
+
+
+    return 0;
+
+fail:
+    return (int) -1;
+}
+
+
+//
+// $$ 
+// GAME LOOP
+//
+
+/*
+ * ServerLoop: 
+ *     + Create the server socket.
+ *     + bind it.
+ *     + Spawn a client process. (Or not).
+ *     + Enter in the main loop, waiting for some types of event.
+ *       The possible events are: Reading messages from the kernel,
+ *       or Reading a socket. At this moment we can send a response. 
+ *       It depends on the type of message found in the socket we readed.
+ */
+// IN:
+// dm = Launch the default Display Manager.
+// ...
+static int ServerLoop(int launch_tb)
+{
+
+//==================
+    struct sockaddr server_address;
+    socklen_t addrlen;
+    server_address.sa_family = AF_GRAMADO;
+    server_address.sa_data[0] = 'd';  // Display server
+    server_address.sa_data[1] = 's';
+    addrlen = sizeof(server_address);
+//==================
+
+    // #bugbug
+    int UseCompositor = TRUE;   // #debug flags
+// Files
+    int server_fd = -1; 
+    int newconn = -1;
+    int curconn = -1;
+// Status
+    int bind_status = -1;
+    int _status = -1;
+// Buffer
+    char buf[32];
+    int CanRead = -1;
+
+    IsTimeToQuit = FALSE;
+
+    IsAcceptingInput = TRUE;
+    IsAcceptingConnections = TRUE;
+    IsComposing= TRUE;
+
+// ===============================================
+// #todo
+// Daqui pra frente é conexão com cliente.
+// Lembrando que o servidor vai se conectar à mais de um cliente.
+// ...
+// #todo
+// Aqui nos podemos criar vários sockets que serão usados
+// pelo servidor.
+// ex: CreateWellKnownSockets ();
+
+// Socket
+// Creating a socket file and saving the fd in different places.
+    server_fd = 
+        (int) socket(
+            AF_GRAMADO,    // Family
+            SOCK_STREAM,   // Not UDP in AF_GRAMADO. 
+            0 );           // No protocol
+
+    if (server_fd<0)
+    {
+        //server_debug_print("gramland: on socket()\n");
+        printf            ("gramland: on socket()\n");
+        goto fail;
+        //exit(1);
+    }
+// Display server structure.
+    display_server->socket = (int) server_fd;
+// The server itself has its own client structure.
+    serverClient->fd = (int) server_fd;
+// Global variable.
+    ____saved_server_fd = (int) server_fd;
+
+    // #debug Breakpoint
+    //printf ("fd: %d\n", serverClient->fd);
+    //while(1){}
+
+// Bind
+// Associate this address with the server's socket fd.
+    long BindReentry = 22;
+    while (1){
+        bind_status = 
+            (int) bind (
+                      server_fd, 
+                      (struct sockaddr *) &server_address, 
+                      addrlen );
+        // OK
+        if (bind_status >= 0)
+            break;
+        BindReentry--;
+        if (BindReentry <= 0)
+            break;
+        rtl_yield();
+    };
+
+    if (bind_status < 0){
+        //server_debug_print("gramland: on bind()\n");
+        printf            ("gramland: on bind()\n");
+        goto fail;
+    }
+
+    // #debug Breakpoint
+    //printf ("fd: %d\n", serverClient->fd);
+    //while(1){}
+
+// Listen
+// Setup how many pending connections.
+// SOMAXCONN is the default limit on backlog.
+// see: sys/socket.h
+    int ListenStatus = -1;
+    ListenStatus = (int) listen(server_fd,SERVER_BACKLOG);
+    if (ListenStatus<0){
+        //#todo
+    }
+
+// Checkpoint
+    Initialization.setup_connection_checkpoint = TRUE;
+
+
+    Initialization.current_phase = 2;
+
 // Child
 
     /*
@@ -3898,14 +4031,14 @@ static int ServerInitialization(int launch_tb)
 // com muitas janelas filhas.
 
     int tb_status = -1;
-    if (launch_tb == TRUE){
-        tb_status = (int) rtl_clone_and_execute(app_taskbar);
-        //#todo: Check
+    if (launch_tb == TRUE)
+    {
+        if (server_mode == SERVER_MODE_SERVER)
+        {
+            tb_status = (int) rtl_clone_and_execute(app_taskbar);
+            //#todo: Check
+        }
     }
-
-// ------------------------------------
-// Let's initialize the ring0 kernel module called MOD0.BIN.
-    __initialize_kernel_module();
 
 // ------------------------------------
 
@@ -3951,7 +4084,7 @@ static int ServerInitialization(int launch_tb)
 // Each thread has it's own circular queue for system events.
 
 // Set focus, this way we can get system events.
-    gwssrv_debug_print("gramland: Entering main loop\n");
+    server_debug_print("ds00: Entering main loop\n");
     rtl_focus_on_this_thread();
 
 // + Accept connection from a client.
@@ -3998,8 +4131,14 @@ static int ServerInitialization(int launch_tb)
     demoCurve();
     */
 
+    if (server_mode == SERVER_MODE_DEMO)
+        IsAcceptingConnections = FALSE;
+
 // Server state
     ServerState.state = SERVER_STATE_RUNNING;
+
+// This is the main loop.
+// Let's optimize it, because we'll spend most of our time here.
 
     while (running == TRUE){
 
@@ -4018,42 +4157,30 @@ static int ServerInitialization(int launch_tb)
                 (struct sockaddr *) &server_address, 
                 (socklen_t *) addrlen );
 
-            // sys_accept() pega na fila e coloca em fd=31.
             // Dispatch service.
+            // In Gramado OS, sys_accept get one connected socket in the queue
+            // and put it in fd=31.
             if (newconn == 31){
                 dispacher(newconn);
             }
 
-            //if (newconn <= 0){
-                //gwssrv_debug_print("gwssrv: accept returned FAIL\n");
-            //}
-
-            //#debug
+            // #debug
             if (newconn == ____saved_server_fd){
                 printf("gramland: [debug] Invalid new connnection.\n");
                 while (1){
                 };
             }
+
             //close(newconn);
         }
 
-        //
-
-        // ##
-        // We're calling this because we don't have a
-        // callback anymore.
-        // This was the jog of the callback.
-        // #todo: We need a timer.
-        
+        // Compose the frame or simply update some windows.        
         if (IsComposing == TRUE){
             compose();
         }
-
-        // Not accpeting
-        //if (IsAcceptingConnections == FALSE){
-            //close(newconn);
-        //}
     };
+
+    running = FALSE;
 
 // =======================================
 
@@ -4087,6 +4214,12 @@ fail:
     return (int) -1;
 }
 
+
+//
+// $$ 
+// MAIN
+//
+
 // main: 
 // Entry point.
 // Called by crt0() in 
@@ -4097,16 +4230,7 @@ int main (int argc, char **argv)
     int Status=-1;
     register int i=0;
 
-// #test: Flags
-    int f1= FALSE;
-    int f2= FALSE;
-    int f3= FALSE;
-    int f4= FALSE;
-
-    int fLaunchDM=FALSE;  // Launch the default display manager.
-    int fLaunchTB=FALSE;  // Launch the default taskbar application.
-    //int fLaunchTerminal=FALSE;  // Launch the default terminal.
-    //...
+    server_mode = SERVER_MODE_SERVER;
 
     if (argc>0)
     {
@@ -4170,7 +4294,6 @@ int main (int argc, char **argv)
     Initialization.setup_graphics_interface_checkpoint = FALSE;
     Initialization.inloop_checkpoint = FALSE;
     
-
     // ##
     // Sincronizaçao provisoria.
     // Vamos precisar disso antes de tudo;
@@ -4201,10 +4324,17 @@ int main (int argc, char **argv)
    //while(1){}
 
 //0 = Time to quit.
-    Status = (int) ServerInitialization(fLaunchTB);
+    Status = (int) ServerInitialization();
     if (Status != 0){
         goto fail;
     }
+
+//0 = Time to quit.
+    Status = (int) ServerLoop(fLaunchTB);
+    if (Status != 0){
+        goto fail;
+    }
+
     ServerShutdown(____saved_server_fd);
     return EXIT_SUCCESS;
 
@@ -4212,8 +4342,8 @@ fail:
 
 // #todo
 // Unexpected fail.
-    gwssrv_debug_print("GRAMLAND.BIN: Hang on exit\n");
-    printf            ("GRAMLAND.BIN: Hang on exit\n");
+    server_debug_print("DS00.BIN: Hang on exit\n");
+    printf            ("DS00.BIN: Hang on exit\n");
 
     // #test
     // exit(Status);

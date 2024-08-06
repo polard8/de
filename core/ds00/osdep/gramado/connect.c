@@ -38,7 +38,7 @@ int registerDS(void)
     if ((void *) __p_cgroup == NULL)
     {
         // #debug
-        gwssrv_debug_print ("registerDS: __p_cgroup\n");
+        //server_debug_print ("registerDS: __p_cgroup\n");
         printf             ("registerDS: __p_cgroup\n");
         exit(1);
         goto fail;
@@ -53,7 +53,7 @@ int registerDS(void)
     if (__pid < 0)
     {
         // #debug
-        gwssrv_debug_print ("registerDS: __pid\n");
+        //server_debug_print ("registerDS: __pid\n");
         printf             ("registerDS: __pid\n");
         exit(1);
         goto fail;

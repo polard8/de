@@ -892,16 +892,6 @@ struct gws_window_d
 // Um alerta de que exite uma mensagem para essa janela.
     int msgAlert;  //#todo: int ev_alert;
 
-
-// #deprecated;
-// We are using the term '->enabled' for that purpose.
-// Locked
-// We can't resize or move the window.
-// This is good for a maximized root overlapped window.
-// If locked we can't change a simple thing. 
-// It must affect the input events for the specified window.
-    //int locked; 
-
 //==================================================	
 // #todo:
 // Maybe every windle is gonna have a server side
@@ -917,10 +907,13 @@ struct gws_window_d
 // =========================================================
 // Navigation windows:
 
-// We have an associated window when we are iconic.
-// When minimized, we see this window.
-// Or this window can stay at the taskbar.
-    //struct gws_window_d *assoc_wind;
+// We have an associated window when we are minimized.
+// Maybe only the overlapped window can have this iconic window.
+    struct gws_window_d *_iconic;
+// Telling to the world that this is an icon window,
+// and we belongs to an overlapped window.
+    int is_iconic;
+
 // The owner
     struct gws_window_d  *parent;
 // We need to redraw all the child windows.

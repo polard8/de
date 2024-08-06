@@ -367,12 +367,10 @@ void demoPolygon(void)
     v4->z =  0;
     v4->color = COLOR_WHITE;
 
-    gwssrv_debug_print("calling xxxPolygonZ\n");
+    //server_debug_print("calling xxxPolygonZ\n");
 
     // Draw
-
     xxxPolygonZ(p);
-
     // Show
     demoFlushSurface();  
     
@@ -381,7 +379,7 @@ void demoPolygon(void)
     };
     };   //while
 
-    gwssrv_debug_print("DONE\n");
+    //server_debug_print("DONE\n");
     //printf ("DONE\n");
 }
 
@@ -500,9 +498,9 @@ void demoPolygon2(void)
     v4->z = 0;
     v4->color = COLOR_WHITE;
 
-    gwssrv_debug_print("calling xxxPolygonZ\n");
+    //server_debug_print("calling xxxPolygonZ\n");
 
-// Draw
+    // Draw
 
     //p->type = POLYGON_POLYPOINT;
     //xxxPolygonZ(p);
@@ -520,7 +518,7 @@ void demoPolygon2(void)
     };
     };   //while
 
-    gwssrv_debug_print("DONE\n");
+    //server_debug_print("DONE\n");
     //printf ("DONE\n");
 }
 

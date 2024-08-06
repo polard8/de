@@ -148,11 +148,11 @@ bmpDisplayBMP0 (
     yLimit = 600;
 
 // #debug:
-    //gwssrv_debug_print ("bmpDisplayBMP:\n");
+    //server_debug_print ("bmpDisplayBMP:\n");
 
 // Limits
     if ( x > xLimit || y > yLimit ){
-        gwssrv_debug_print ("bmpDisplayBMP0: Limits\n");
+        //server_debug_print ("bmpDisplayBMP0: Limits\n");
         printf ("bmpDisplayBMP0: Limits\n");
         goto fail;
     }
@@ -160,7 +160,7 @@ bmpDisplayBMP0 (
 // #todo:
 // Testar validade do endereço.
     if (address == 0){
-        gwssrv_debug_print ("bmpDisplayBMP0: address\n");
+        //server_debug_print ("bmpDisplayBMP0: address\n");
         printf ("bmpDisplayBMP0: address\n");
         goto fail;
     }
@@ -177,7 +177,7 @@ bmpDisplayBMP0 (
 
     if ( bmp[0] != 'B' || bmp[1] != 'M' )
     {
-        gwssrv_debug_print ("bmpDisplayBMP0: [FAIL] signature \n");
+        //server_debug_print ("bmpDisplayBMP0: [FAIL] signature \n");
         printf  ("bmpDisplayBMP0: [FAIL] signature %c %c\n", 
             bmp[0], bmp[1]);
         goto fail;
@@ -223,7 +223,7 @@ bmpDisplayBMP0 (
     bi = (struct gws_bmp_infoheader_d *) malloc ( sizeof(struct gws_bmp_infoheader_d) );
     if ( (void *) bi == NULL )
     {
-        gwssrv_debug_print ("bmpDisplayBMP: bi fail \n");
+        server_debug_print ("bmpDisplayBMP: bi fail \n");
         printf             ("bmpDisplayBMP: bi fail \n");
         goto fail;
     }
@@ -280,7 +280,7 @@ bmpDisplayBMP0 (
 /*
     //__Local_bi.bmpCompression = *(unsigned int *) &bmp[30];
     if (__Local_bi.bmpCompression != 0){
-        gwssrv_debug_print ("bmpDisplayBMP: bmpCompression fail \n");
+        server_debug_print ("bmpDisplayBMP: bmpCompression fail \n");
         printf             ("bmpDisplayBMP: bmpCompression fail \n");
         goto fail;
     }
@@ -309,7 +309,7 @@ bmpDisplayBMP0 (
 //
 
     //#debug
-    //gwssrv_debug_print ("bmpDisplayBMP: Draw!\n");
+    //server_debug_print ("bmpDisplayBMP: Draw!\n");
     //printf             ("bmpDisplayBMP: Draw!\n");
 
 // Top, Left, Bottom.
@@ -405,12 +405,12 @@ bmpDisplayBMP0 (
     default:  
         //base = 0x36;
         base = (OffsetForBase + 0);
-        gwssrv_debug_print ("bmpDisplayBMP0: [FAIL] bmpBitCount fail\n"); 
+        //server_debug_print ("bmpDisplayBMP0: [FAIL] bmpBitCount fail\n"); 
         break;
     };
 
     //#debug
-    //gwssrv_debug_print ("bmpDisplayBMP: for\n");
+    //server_debug_print ("bmpDisplayBMP: for\n");
     //printf             ("bmpDisplayBMP: for\n");
 
 //
@@ -658,14 +658,14 @@ done:
     }
 
     // #debug
-    //gwssrv_debug_print ("bmpDisplayBMP0: done \n");
+    //server_debug_print ("bmpDisplayBMP0: done \n");
     //printf             ("bmpDisplayBMP0: done \n");
     //printf("w={%d} h={%d}\n", __Local_bi.bmpWidth, __Local_bi.bmpHeight );
 
     return 0;
 
 fail:
-    gwssrv_debug_print ("bmpDisplayBMP0: fail\n");
+    //server_debug_print ("bmpDisplayBMP0: fail\n");
     printf             ("bmpDisplayBMP0: fail\n");
     return (int) -1;
 }
@@ -726,7 +726,7 @@ bmp_decode_system_icon0 (
     if ( sm_buffer[0] != 'B' || sm_buffer[1] != 'M' )
     {
         // #debug
-        gwssrv_debug_print ("gwssrv_display_system_icon: [FAIL] header\n");
+        //server_debug_print ("gwssrv_display_system_icon: [FAIL] header\n");
         printf             ("gwssrv_display_system_icon: [FAIL] header\n");
         printf ("gwssrv_display_system_icon: %c %c\n", 
             &sm_buffer[0], &sm_buffer[1] );

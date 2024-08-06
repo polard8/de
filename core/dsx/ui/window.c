@@ -723,6 +723,11 @@ void *doCreateWindow (
     window->prev = (void *) Parent;
     window->next = NULL;
 
+// Default: We still do not have an iconic window associated with us.
+    window->_iconic = NULL;
+// Default: We're not the icon for another window.
+    window->is_iconic = FALSE;
+
 // ===================================
 // Sublings
     //window->subling_list = NULL;
@@ -1606,7 +1611,7 @@ void *doCreateWindow (
         // #debug: 
         // Se o botão não tem uma parent window.
         if ((void*) Parent == NULL){
-            gwssrv_debug_print ("doCreateWindow: [WT_BUTTON] Parent NULL\n"); 
+            //server_debug_print ("doCreateWindow: [WT_BUTTON] Parent NULL\n"); 
         }
 
         // Se o botão tem uma parent window.
@@ -1706,7 +1711,7 @@ void *CreateWindow (
     int ValidType=FALSE;
     size_t text_size = 0;
 
-    //gwssrv_debug_print ("CreateWindow:\n");
+    //server_debug_print ("CreateWindow:\n");
 
     unsigned int FrameColor;
     unsigned int ClientAreaColor;
@@ -1787,7 +1792,7 @@ void *CreateWindow (
 
     // #todo: if (ValidType != TRUE){
     if (ValidType == FALSE){
-        gwssrv_debug_print ("CreateWindow: Invalid type\n");
+        //server_debug_print ("CreateWindow: Invalid type\n");
         goto fail;
     }
 
@@ -1818,7 +1823,7 @@ void *CreateWindow (
 // Overlapped
     if (type == WT_OVERLAPPED)
     {
-        //gwssrv_debug_print ("CreateWindow: WT_OVERLAPPED\n");
+        //server_debug_print ("CreateWindow: WT_OVERLAPPED\n");
         
         // #test
         // #todo: precisamos de um request que selecione
@@ -1865,8 +1870,8 @@ void *CreateWindow (
                          (unsigned long) __rop_flags ); 
 
         if ((void *) __w == NULL){
-             gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
-             goto fail;
+            //server_debug_print ("CreateWindow: doCreateWindow fail\n");
+            goto fail;
         }
 
         //if (__w->style & WS_MAXIMIZED){
@@ -1893,7 +1898,7 @@ void *CreateWindow (
 // Podemos usar o esquema padrão de cores ...
     if ( type == WT_EDITBOX || type == WT_EDITBOX_MULTIPLE_LINES )
     {
-        //gwssrv_debug_print ("CreateWindow: WT_EDITBOX WT_EDITBOX_MULTIPLE_LINES \n");
+        //server_debug_print ("CreateWindow: WT_EDITBOX WT_EDITBOX_MULTIPLE_LINES \n");
 
         //if ( (void*) pWindow == NULL ){ return NULL; }
 
@@ -1913,10 +1918,10 @@ void *CreateWindow (
                          FrameColor, ClientAreaColor, 
                          (unsigned long) __rop_flags ); 
 
-         if ( (void *) __w == NULL ){
-             gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
-             goto fail;
-         }
+        if ((void *) __w == NULL){
+            //server_debug_print ("CreateWindow: doCreateWindow fail\n");
+            goto fail;
+        }
 
         //--------------------
         // Let's setup the buffer for the text.
@@ -1952,7 +1957,7 @@ void *CreateWindow (
 // Podemos usar o esquema padrão de cores ...
     if (type == WT_BUTTON)
     {
-        //gwssrv_debug_print ("CreateWindow: WT_BUTTON \n");
+        //server_debug_print ("CreateWindow: WT_BUTTON \n");
       
         //if ( (void*) pWindow == NULL ){ return NULL; }
 
@@ -1973,8 +1978,8 @@ void *CreateWindow (
                          (unsigned long) __rop_flags );
 
          if ((void *) __w == NULL){
-             gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
-             goto fail;
+            //server_debug_print ("CreateWindow: doCreateWindow fail\n");
+            goto fail;
          }
 
         // Pintamos simples, mas a tipagem será overlapped.
@@ -1990,7 +1995,7 @@ void *CreateWindow (
 // Simple
     if (type == WT_SIMPLE)
     {
-        //gwssrv_debug_print ("CreateWindow: WT_SIMPLE \n");
+        //server_debug_print ("CreateWindow: WT_SIMPLE \n");
 
         __w = 
             (void *) doCreateWindow ( 
@@ -2005,10 +2010,10 @@ void *CreateWindow (
                          FrameColor, ClientAreaColor, 
                          (unsigned long) __rop_flags );  
 
-         if ( (void *) __w == NULL ){
-             gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
-             goto fail;
-         }
+        if ((void *) __w == NULL){
+            //server_debug_print ("CreateWindow: doCreateWindow fail\n");
+            goto fail;
+        }
 
         __w->type = WT_SIMPLE;
         //__w->locked = FALSE;
@@ -2021,7 +2026,7 @@ void *CreateWindow (
 
     if (type == WT_ICON)
     {
-        //gwssrv_debug_print ("CreateWindow: WT_ICON\n");
+        //server_debug_print ("CreateWindow: WT_ICON\n");
 
         __w = 
             (void *) doCreateWindow ( 
@@ -2036,10 +2041,10 @@ void *CreateWindow (
                          FrameColor, ClientAreaColor, 
                          (unsigned long) __rop_flags );  
 
-         if ((void *) __w == NULL){
-             gwssrv_debug_print("CreateWindow: doCreateWindow fail\n");
-             goto fail;
-         }
+        if ((void *) __w == NULL){
+            //server_debug_print("CreateWindow: doCreateWindow fail\n");
+            goto fail;
+        }
 
         __w->type = WT_ICON;
         //__w->locked = FALSE;
@@ -2051,7 +2056,7 @@ void *CreateWindow (
 // ---------------------
 
 //type_fail:
-    gwssrv_debug_print ("CreateWindow: [FAIL] type\n");
+    //server_debug_print ("CreateWindow: [FAIL] type\n");
     goto fail;
 
 //
@@ -2069,11 +2074,11 @@ draw_frame:
 // como as bordas de um editbox.
 
     if ((void*) __w == NULL){
-        gwssrv_debug_print ("CreateWindow.draw_frame: __w\n");
+        //server_debug_print ("CreateWindow.draw_frame: __w\n");
         goto fail;
     }
     if (__w->magic != 1234){
-        gwssrv_debug_print ("CreateWindow.draw_frame: __w->magic\n");
+        //server_debug_print ("CreateWindow.draw_frame: __w->magic\n");
         goto fail;
     }
 
@@ -2135,7 +2140,7 @@ draw_frame:
 
 // level
 // #test
-    //gwssrv_debug_print ("CreateWindow.draw_frame: level stuff \n");    
+    //server_debug_print ("CreateWindow.draw_frame: level stuff \n");    
 
     if ((void*) pWindow != NULL){
         __w->level = (pWindow->level + 1);
@@ -2143,6 +2148,15 @@ draw_frame:
     if ((void*) pWindow == NULL){
         __w->level = 0;
     }
+
+
+// ================================
+
+    /*
+    if (type == WT_OVERLAPPED)
+    {
+    }
+    */
 
 // ===============
 // Unlock the window
@@ -2157,7 +2171,7 @@ draw_frame:
     __w->dirty = TRUE;
     return (void *) __w;
 fail:
-    gwssrv_debug_print ("CreateWindow: Fail\n");
+    //server_debug_print ("CreateWindow: Fail\n");
     return NULL;
 }
 
@@ -2211,7 +2225,7 @@ int RegisterWindow(struct gws_window_d *window)
     };
 // After the loop.
 fail:
-    //gwssrv_debug_print("No more slots\n");
+    //server_debug_print("No more slots\n");
     return (int) (-1);
 }
 
@@ -2395,7 +2409,10 @@ void MinimizeAllWindows(void)
                 if (tmp->magic == 1234)
                 {
                     if (tmp->type == WT_OVERLAPPED)
+                    {
                         tmp->state = WINDOW_STATE_MINIMIZED;
+                        //tmp->enabled = FALSE;
+                    }
                 }
             }
         }
@@ -2418,7 +2435,10 @@ void MaximizeAllWindows(void)
                 if (tmp->magic == 1234)
                 {
                     if (tmp->type == WT_OVERLAPPED)
+                    {
                         tmp->state = WINDOW_STATE_MAXIMIZED;
+                        //tmp->enabled = TRUE;
+                    }
                 }
             }
         }
@@ -2443,7 +2463,10 @@ void RestoreAllWindows(void)
                 if (tmp->magic == 1234)
                 {
                     if (tmp->type == WT_OVERLAPPED)
+                    {
                         tmp->state = WINDOW_STATE_NORMAL;
+                        //tmp->enabled = TRUE;
+                    }
                 }
             }
         }
@@ -2538,29 +2561,98 @@ void change_window_state(struct gws_window_d *window, int state)
 
 void maximize_window(struct gws_window_d *window)
 {
-    if ((void*)window==NULL)
+
+// Parameter:
+    if ((void*)window == NULL)
         return;
-    if (window->magic!=1234)
+    if (window->magic != 1234)
         return;
+
+// We only maximize application windows.
+    if (window->type != WT_OVERLAPPED)
+        return;
+
+// Enable input for overlapped window.
+    window->enabled = TRUE;
+
+// 
     change_window_state(window,WINDOW_STATE_MAXIMIZED);
 
-// Update the desktop respecting the current zorder.
-    //wm_update_desktop2();
+// #test
+// Using the working area
+    unsigned long l = WindowManager.wa.left;
+    unsigned long t = WindowManager.wa.top;
+    unsigned long w = WindowManager.wa.width;
+    unsigned long h = WindowManager.wa.height;
+    if ( w==0 || h==0 ){
+        return;
+    }
+    gws_resize_window( window, 
+        (w -4), 
+        (h -4));
+    gwssrv_change_window_position( window, 
+        (l +2), 
+        (t +2) );
 
-    // ...
+// Set focus
+    set_focus(window);
+// Redraw and show window
+    redraw_window(window,TRUE);
+
+// Send message to the app to repaint all the childs.
+    window_post_message( window->id, GWS_Paint, 0, 0 );
 }
 
+// #test
+// Minimize a window
+// #ps: We do not have support for iconic window yet.
 void minimize_window(struct gws_window_d *window)
 {
-    if ((void*)window==NULL)
+
+// Parameter:
+    if ((void*)window == NULL)
         return;
-    if (window->magic!=1234)
+    if (window->magic != 1234)
         return;
+
+// We only minimize application windows.
+    if (window->type != WT_OVERLAPPED)
+        return;
+
+
+// The minimized window can't receive input.
+// The iconic window that belongs to the minimized window
+// will be able to receive input.
+// To restore this window, we need to do it via the iconic window.
+    window->enabled = FALSE;
+
+// Change the state
     change_window_state(window,WINDOW_STATE_MINIMIZED);
+
+
+// Maybe we're still the active window,
+// even minimized.
+    //if (window == active_window)
+    // ...
+
+
+// Focus?
+// Is the wwf one of our childs?
+// Change the falg to 'not receiving input'.
+    struct gws_window_d *wwf;
+    wwf = (struct gws_window_d *) keyboard_owner;
+    if ((void*) wwf != NULL)
+    {
+        if (wwf->magic == 1234)
+        {
+            if (wwf->parent == window){
+                wwf->enabled = FALSE; // Can't receive input anymore.
+            }
+        }
+    }
 
 // Update the desktop respecting the current zorder.
     wm_update_desktop2();
-
     // ...
 }
 

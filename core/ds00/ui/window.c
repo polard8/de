@@ -1611,7 +1611,7 @@ void *doCreateWindow (
         // #debug: 
         // Se o botão não tem uma parent window.
         if ((void*) Parent == NULL){
-            gwssrv_debug_print ("doCreateWindow: [WT_BUTTON] Parent NULL\n"); 
+            //server_debug_print ("doCreateWindow: [WT_BUTTON] Parent NULL\n"); 
         }
 
         // Se o botão tem uma parent window.
@@ -1711,7 +1711,7 @@ void *CreateWindow (
     int ValidType=FALSE;
     size_t text_size = 0;
 
-    //gwssrv_debug_print ("CreateWindow:\n");
+    //server_debug_print ("CreateWindow:\n");
 
     unsigned int FrameColor;
     unsigned int ClientAreaColor;
@@ -1792,7 +1792,7 @@ void *CreateWindow (
 
     // #todo: if (ValidType != TRUE){
     if (ValidType == FALSE){
-        gwssrv_debug_print ("CreateWindow: Invalid type\n");
+        //server_debug_print ("CreateWindow: Invalid type\n");
         goto fail;
     }
 
@@ -1823,7 +1823,7 @@ void *CreateWindow (
 // Overlapped
     if (type == WT_OVERLAPPED)
     {
-        //gwssrv_debug_print ("CreateWindow: WT_OVERLAPPED\n");
+        //server_debug_print ("CreateWindow: WT_OVERLAPPED\n");
         
         // #test
         // #todo: precisamos de um request que selecione
@@ -1870,8 +1870,8 @@ void *CreateWindow (
                          (unsigned long) __rop_flags ); 
 
         if ((void *) __w == NULL){
-             gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
-             goto fail;
+            //server_debug_print ("CreateWindow: doCreateWindow fail\n");
+            goto fail;
         }
 
         //if (__w->style & WS_MAXIMIZED){
@@ -1898,7 +1898,7 @@ void *CreateWindow (
 // Podemos usar o esquema padrão de cores ...
     if ( type == WT_EDITBOX || type == WT_EDITBOX_MULTIPLE_LINES )
     {
-        //gwssrv_debug_print ("CreateWindow: WT_EDITBOX WT_EDITBOX_MULTIPLE_LINES \n");
+        //server_debug_print ("CreateWindow: WT_EDITBOX WT_EDITBOX_MULTIPLE_LINES \n");
 
         //if ( (void*) pWindow == NULL ){ return NULL; }
 
@@ -1919,7 +1919,7 @@ void *CreateWindow (
                          (unsigned long) __rop_flags ); 
 
         if ((void *) __w == NULL){
-            gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
+            //server_debug_print ("CreateWindow: doCreateWindow fail\n");
             goto fail;
         }
 
@@ -1957,7 +1957,7 @@ void *CreateWindow (
 // Podemos usar o esquema padrão de cores ...
     if (type == WT_BUTTON)
     {
-        //gwssrv_debug_print ("CreateWindow: WT_BUTTON \n");
+        //server_debug_print ("CreateWindow: WT_BUTTON \n");
       
         //if ( (void*) pWindow == NULL ){ return NULL; }
 
@@ -1978,8 +1978,8 @@ void *CreateWindow (
                          (unsigned long) __rop_flags );
 
          if ((void *) __w == NULL){
-             gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
-             goto fail;
+            //server_debug_print ("CreateWindow: doCreateWindow fail\n");
+            goto fail;
          }
 
         // Pintamos simples, mas a tipagem será overlapped.
@@ -1995,7 +1995,7 @@ void *CreateWindow (
 // Simple
     if (type == WT_SIMPLE)
     {
-        //gwssrv_debug_print ("CreateWindow: WT_SIMPLE \n");
+        //server_debug_print ("CreateWindow: WT_SIMPLE \n");
 
         __w = 
             (void *) doCreateWindow ( 
@@ -2010,10 +2010,10 @@ void *CreateWindow (
                          FrameColor, ClientAreaColor, 
                          (unsigned long) __rop_flags );  
 
-         if ( (void *) __w == NULL ){
-             gwssrv_debug_print ("CreateWindow: doCreateWindow fail\n");
-             goto fail;
-         }
+        if ((void *) __w == NULL){
+            //server_debug_print ("CreateWindow: doCreateWindow fail\n");
+            goto fail;
+        }
 
         __w->type = WT_SIMPLE;
         //__w->locked = FALSE;
@@ -2026,7 +2026,7 @@ void *CreateWindow (
 
     if (type == WT_ICON)
     {
-        //gwssrv_debug_print ("CreateWindow: WT_ICON\n");
+        //server_debug_print ("CreateWindow: WT_ICON\n");
 
         __w = 
             (void *) doCreateWindow ( 
@@ -2041,10 +2041,10 @@ void *CreateWindow (
                          FrameColor, ClientAreaColor, 
                          (unsigned long) __rop_flags );  
 
-         if ((void *) __w == NULL){
-             gwssrv_debug_print("CreateWindow: doCreateWindow fail\n");
-             goto fail;
-         }
+        if ((void *) __w == NULL){
+            //server_debug_print("CreateWindow: doCreateWindow fail\n");
+            goto fail;
+        }
 
         __w->type = WT_ICON;
         //__w->locked = FALSE;
@@ -2056,7 +2056,7 @@ void *CreateWindow (
 // ---------------------
 
 //type_fail:
-    gwssrv_debug_print ("CreateWindow: [FAIL] type\n");
+    //server_debug_print ("CreateWindow: [FAIL] type\n");
     goto fail;
 
 //
@@ -2074,11 +2074,11 @@ draw_frame:
 // como as bordas de um editbox.
 
     if ((void*) __w == NULL){
-        gwssrv_debug_print ("CreateWindow.draw_frame: __w\n");
+        //server_debug_print ("CreateWindow.draw_frame: __w\n");
         goto fail;
     }
     if (__w->magic != 1234){
-        gwssrv_debug_print ("CreateWindow.draw_frame: __w->magic\n");
+        //server_debug_print ("CreateWindow.draw_frame: __w->magic\n");
         goto fail;
     }
 
@@ -2140,7 +2140,7 @@ draw_frame:
 
 // level
 // #test
-    //gwssrv_debug_print ("CreateWindow.draw_frame: level stuff \n");    
+    //server_debug_print ("CreateWindow.draw_frame: level stuff \n");    
 
     if ((void*) pWindow != NULL){
         __w->level = (pWindow->level + 1);
@@ -2171,7 +2171,7 @@ draw_frame:
     __w->dirty = TRUE;
     return (void *) __w;
 fail:
-    gwssrv_debug_print ("CreateWindow: Fail\n");
+    //server_debug_print ("CreateWindow: Fail\n");
     return NULL;
 }
 
@@ -2225,7 +2225,7 @@ int RegisterWindow(struct gws_window_d *window)
     };
 // After the loop.
 fail:
-    //gwssrv_debug_print("No more slots\n");
+    //server_debug_print("No more slots\n");
     return (int) (-1);
 }
 

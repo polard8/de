@@ -1,4 +1,3 @@
-
 // grprim.c 
 // Primitives.
 // 2020 - Created by Fred Nora.
@@ -149,11 +148,11 @@ int grInit(void)
     unsigned long deviceWidth  = gws_get_device_width();
     unsigned long deviceHeight = gws_get_device_height();
 
-    gwssrv_debug_print("grInit:\n");
+    server_debug_print("grInit:\n");
 
     if ( deviceWidth == 0 || deviceHeight == 0 )
     {
-        gwssrv_debug_print ("grInit: [FAIL] w h\n");
+        //server_debug_print ("grInit: [FAIL] w h\n");
         printf             ("grInit: [FAIL] w h\n");
         exit(1);
     }
@@ -168,7 +167,7 @@ int grInit(void)
 // == Projection =========
 // Initialize the current projection.
 // Change the view for the current projection.
-    gwssrv_debug_print("grInit: projection\n");
+    //server_debug_print("grInit: projection\n");
     projection_initialize();
 // Changing the view for the current projection.
     gr_depth_range(CurrentProjection,0,40);
@@ -177,7 +176,7 @@ int grInit(void)
 // Initialize the current camera.
 // Change some attributes for the current camera.
 // The projection is a field in the camera's structure.
-    gwssrv_debug_print ("grInit: camera\n");
+    //server_debug_print ("grInit: camera\n");
     camera_initialize();
     camera ( 
         -40, -40, 0,     // position vector
@@ -186,7 +185,7 @@ int grInit(void)
 
     // ...
 
-    //gwssrv_debug_print ("grInit: done\n");
+    //server_debug_print ("grInit: done\n");
     return 0;
 }
 
@@ -773,7 +772,7 @@ int serviceGrPlot0 (void)
     unsigned long z=0;
     unsigned long color=0;
 
-    gwssrv_debug_print("serviceGrPlot0: [TODO] \n");
+    //server_debug_print("serviceGrPlot0: [TODO] \n");
 
 // =================================
 // Arguments:
@@ -1467,7 +1466,7 @@ do_polypoint:
     {
         v1 = (struct gr_vec3D_d *) list[i];
         if ((void*) v1 == NULL){ 
-            gwssrv_debug_print(">>>> BREAK\n");
+            //server_debug_print(">>>> BREAK\n");
             break;
         }
 
@@ -1492,11 +1491,11 @@ do_polyline:
         if ( (void*) v1 == NULL || 
              (void*) v2 == NULL )
         { 
-            gwssrv_debug_print(">>>> BREAK\n");
+            //server_debug_print(">>>> BREAK\n");
             break; 
         }
 
-        gwssrv_debug_print(">>>> DRAW LINE\n");
+        //server_debug_print(">>>> DRAW LINE\n");
     
         // Plot
         
@@ -1508,7 +1507,7 @@ do_polyline:
     return 0;
 
 fail:
-    gwssrv_debug_print("xxxPolygonZ: fail\n");
+    //server_debug_print("xxxPolygonZ: fail\n");
     return -1;
 }
 

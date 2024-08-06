@@ -52,7 +52,9 @@ void comp_set_mouse_position(long x, long y);
 void comp_initialize_mouse(void);
 void mouse_at(void);
 
-void set_refresh_pointer_status(int value);
+// Sinaliza que precisamos apagar o ponteiro do mouse,
+// copiando o conteudo do backbuffer no LFB.
+void DoWeNeedToEraseMousePointer(int value);
 
 #endif    
 

@@ -4,6 +4,24 @@
 #ifndef __GWSSRV_GLOBALS_H
 #define __GWSSRV_GLOBALS_H   1
 
+
+// ============================
+// OS modes
+#define GRAMADO_JAIL        0x00
+#define GRAMADO_P1          0x01
+#define GRAMADO_HOME        0x02  // --o--
+#define GRAMADO_P2          0x03
+#define GRAMADO_CASTLE      0x04
+//#define GRAMADO_CALIFORNIA  0x05
+extern int os_mode;
+
+// ============================
+// Server modes
+#define SERVER_MODE_SERVER  1
+#define SERVER_MODE_DEMO    2
+// ...
+extern int server_mode;
+
 extern int gUseCallback;
 extern int gUseMouse;
 
@@ -107,17 +125,6 @@ extern struct server_state_d ServerState;
 extern char *host_name;
 extern char *display_number;
 extern char *screen_number;
-
-
-// ============================
-// Modes.
-#define GRAMADO_JAIL        0x00
-#define GRAMADO_P1          0x01
-#define GRAMADO_HOME        0x02
-#define GRAMADO_P2          0x03
-#define GRAMADO_CASTLE      0x04
-#define GRAMADO_CALIFORNIA  0x05
-extern int current_mode;
 
 
 

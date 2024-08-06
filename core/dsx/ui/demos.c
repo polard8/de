@@ -6,7 +6,7 @@
 // But maybe it will be useful for effects.
 // Created by Fred Nora.
 
-#include "gwsint.h"
+#include "../gwsint.h"
 
 int gUseDemos = TRUE;
 
@@ -191,8 +191,8 @@ void demoLine1(void)
     int x1 = 0, y1 = 0,
         x2 = 0, y2 = height;
 
-// Valid mode.
-    if (current_mode != GRAMADO_JAIL){
+// Valid os mode
+    if (os_mode != GRAMADO_JAIL){
         return;
     }
 
@@ -367,12 +367,10 @@ void demoPolygon(void)
     v4->z =  0;
     v4->color = COLOR_WHITE;
 
-    gwssrv_debug_print("calling xxxPolygonZ\n");
+    //server_debug_print("calling xxxPolygonZ\n");
 
     // Draw
-
     xxxPolygonZ(p);
-
     // Show
     demoFlushSurface();  
     
@@ -381,7 +379,7 @@ void demoPolygon(void)
     };
     };   //while
 
-    gwssrv_debug_print("DONE\n");
+    //server_debug_print("DONE\n");
     //printf ("DONE\n");
 }
 
@@ -500,9 +498,9 @@ void demoPolygon2(void)
     v4->z = 0;
     v4->color = COLOR_WHITE;
 
-    gwssrv_debug_print("calling xxxPolygonZ\n");
+    //server_debug_print("calling xxxPolygonZ\n");
 
-// Draw
+    // Draw
 
     //p->type = POLYGON_POLYPOINT;
     //xxxPolygonZ(p);
@@ -520,7 +518,7 @@ void demoPolygon2(void)
     };
     };   //while
 
-    gwssrv_debug_print("DONE\n");
+    //server_debug_print("DONE\n");
     //printf ("DONE\n");
 }
 

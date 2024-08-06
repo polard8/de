@@ -101,12 +101,11 @@ myObjects += libgr.o
 
 myObjects += n1_osdep.o
 
-myObjects += o1_vwc.o
-myObjects += o2_vwlib.o
-myObjects += o3_vwui.o
+myObjects += o1_comp.o
+myObjects += o2_libui.o
+myObjects += o3_ui.o
 
-myObjects += p1_root.o    
-
+myObjects += p1_srv.o    
 
 .PHONY: all all-c gws-link finalize clean
 
@@ -116,34 +115,23 @@ main.o:
 	$(CC) -c main.c $(CFLAGS) $(CINCLUDES) -o main.o
 all-c:
 
-# n
+# n (osdep)
 	make -C osdep/
-# o
-	make -C vwc/
-	make -C vwlib/
-	make -C vwui/
 
-# p
-	$(CC) -c callback.c  $(CFLAGS) $(CINCLUDES) -o callback.o
-	$(CC) -c client.c    $(CFLAGS) $(CINCLUDES) -o client.o
-	$(CC) -c demos.c     $(CFLAGS) $(CINCLUDES) -o demos.o
-	$(CC) -c globals.c   $(CFLAGS) $(CINCLUDES) -o globals.o
-	$(CC) -c gws.c       $(CFLAGS) $(CINCLUDES) -o gws.o
-	$(CC) -c sprite.c    $(CFLAGS) $(CINCLUDES) -o sprite.o
-	$(CC) -c shutdown.c  $(CFLAGS) $(CINCLUDES) -o shutdown.o
-#	$(CC) -c zres/grinput.c   $(CFLAGS) $(CINCLUDES) -o grinput.o
-	$(LD) -r -o p1_root.o \
-callback.o client.o demos.o \
-globals.o gws.o sprite.o shutdown.o    
+# o (engine)
+	make -C comp/
+	make -C libui/
+	make -C ui/
 
-#
-# == imported objects =============================
-#
+# p (server)
+	make -C srv/
 
-# rtl/
+gws-link:
+
+# Import objects
+
 	cp $(LIBCOBJ)/crt0.o .
 	cp $(LIBCOBJ)/rtl.o .
-
 	cp $(LIBCOBJ)/ctype.o .
 	cp $(LIBCOBJ)/stdio.o .
 	cp $(LIBCOBJ)/stdlib.o .
@@ -157,25 +145,28 @@ globals.o gws.o sprite.o shutdown.o
 	cp $(LIBCOBJ)/fcntl.o .
 
 	cp $(LIBDISPOBJ)/libdisp.o .
+
 	cp $(LIBGROBJ)/libgr.o .
 
-gws-link:
+# Link
+
 	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)
+
 finalize:
-#	cp $(linkTarget) ../bin/
 	cp $(linkTarget) bin/
 clean:
 	-rm *.o
 	-rm osdep/*.o
-	-rm vwc/*.o
-	-rm vwlib/*.o
-	-rm vwui/*.o
+	-rm comp/*.o
+	-rm libui/*.o
+	-rm ui/*.o
 	-rm $(linkTarget)
 clean-all:
 	-rm *.o
 	-rm osdep/*.o
-	-rm vwc/*.o
-	-rm vwlib/*.o
-	-rm vwui/*.o
+	-rm comp/*.o
+	-rm libui/*.o
+	-rm ui/*.o
 	-rm $(linkTarget)
 	-rm bin/*.BIN 
+

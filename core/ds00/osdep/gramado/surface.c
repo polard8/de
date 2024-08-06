@@ -120,7 +120,7 @@ void *xxxCreateSurfaceWindow(
 // não do jeito antigo.
     unsigned long message_buffer[12];
 
-    gwssrv_debug_print ("xxxCreateSurfaceWindow: \n");
+    //server_debug_print ("xxxCreateSurfaceWindow: \n");
 
 	message_buffer[0]  = (unsigned long) type;
 	message_buffer[1]  = (unsigned long) status;
@@ -146,7 +146,7 @@ void *xxxCreateSurfaceWindow(
                      (unsigned long) &message_buffer[0] );
 
     if ( (void *) wObjectPointer == NULL ){
-        gwssrv_debug_print ("xxxCreateSurfaceWindow: [FAIL] wObjectPointer\n");
+        //server_debug_print ("xxxCreateSurfaceWindow: [FAIL] wObjectPointer\n");
         return NULL;  
     }
 

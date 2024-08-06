@@ -1,5 +1,5 @@
 
-# comp/
+# ui/
 
 # GRAMLAND.BIN
 # GWS - Gramland Window Server.
@@ -96,7 +96,13 @@ CINCLUDES += -I .
 CINCLUDES += -I ../
     
 # Objects
-myObjects = comp.o    
+myObjects = wm.o \
+bmp.o \
+menu.o \
+font.o \
+painter.o \
+window.o \
+bar.o wa.o swamp.o sprite.o demos.o gws.o   
 
 
 .PHONY: all all-c gws-link finalize clean
@@ -105,15 +111,29 @@ all: main.o all-c gws-link finalize clean
 	@echo "Ok?"
 main.o:
 #	$(CC)  -c grinput.c  $(CFLAGS) $(CINCLUDES) -o grinput.o
+	$(CC)  -c wm.c    $(CFLAGS) $(CINCLUDES) -o wm.o
 all-c:
-#	$(CC)  -c grinput.c  $(CFLAGS) $(CINCLUDES) -o grinput.o
-	$(CC)  -c comp.c  $(CFLAGS) $(CINCLUDES) -o comp.o   
+
+	$(CC) -c bmp.c       $(CFLAGS) $(CINCLUDES) -o bmp.o
+
+	$(CC)  -c menu.c     $(CFLAGS) $(CINCLUDES) -o menu.o
+	$(CC)  -c font.c     $(CFLAGS) $(CINCLUDES) -o font.o
+	$(CC)  -c painter.c  $(CFLAGS) $(CINCLUDES) -o painter.o
+	$(CC)  -c window.c   $(CFLAGS) $(CINCLUDES) -o window.o
+
+	$(CC)  -c bar.c    $(CFLAGS) $(CINCLUDES) -o bar.o
+	$(CC)  -c wa.c     $(CFLAGS) $(CINCLUDES) -o wa.o
+	$(CC)  -c swamp.c  $(CFLAGS) $(CINCLUDES) -o swamp.o
+
+	$(CC) -c sprite.c    $(CFLAGS) $(CINCLUDES) -o sprite.o
+	$(CC) -c demos.c     $(CFLAGS) $(CINCLUDES) -o demos.o
+	$(CC) -c gws.c       $(CFLAGS) $(CINCLUDES) -o gws.o
 
 gws-link:
 #	$(LD) $(linkFlags) -o $(linkTarget) $(myObjects)
 # link
-	$(LD) -r -o o1_vwc.o $(myObjects)
-	cp o1_vwc.o ../
+	$(LD) -r -o o3_ui.o $(myObjects)
+	cp o3_ui.o ../
 	rm *.o
 
 finalize:

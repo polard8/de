@@ -2,7 +2,7 @@
 // Part of the display server.
 // 2019 - Created by Fred Nora.
 
-#include "gwsint.h"
+#include "../gwsint.h"
 
 // Flag for the whole screen.
 static int __dirty = FALSE;
@@ -105,7 +105,7 @@ void ____test_threads (void)
     unsigned long *threadstack1;
 
     //++
-    gwssrv_enter_critical_section();
+    server_enter_critical_section();
 
 // #importante:
 // Como a torina de thread � bem pequena e o 
@@ -149,13 +149,12 @@ void ____test_threads (void)
 // Logo em seguida a rotinad e taskswitch efetua o spawn.
 
     gwssrv_start_thread (ThreadTest1);
-    gwssrv_exit_critical_section ();
+    server_exit_critical_section ();
     //--
 
     printf ("____test_threads: Tentando executar um thread [ok]..\n");
     //permitir que o shell continue.
 }
-
 
 /*
  * gwssrv_create_thread:
@@ -171,14 +170,13 @@ void *gwssrv_create_thread (
     char *name )
 {
     //#define	SYSTEMCALL_CREATETHREAD     72
-    gwssrv_debug_print ("gwssrv_create_thread:\n");
+    //server_debug_print ("gwssrv_create_thread:\n");
     return (void *) gramado_system_call ( 
                         72,  //SYSTEMCALL_CREATETHREAD, 
                         init_eip, 
                         init_stack, 
                         (unsigned long) name );
 }
-
 
 /*
  * gwssrv_start_thread:
@@ -194,14 +192,12 @@ void gwssrv_start_thread (void *thread)
         (unsigned long) thread );
 }
 
-
 int service_drain_input (void)
 {
-    gwssrv_debug_print ("service_drain_input: [TODO]\n");
+    //server_debug_print ("service_drain_input: [TODO]\n");
     //handle_ipc_message();
     return -1;
 }
-
 
 // refresh the whole screen.
 // #todo: move to view/
@@ -277,9 +273,9 @@ static int __gwssrv_init_globals(void)
 // jail, p1, home, p2, castle ...
 // Check validation and panic if fail.
  
-    current_mode = gwssrv_get_system_metrics(130);
-    if (current_mode < 0){
-        printf ("gwssrv_init_globals: [FAIL] current_mode\n");
+    os_mode = server_get_system_metrics(130);
+    if (os_mode < 0){
+        printf ("__gwssrv_init_globals: os_mode\n");
         exit(1);
     }
 
@@ -300,9 +296,9 @@ static int __gwssrv_init_globals(void)
     ____BACKBUFFER_VA  = (unsigned long) rtl_get_system_metrics(12);
 
 // Screen
-    __device_width  = (unsigned long) gwssrv_get_system_metrics(1);
-    __device_height = (unsigned long) gwssrv_get_system_metrics(2);
-    __device_bpp    = (unsigned long) gwssrv_get_system_metrics(9);
+    __device_width  = (unsigned long) server_get_system_metrics(1);
+    __device_height = (unsigned long) server_get_system_metrics(2);
+    __device_bpp    = (unsigned long) server_get_system_metrics(9);
 
 
 // ==============================
@@ -466,7 +462,7 @@ int gwsInitGUI(void)
     DeviceScreen->char_height = 0;    //todo
 
 // #?
-// We simply used gwssrv_get_system_metrics() to get these addresses.
+// We simply used server_get_system_metrics() to get these addresses.
 // See: gwssrv_init_globals()
 // We need to find a better way to get these addresses,
  // maybe a library. (direct framebuffer library thing)

@@ -995,7 +995,7 @@ __drawrectangle0(
     unsigned long rop_flags,
     int back_or_front )
 {
-    //gwssrv_debug_print("__drawrectangle0: :)\n");
+    //server_debug_print("__drawrectangle0: :)\n");
 
 // Copy.
 
@@ -1008,9 +1008,9 @@ __drawrectangle0(
 // Invalid argument
     if (back_or_front != 1 && back_or_front != 2)
     {
-         //panic("__drawrectangle0: back_or_front\n");
-         gwssrv_debug_print("__drawrectangle0: back_or_front\n");
-         return;
+        //panic("__drawrectangle0: back_or_front\n");
+        //server_debug_print("__drawrectangle0: back_or_front\n");
+        return;
     }
 
 //loop
@@ -1029,7 +1029,7 @@ __drawrectangle0(
     unsigned long deviceHeight = (unsigned long) gws_get_device_height();
 
     if ( deviceWidth == 0 || deviceHeight == 0 ){
-        gwssrv_debug_print ("__drawrectangle0: [PANIC] w h\n");
+        //server_debug_print ("__drawrectangle0: [PANIC] w h\n");
         //panic       ("__drawrectangle0: [PANIC] w h\n");
         return;
     }
@@ -1052,22 +1052,22 @@ __drawrectangle0(
 // Provisório
 
     if ( ClippingRect.width > 800 ){
-        gwssrv_debug_print("__drawrectangle0: width");
+        //server_debug_print("__drawrectangle0: width");
         return;
     }
     
     if ( ClippingRect.height > 600 ){
-        gwssrv_debug_print("__drawrectangle0: height");
+        //server_debug_print("__drawrectangle0: height");
         return;
     }
 
     if ( ClippingRect.right > 800 ){
-        gwssrv_debug_print("__drawrectangle0: right");
+        //server_debug_print("__drawrectangle0: right");
         return;
     }
 
     if ( ClippingRect.bottom > 600 ){
-        gwssrv_debug_print("__drawrectangle0: bottom");
+        //server_debug_print("__drawrectangle0: bottom");
         return;
     }
  
@@ -1112,7 +1112,7 @@ __drawrectangle0(
 // Draw lines on backbuffer.
 
     if ( internal_height > 600 ){
-        gwssrv_debug_print("__drawrectangle0: internal_height");
+        //server_debug_print("__drawrectangle0: internal_height");
         return;
     }
 

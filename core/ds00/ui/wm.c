@@ -2079,8 +2079,8 @@ void do_create_controls(struct gws_window_d *w_titlebar)
             ButtonHeight,   
             w_titlebar, 0, bg_color, bg_color );
 
-    if ( (void *) w_minimize == NULL ){
-        //gwssrv_debug_print ("xx: minimize fail \n");
+    if ((void *) w_minimize == NULL){
+        //server_debug_print ("xx: minimize fail \n");
         return;
     }
     if (w_minimize->magic!=1234){
@@ -2098,7 +2098,7 @@ void do_create_controls(struct gws_window_d *w_titlebar)
 
     id = RegisterWindow(w_minimize);
     if (id<0){
-        gwssrv_debug_print("xxx: Couldn't register w_minimize\n");
+        //server_debug_print("xxx: Couldn't register w_minimize\n");
         return;
     }
     w_titlebar->Controls.minimize_wid = (int) id;
@@ -2122,8 +2122,8 @@ void do_create_controls(struct gws_window_d *w_titlebar)
             ButtonHeight,   
             w_titlebar, 0, bg_color, bg_color );
 
-    if ( (void *) w_maximize == NULL ){
-        //gwssrv_debug_print ("xx: w_maximize fail \n");
+    if ((void *) w_maximize == NULL){
+        //server_debug_print ("xx: w_maximize fail \n");
         return;
     }
     if (w_maximize->magic!=1234){
@@ -2141,7 +2141,7 @@ void do_create_controls(struct gws_window_d *w_titlebar)
 
     id = RegisterWindow(w_maximize);
     if (id<0){
-        gwssrv_debug_print ("xxx: Couldn't register w_maximize\n");
+        //server_debug_print ("xxx: Couldn't register w_maximize\n");
         return;
     }
     w_titlebar->Controls.maximize_wid = (int) id;
@@ -2164,8 +2164,8 @@ void do_create_controls(struct gws_window_d *w_titlebar)
             ButtonHeight,   
             w_titlebar, 0, bg_color, bg_color );
 
-    if ( (void *) w_close == NULL ){
-        //gwssrv_debug_print ("xx: w_close fail \n");
+    if ((void *) w_close == NULL){
+        //server_debug_print ("xx: w_close fail \n");
         return;
     }
     if (w_close->magic!=1234){
@@ -2183,7 +2183,7 @@ void do_create_controls(struct gws_window_d *w_titlebar)
 
     id = RegisterWindow(w_close);
     if (id<0){
-        gwssrv_debug_print ("xxx: Couldn't register w_close\n");
+        //server_debug_print ("xxx: Couldn't register w_close\n");
         return;
     }
     w_titlebar->Controls.close_wid = (int) id;
@@ -2292,7 +2292,7 @@ struct gws_window_d *do_create_titlebar(
                     (unsigned long) rop );   // rop_flags from the parent 
 
     if ((void *) tbWindow == NULL){
-        gwssrv_debug_print ("do_create_titlebar: tbWindow\n");
+        //server_debug_print ("do_create_titlebar: tbWindow\n");
         return NULL;
     }
     tbWindow->type = WT_SIMPLE;
@@ -2552,8 +2552,8 @@ wmCreateWindowFrame (
 // o w.top do retângulo da área de cliente.
 
 // check parent
-    if ( (void*) parent == NULL ){
-        //gwssrv_debug_print ("wmCreateWindowFrame: [FAIL] parent\n");
+    if ((void*) parent == NULL){
+        //server_debug_print ("wmCreateWindowFrame: [FAIL] parent\n");
         return -1;
     }
     if (parent->used != TRUE || parent->magic != 1234){
@@ -2562,7 +2562,7 @@ wmCreateWindowFrame (
 
 // check window
     if ((void*) window == NULL){
-        //gwssrv_debug_print ("wmCreateWindowFrame: [FAIL] window\n");
+        //server_debug_print ("wmCreateWindowFrame: [FAIL] window\n");
         return -1;
     }
     if (window->used != TRUE || window->magic != 1234){
@@ -2648,7 +2648,7 @@ wmCreateWindowFrame (
     };
 
     if (useFrame == FALSE){
-        gwssrv_debug_print ("wmCreateWindowFrame: [ERROR] This type does not use a frame.\n");
+        //server_debug_print ("wmCreateWindowFrame: [ERROR] This type does not use a frame.\n");
         return -1;
     }
 
@@ -2804,7 +2804,7 @@ wmCreateWindowFrame (
             // Register window
             id = RegisterWindow(tbWindow);
             if (id<0){
-                gwssrv_debug_print ("wmCreateWindowFrame: Couldn't register window\n");
+                //server_debug_print ("wmCreateWindowFrame: Couldn't register window\n");
                 return -1;
             }
 
@@ -2891,8 +2891,8 @@ wmCreateWindowFrame (
             // então devemos atualizar a altura da área de cliente.
             window->rcClient.height -= window->statusbar_height;
 
-            if ( (void *) sbWindow == NULL ){
-                gwssrv_debug_print ("wmCreateWindowFrame: sbWindow fail \n");
+            if ((void *) sbWindow == NULL){
+                //server_debug_print ("wmCreateWindowFrame: sbWindow fail \n");
                 return -1;
             }
             sbWindow->type = WT_SIMPLE;
@@ -2901,7 +2901,7 @@ wmCreateWindowFrame (
             // Register window
             id = RegisterWindow(tbWindow);
             if (id<0){
-                gwssrv_debug_print ("wmCreateWindowFrame: Couldn't register window\n");
+                //server_debug_print ("wmCreateWindowFrame: Couldn't register window\n");
                 return -1;
             }
         }
@@ -6070,7 +6070,6 @@ void destroy_window (struct gws_window_d *window)
 }
 */
 
-
 // Color scheme
 int gwssrv_initialize_default_color_scheme(void)
 {
@@ -6085,7 +6084,7 @@ int gwssrv_initialize_default_color_scheme(void)
     cs = (void *) malloc( sizeof(struct gws_color_scheme_d) );
     if ((void *) cs == NULL)
     {
-        gwssrv_debug_print("gwssrv_initialize_color_schemes: cs\n");
+        //server_debug_print("gwssrv_initialize_color_schemes: cs\n");
         printf            ("gwssrv_initialize_color_schemes: cs\n"); 
         goto fail;
     }
@@ -6095,7 +6094,6 @@ int gwssrv_initialize_default_color_scheme(void)
     cs->id = 0;
     cs->name = "Humility";
     cs->style = 0;
-
 
 // Colors
 // size: 32 elements.
@@ -6898,9 +6896,8 @@ gwssrv_change_window_position (
     struct gws_window_d *tmp_window;
     int tmp_wid = -1;
 
-
     if ((void *) window == NULL){
-        gwssrv_debug_print("gwssrv_change_window_position: window\n");
+        //server_debug_print("gwssrv_change_window_position: window\n");
         goto fail;
     }
 

@@ -1,4 +1,3 @@
-
 // painter.c
 // Painter.
 // Drawing the graphical components.
@@ -835,7 +834,7 @@ redraw_window (
             (unsigned int) COLOR_BLACK );  // outter color
 
         // Button label
-        //gwssrv_debug_print ("redraw_window: [FIXME] Button label\n"); 
+        //server_debug_print ("redraw_window: [FIXME] Button label\n"); 
 
         if (Selected == TRUE){
             label_color = window->label_color_when_selected;
