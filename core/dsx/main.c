@@ -181,7 +181,8 @@ const char *cmd_shutdown = "shutdown.bin";  // Shutdown command.
 
 // Client-side GUI applications.
 const char *app_gdm = "gdm.bin";          // Display manager GUI app.
-const char *app_taskbar = "taskbar.bin";  // Taskbar GUI app.
+//const char *app_taskbar = "taskbar.bin";  // Taskbar GUI app.
+const char *app_taskbar = "xtb.bin";  // Taskbar GUI app.
 
 //
 // == Private functions: Prototypes ========
