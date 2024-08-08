@@ -1024,15 +1024,23 @@ int main(int argc, char *argv[])
 
     gws_debug_print ("taskbar.bin: 2 Drawing a char \n");
     //printf        ("taskbar.bin: Drawing a char \n");
-    if(status_window>0)
+    if (main_window > 0)
     {
         gws_draw_char ( 
             client_fd, 
-            status_window, 
-            0, 0, COLOR_YELLOW, 'G' );
+            main_window, 
+            2, 2, COLOR_RED, 'G' );
+         
+         // Símbolo para somatoria.
+         // #ps: The extended ascii chars are working.
+         gws_draw_char ( 
+            client_fd, 
+            main_window, 
+            2 + 8 + 2, 2, COLOR_RED, 228 );
     }
 //====================   
 */
+
 
     // #debug
     //gws_refresh_window (client_fd, tmp1);
