@@ -1,4 +1,6 @@
 # Gramado display server.
+# DS00.BIN is the main display server for Gramado OS.
+
 
 all:
 
@@ -7,11 +9,9 @@ all:
 
 # Display servers
 	make -C ds00/
+# ps: Not time for more display servers.
 #	make -C ds01/
-# ...
-	make -C dsx/
 
 clean:
 	-rm -f ds00/bin/*.BIN
 #	-rm -f ds01/bin/*.BIN
-	-rm -f dsx/bin/*.BIN
