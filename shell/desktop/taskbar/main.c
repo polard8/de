@@ -123,7 +123,7 @@ const char *program_name = "Taskbar";
 const char *start_menu_button_label = "Gramado";
 
 const char *app1_name = "terminal.bin";
-const char *app2_name = "editor.bin";
+const char *app2_name = "terminal.bin";  //"editor.bin";
 
 //static const char *cmdline1 = "gramland -1 -2 -3 --tb";
 
