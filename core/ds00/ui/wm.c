@@ -4596,23 +4596,25 @@ wm_draw_char_into_the_window(
 
     int is_abnt2_printable=FALSE;
 
-    // Not printable for US.
-    if (ascii < 0x20 || ascii >= 0x7F)
+// Control char
+// Do not print
+    if (ascii < 0x20 || ascii == 0x7F)
     {
-        // Control char
-        if (ascii < 0x20 || ascii == 0x7F){
-            is_control = TRUE;
-        }
-        
-        if ( ascii == 168 ||   // trema
-             ascii == 239 ||   // acute
-             ascii == 128 ||   // Ç
-             ascii == 135 )    // ç
-        {
-            is_abnt2_printable = TRUE;
-            goto printable;
-        }
         return;
+    }
+
+// Printable ascii
+    if (ascii >= 0x20 && ascii < 0x7F)
+    {
+        is_abnt2_printable = TRUE;
+        goto printable;
+    }
+
+// Printable extended ascii
+    if (ascii >= 128 && ascii <= 256)
+    {
+        is_abnt2_printable = TRUE;
+        goto printable;
     }
 
 
@@ -4756,23 +4758,25 @@ wm_draw_char_into_the_window2(
 
     int is_abnt2_printable=FALSE;
 
-    // Not printable for US.
-    if (ascii < 0x20 || ascii >= 0x7F)
+// Control char
+// Do not print
+    if (ascii < 0x20 || ascii == 0x7F)
     {
-        // Control char
-        if (ascii < 0x20 || ascii == 0x7F){
-            is_control = TRUE;
-        }
-        
-        if ( ascii == 168 ||   // trema
-             ascii == 239 ||   // acute
-             ascii == 128 ||   // Ç
-             ascii == 135 )    // ç
-        {
-            is_abnt2_printable = TRUE;
-            goto printable;
-        }
         return;
+    }
+
+// Printable ascii
+    if (ascii >= 0x20 && ascii < 0x7F)
+    {
+        is_abnt2_printable = TRUE;
+        goto printable;
+    }
+
+// Printable extended ascii
+    if (ascii >= 128 && ascii <= 256)
+    {
+        is_abnt2_printable = TRUE;
+        goto printable;
     }
 
 

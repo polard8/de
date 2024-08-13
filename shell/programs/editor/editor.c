@@ -68,10 +68,10 @@ char file_buffer[1024];
 //
 
 // private
-static int main_window = 0;
-static int addressbar_window = 0;
-static int savebutton_window = 0;
-static int client_window = 0;
+static int main_window = -1;
+static int addressbar_window = -1;
+static int savebutton_window = -1;
+static int client_window = -1; // #bugbug: Sometimes we can't delete this window.
 // ...
 
 struct child_window_d
@@ -150,12 +150,12 @@ static void editorShutdown(int fd)
 {
     if (fd<0)
         return;
-    gws_destroy_window(fd,client_window );
-    gws_destroy_window(fd,savebutton_window );
-    gws_destroy_window(fd,addressbar_window  );
 
-    gws_destroy_window(fd,main_window );
+    gws_destroy_window(fd,addressbar_window);
+    gws_destroy_window(fd,savebutton_window);
+    gws_destroy_window(fd,client_window);   // #bugbug: sometimes we can't delete this window.
 
+    gws_destroy_window(fd,main_window);
     close(fd);
 }
 
@@ -175,7 +175,8 @@ static void update_clients(int fd)
         main_window,   // The app window.
         (struct gws_window_info_d *) &lWi );
 
-// #test
+// ------------------------
+// Text
 // Let's print the text, before the address bar.
 
     text1_l = 2;
@@ -189,13 +190,11 @@ static void update_clients(int fd)
         (unsigned long) text1_color,
         text1_string );
 
-// Change the position of the clients.
-
 // ---------------------------------------------
 // Address bar
-    // #todo: 
-    // '.l': It actually depends on the text befor this.
-    // We need to know the text width.
+// #todo: 
+// '.l': It actually depends on the text befor this.
+// We need to know the text width.
     cwAddressBar.l = (( lWi.cr_width/8 )*2);
     cwAddressBar.t = 4;
     cwAddressBar.w = (( lWi.cr_width/8 )*3);
@@ -210,6 +209,8 @@ static void update_clients(int fd)
         addressbar_window,
         cwAddressBar.w,
         cwAddressBar.h );
+
+    gws_redraw_window(fd, addressbar_window, TRUE);
 
 //---------------------------------------------
 // Save button
@@ -228,6 +229,8 @@ static void update_clients(int fd)
         cwButton.w,
         cwButton.h );
 
+    gws_redraw_window(fd, savebutton_window, TRUE);
+
 //-----------------------
 // The client window where we type the text.
 
@@ -241,25 +244,13 @@ static void update_clients(int fd)
         client_window,
         cwText.l,
         cwText.t );
-    gws_change_window_position( 
-        fd,
-        client_window,
-        cwText.l,
-        cwText.t );
     gws_resize_window(
         fd,
         client_window,
         cwText.w,
         cwText.h );
-
-// #todo: 
-// We need a list o clients. maybe clients[i]
-
     gws_set_focus(fd,client_window);
-
-    gws_redraw_window(fd, addressbar_window, TRUE);
-    gws_redraw_window(fd, savebutton_window, TRUE);
-    gws_redraw_window(fd, client_window,     TRUE);
+    gws_redraw_window(fd, client_window, TRUE);
 }
 
 static int editor_init_globals(void)
@@ -646,10 +637,10 @@ int editor_initialize(int argc, char *argv[])
     gScreenHeight=0;
 
 // private
-    main_window = 0;
-    addressbar_window = 0;
-    client_window = 0;
-    savebutton_window = 0;
+    main_window = -1;
+    addressbar_window = -1;
+    savebutton_window = -1;
+    client_window = -1;
 
 // cursor
     cursor_x = 0;
@@ -833,7 +824,7 @@ int editor_initialize(int argc, char *argv[])
     }
 
     //#debug
-    gws_refresh_window(client_fd, main_window);
+    gws_refresh_window(client_fd, addressbar_window);
 
 
 // Text inside the address bar.
@@ -848,7 +839,7 @@ int editor_initialize(int argc, char *argv[])
             text2_string );
     }
     //#debug
-    gws_refresh_window (client_fd, main_window);
+    gws_refresh_window (client_fd, addressbar_window);
 
 // Save
     cwAddressBar.l = (( lWi.cr_width/8 )*2);
@@ -879,7 +870,7 @@ int editor_initialize(int argc, char *argv[])
         goto fail;
     }
     //#debug
-    gws_refresh_window (client_fd, main_window);
+    gws_refresh_window (client_fd, savebutton_window);
 
 // Save button
     cwButton.l = (( lWi.cr_width/8 )*7) -4;
@@ -940,7 +931,7 @@ int editor_initialize(int argc, char *argv[])
         goto fail;
     }
     //#debug
-    gws_refresh_window (client_fd, main_window);
+    //gws_refresh_window (client_fd, client_window);
 
 // Save
     cwText.l = 0;
@@ -948,51 +939,13 @@ int editor_initialize(int argc, char *argv[])
     cwText.w = lWi.cr_width;
     cwText.h = (lWi.cr_height - cwText.t);
 
-// Show main window.
-    //gws_refresh_window (client_fd, main_window);
-
-
-// =======================
-// #test (It's working)
-// Injecting a text into the editbox window 
-// and getting it back.
-    //__test_text(client_fd, client_window);
-    //gws_refresh_window(client_fd, client_window);
-
-// =======================
-// #test
-// Load file
-    //__test_load_file(client_fd, client_window);
-    //gws_refresh_window (client_fd, client_window);
-
-// ============================================
-// focus
-// editbox
-// Setting the input focus on a given window.
-// Input
-// #focus
-// Well, the editor.bin application is not receiving
-// the input ... so, i guess the window server
-// is printing the chars into the window with focus.
-
-    //gws_async_command(
-    //     client_fd,
-    //     9,             // set focus
-    //     client_window,
-    //     client_window );
-
-// set active window.
-    //gws_async_command(
-    //     client_fd,
-    //     15, 
-    //     main_window,
-    //     main_window );
-
     gws_set_active( client_fd, main_window );
     gws_set_focus( client_fd, client_window );
 
-// Show main window.
+// Show main window. (Again)
     gws_refresh_window (client_fd, main_window);
+
+
 // ============================================
 
 //
@@ -1025,10 +978,8 @@ int editor_initialize(int argc, char *argv[])
     };
 
 // ok
-    if (isTimeToQuit == TRUE)
-    {
+    if (isTimeToQuit == TRUE){
         printf("editor.bin: isTimeToQuit\n");
-        
         editorShutdown(client_fd);
         return EXIT_SUCCESS;
     }

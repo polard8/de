@@ -1,0 +1,8 @@
+
+ When we destroy the editor.bin applications it remains the client_window
+undestroyed, so if we click with the mouse on this window, the wm will
+setup an invalid window with focus and setup an invalid foreground thread.
+Or simply the kernel is destroying the application but it is not
+updating the current foreground thread.
+
+

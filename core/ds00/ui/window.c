@@ -444,6 +444,21 @@ void *doCreateWindow (
     unsigned long __rop_flags=0;
 
 //---------------------------------------------------------
+// Position
+
+    /*
+    if (type == WT_OVERLAPPED)
+    {
+        if (WindowX > (deviceWidth/4)){
+            WindowX = (deviceWidth/8);
+        }
+        if (WindowY > (deviceHeight/4)){
+            WindowY = (deviceHeight/8);
+        }
+    }
+    */
+
+//---------------------------------------------------------
 
 //
 // style
@@ -1764,7 +1779,7 @@ void *CreateWindow (
 
 // See:
 // config.h, main.c
-    if (config_use_transparency==TRUE)
+    if (config_use_transparency == TRUE)
     {
         __rop_flags = 1;       // or
         //__rop_flags = 2;     // and
@@ -2235,6 +2250,7 @@ int destroy_window_by_wid(int wid)
     struct gws_window_d *tmpw;
     int fRebuildList = FALSE;
     int fUpdateDesktop = FALSE;
+    register int i=0;
 
     if (wid<0){
         goto fail;
@@ -2265,6 +2281,25 @@ int destroy_window_by_wid(int wid)
             // Yes, we also need to destroy this kind of window.
             goto fail;
         }
+
+        // Remove it from the list
+        for (i=0; i<WINDOW_COUNT_MAX; i++)
+        {
+            tmpw = (void*) windowList[i];
+            if (tmpw == window)
+                windowList[i] = 0;
+        };
+
+        /*
+        // #test
+        if (window == keyboard_owner)
+            keyboard_owner = taskbar2_window;
+        if (window == mouse_owner)
+            mouse_owner = taskbar2_window;
+
+        set_focus(taskbar2_window);
+        __set_foreground_tid(taskbar2_window->client_tid);
+        */
 
         window->magic = 0;
         window->used = FALSE;
@@ -2348,9 +2383,24 @@ int destroy_window_by_wid(int wid)
 // + Destroy the child list.
 // +...
 
-    // #todo
-    // We got to remove the pointer from the windowList[?].
-    // windowList[wid] = 0;
+    // Remove it from the list
+    for (i=0; i<WINDOW_COUNT_MAX; i++)
+    {
+        tmpw = (void*) windowList[i];
+        if (tmpw == window)
+            windowList[i] = 0;
+    };
+
+    /*
+    // #test
+    if (window == keyboard_owner)
+        keyboard_owner = taskbar2_window;
+    if (window == mouse_owner)
+        mouse_owner = taskbar2_window;
+
+    set_focus(taskbar2_window);
+    __set_foreground_tid(taskbar2_window->client_tid);
+    */
 
     window->magic = 0;
     window->used = FALSE;
