@@ -154,8 +154,8 @@ static void on_doubleclick(void);
 
 static void on_mouse_pressed(void);
 static void on_mouse_released(void);
-static void on_mouse_leave(struct gws_window_d *window);
 static void on_mouse_hover(struct gws_window_d *window);
+static void on_mouse_leave(struct gws_window_d *window);
 
 static void on_drop(void);
 static void on_enter(void);
@@ -893,6 +893,453 @@ static void on_mouse_pressed(void)
     */
 }
 
+static void on_mouse_released(void)
+{
+    // Get these from event.
+    unsigned long saved_x=0;
+    unsigned long saved_y=0;
+    // Relative to the mouse_hover.
+    unsigned long in_x=0;
+    unsigned long in_y=0;
+
+    // ??
+    unsigned long x=0;
+    unsigned long y=0;
+    unsigned long x_diff=0;
+    unsigned long y_diff=0;
+
+    int ButtonWID = -1;
+
+    // #hackhack
+    // #todo: We need to get this value.
+    int event_type = GWS_MouseReleased;
+
+    //struct gws_window_d *p;
+    //struct gws_window_d *tmp;
+    //struct gws_window_d *old_focus;
+
+    // button number
+    //if(long1==1){ yellow_status("R1"); }
+    //if(long1==2){ yellow_status("R2"); }
+    //if(long1==3){ yellow_status("R3"); }
+
+// Post it to the client. (app).
+// When the mouse is on any position in the screen.
+// #bugbug
+// Essa rotina envia a mensagem apenas se o mouse
+// estiver dentro da janela com foco de entrada.
+
+/*
+    wmProcessMouseEvent( 
+        GWS_MouseReleased,              // event type
+        comp_get_mouse_x_position(),    // current cursor x
+        comp_get_mouse_y_position() );  // current cursor y
+*/
+
+// When the mouse is hover a tb button.
+
+    // safety first.
+    // mouse_hover validation
+
+    if ((void*) mouse_hover == NULL)
+        return;
+    if (mouse_hover->magic != 1234)
+        return;
+
+
+// If the mouse is hover a button.
+    ButtonWID = (int) mouse_hover->id;
+// If the mouse is hover an editbox.
+    saved_x = comp_get_mouse_x_position();
+    saved_y = comp_get_mouse_y_position();
+
+// -------------------
+// Se clicamos em uma janela editbox.
+
+    static int isInsideMouseHover=FALSE;
+
+// Check if we are inside the mouse hover.
+    if ( saved_x >= mouse_hover->absolute_x &&
+         saved_x <= mouse_hover->absolute_right &&
+         saved_y >= mouse_hover->absolute_y &&
+         saved_y <= mouse_hover->absolute_bottom )
+    {
+        // #debug
+        // printf("Inside mouse hover window :)\n");
+    
+        isInsideMouseHover = TRUE;
+
+        // Values inside the window.
+        in_x = (unsigned long) (saved_x - mouse_hover->absolute_x);
+        in_y = (unsigned long) (saved_y - mouse_hover->absolute_y);
+
+        mouse_hover->single_event.has_event = FALSE;
+    }
+
+    // #debug
+    // printf("Outside mouse hover window\n");
+
+// -------------------------
+// We released the mouse button, BUT 
+// we are outside the mousehover window.
+// We can't continue, because all the routine bellow
+// only affect the mouse hover window.
+
+// We don't want to affect the mousehover window
+// when releasing the mouse button if we're outside the
+// mousehover window.
+    if (isInsideMouseHover != TRUE)
+        return;
+
+
+// -------------------------
+// We are inside the mousehover window and
+// the mousehover window is an editbox.
+// Let's change the input pointer inside the window editbox.
+
+    if ( mouse_hover->type == WT_EDITBOX || 
+         mouse_hover->type == WT_EDITBOX_MULTIPLE_LINES)
+    {
+        // It's NOT a released event, so we will
+        // change the input pointer.
+        if (event_type != GWS_MouseReleased)
+            return;
+
+        // Yes, it's a released event,
+        // let's finally change the input poitner.
+        if (in_x > 0){
+            mouse_hover->ip_x = (unsigned long) (in_x/8);
+        }
+        if (in_y > 0){
+            mouse_hover->ip_y = (unsigned long) (in_y/8);
+        }
+
+        // #danger: It affects the forgraound thread selection in ring0. 
+        // Set the new keyboard owner. (focus)
+        // It also changes the foreground input thread.
+        if (mouse_hover != keyboard_owner)
+        {
+            set_focus(mouse_hover);
+        }
+
+        // Set the new mouse owner.
+        if (mouse_hover != mouse_owner){
+            mouse_owner = mouse_hover;
+        }
+
+        // No events?
+        mouse_hover->single_event.has_event = FALSE;            
+
+        // #test
+        // Post message to the target window.
+        // #remember:
+        // The app get events only for the main window.
+        // This way the app can close the main window.
+        // #todo: 
+        // So, we need to post a message to the main window,
+        // telling that that message affects the client window.
+        // #bugbug
+        // Na verdade o app so le a main window.
+        //window_post_message( mouse_hover->id, event_type, in_x, in_y );
+            
+        // We're done for editbox.
+        return;
+    }
+
+// -------------------------
+// Regular button or quick launch button.
+// Not a control, not the start menu, not the menuitem.
+    struct gws_window_d *p1; // parent.
+
+
+    if (mouse_hover->type == WT_BUTTON)
+    {
+        // We're NOT a control.
+        // We're a regular button.
+        if ( mouse_hover->isControl != TRUE )
+        {
+            __button_released(ButtonWID);
+            
+            // Sending a message
+            // #todo
+            // Send a message to the overlapped window
+            // sending the new status of the button.
+            // #bugbug
+            // Its not valid on all cases,
+            // because sometimes the button is a child of a child.
+            // Get the parent
+            p1 = mouse_hover->parent;
+            if ((void*)p1 == NULL)
+                return;
+            if (p1->magic != 1234)
+                return;
+            
+            // Send to parent. (Overlapped?)
+            // A barra de tarefas nao e' overlapped.
+            // teremos que mandar mensagens pra ela tambem
+            if ( p1->type == WT_OVERLAPPED || 
+                 p1 == taskbar2_window )
+            {
+                // #debug
+                // printf ("server: Sending GWS_MouseClicked\n");
+                window_post_message( 
+                    p1->id, 
+                    GWS_MouseClicked, 
+                    mouse_hover->id, 
+                    mouse_hover->id );
+            }
+            return;
+        }
+    }
+
+//------------------------------------------------------
+//
+// Start menu button.
+//
+
+// -------------------
+// #test
+// Start menu button was released.
+    /*
+    if (ButtonWID == StartMenu.wid){
+        //wmProcessMenuEvent(MENU_EVENT_RELEASED,StartMenu.wid);
+        return;
+    }
+    */
+
+//
+// Grabbing a window.
+//
+
+// + We already pressed a window.
+// + We already moved the mouse. (Drag is active).
+// Now it's time to drop it. (Releasing the button).
+// and setting the grab as not active.
+
+// Drop event
+// Release when dragging.
+    if ( grab_is_active == TRUE &&  
+         is_dragging == TRUE &&       
+         grab_wid > 0 )
+    {
+        // #suspended
+        //on_drop();
+        grab_is_active = FALSE;
+        is_dragging = FALSE;
+        grab_wid = -1;
+        return;
+    }
+
+    //if(long1==1){ yellow_status("R1"); }
+    //if(long1==2){ yellow_status("R2"); wm_update_desktop(TRUE,TRUE); return 0; }
+    //if(long1==1){ 
+        //yellow_status("R1"); 
+        //create_main_menu(8,8);
+        //return; 
+    //}
+    //if(long1==3){ yellow_status("R3"); return 0; }
+    //if(long1==2){ create_main_menu(mousex,mousey); return 0; }
+    //if(long1==2){ create_main_menu(mousex,mousey); return 0; }
+
+//
+// Titlebar
+//
+
+// ===================================
+// Title bar
+// Release the titlebar.
+    if (mouse_hover->isTitleBar == TRUE)
+    {
+        //#suspended
+        /*
+        // Get parent.
+        p = (struct gws_window_d *) mouse_hover->parent;
+        if ((void*) p != NULL)
+        {
+            if (p->magic == 1234)
+            {
+                // Set as last window and update desktop.
+                if (p->type == WT_OVERLAPPED)
+                {
+                    // Get old active, deactivate and redraw the old.
+                    tmp = (struct gws_window_d *) get_active_window();
+                    unset_active_window();
+                    redraw_window(tmp,TRUE);
+                    on_update_window(tmp,GWS_Paint);
+                    
+                    // Set new active and redraw.
+                    set_active_window(p);
+                    //set_focus(p);
+                    redraw_window(p,TRUE);
+                    on_update_window(p,GWS_Paint);  // to wwf
+                    //on_update_window(p,GWS_Paint);
+
+                    // ?
+                    //old_focus = (void*) get_focus(); 
+                    //if ((void*) old_focus != NULL )
+                    //set_active_window(tmp);
+                    //set_focus(tmp);
+                    //redraw_window(tmp,TRUE);
+
+                    // Set the last window and update the desktop.
+                    //wm_update_desktop3(p);
+                    
+                    return;
+                }
+            }
+        }
+        */
+    }
+
+
+//
+// Controls - (Titlebar buttons).
+//
+
+// ===================================
+// >> Minimize control
+// Redraw the button
+    if (mouse_hover->isMinimizeControl == TRUE)
+    {
+        if (mouse_hover->type == WT_BUTTON)
+        {
+            __button_released(ButtonWID);
+            //printf("Release on min control\n");
+            on_control_clicked(mouse_hover);
+            return;
+        }
+    }
+// ===================================
+// >> Maximize control
+// Redraw the button
+    if (mouse_hover->isMaximizeControl == TRUE)
+    {
+        if (mouse_hover->type == WT_BUTTON)
+        {
+            __button_released(ButtonWID);
+            //printf("Release on max control\n");
+            on_control_clicked(mouse_hover);
+            return;
+        }
+    }
+// ===================================
+// >> Close control
+// Redraw the button
+    if (mouse_hover->isCloseControl == TRUE)
+    {
+        if (mouse_hover->type == WT_BUTTON)
+        {
+            __button_released(ButtonWID);
+            //printf("Release on close control\n");
+            // #test
+            // On control clicked
+            // close control: post close message.
+            on_control_clicked(mouse_hover);
+            return;
+        }
+    }
+
+
+//
+// Menu itens
+//
+
+// ===================================
+// >> Menuitens
+// Lidando com menuitens
+// Se clicamos em um menu item.
+// Redraw the button
+    
+    //#deprecated
+    /*
+    unsigned long selected_item=0;
+    if (mouse_hover->isMenuItem == TRUE)
+    {
+        if (mouse_hover->type == WT_BUTTON)
+        {
+            __button_released(ButtonWID);
+
+            // Disable all the windows in the menu.
+            main_menu_all_windows_input_status(FALSE);
+            // Update desktop but don't show the menu.
+            wm_update_desktop(TRUE,TRUE);
+
+            selected_item = (unsigned long)(ButtonWID & 0xFFFF);
+            // #test: see: menu.c
+            on_mi_clicked((unsigned long)selected_item);
+
+            return;
+        }
+    }
+    */
+}
+
+static void on_mouse_hover(struct gws_window_d *window)
+{
+
+    if ((void*) window == NULL)
+        return;
+    if (window->magic != 1234)
+        return;
+
+// The window is disabled for events.
+    if (window->enabled != TRUE)
+        return;
+
+// Flag
+    window->is_mouse_hover = TRUE;
+
+// visual efect
+    if (window->type == WT_BUTTON)
+    {
+        window->status = BS_HOVER;
+        // Using the color that belongs to this window.
+        window->bg_color = 
+            (unsigned int) window->bg_color_when_mousehover;
+        redraw_window(window,TRUE);
+    }
+
+    // visual efect
+    if ( window->type == WT_EDITBOX_SINGLE_LINE ||
+         window->type == WT_EDITBOX_MULTIPLE_LINES )
+    {
+        // Do not redraw
+        // Change the cursor type.
+        // ...
+    }
+}
+
+static void on_mouse_leave(struct gws_window_d *window)
+{
+// When the mouse pointer leaves a window.
+
+    if ((void*) window == NULL)
+        return;
+    if (window->magic!=1234)
+        return;
+
+// The window is disabled for events.
+    if (window->enabled != TRUE)
+        return;
+
+// Flag
+    window->is_mouse_hover = FALSE;
+
+// Update mouse pointer
+    window->x_mouse_relative = 0;
+    window->y_mouse_relative = 0;
+
+// The old mousehover needs to comeback
+// to the normal state.
+// visual efect
+    if (window->type == WT_BUTTON)
+    {
+        window->status = BS_DEFAULT;
+        window->bg_color = (unsigned int) get_color(csiButton);
+        redraw_window(window,TRUE);
+    }
+}
+
 // When clicked or 'pressed' via keyboard.
 static void on_control_clicked_by_wid(int wid)
 {
@@ -1144,364 +1591,6 @@ static void on_doubleclick(void)
 
     // ...
 
-}
-
-static void on_mouse_released(void)
-{
-    // Get these from event.
-    unsigned long saved_x=0;
-    unsigned long saved_y=0;
-    // Relative to the mouse_hover.
-    unsigned long in_x=0;
-    unsigned long in_y=0;
-
-    int ButtonWID = -1;
-
-    //struct gws_window_d *p;
-    //struct gws_window_d *tmp;
-    //struct gws_window_d *old_focus;
-
-    unsigned long x=0;
-    unsigned long y=0;
-
-    unsigned long x_diff=0;
-    unsigned long y_diff=0;
-
-
-    // #hackhack
-    int event_type = GWS_MouseReleased;
-
-    // button number
-    //if(long1==1){ yellow_status("R1"); }
-    //if(long1==2){ yellow_status("R2"); }
-    //if(long1==3){ yellow_status("R3"); }
-
-// Post it to the client. (app).
-// When the mouse is on any position in the screen.
-// #bugbug
-// Essa rotina envia a mensagem apenas se o mouse
-// estiver dentro da janela com foco de entrada.
-
-/*
-    wmProcessMouseEvent( 
-        GWS_MouseReleased,              // event type
-        comp_get_mouse_x_position(),    // current cursor x
-        comp_get_mouse_y_position() );  // current cursor y
-*/
-
-// When the mouse is hover a tb button.
-
-    // safety first.
-    // mouse_hover validation
-
-    if ((void*) mouse_hover == NULL)
-        return;
-    if (mouse_hover->magic != 1234)
-        return;
-
-
-// If the mouse is hover a button.
-    ButtonWID = (int) mouse_hover->id;
-// If the mouse is hover an editbox.
-    saved_x = comp_get_mouse_x_position();
-    saved_y = comp_get_mouse_y_position();
-
-// -------------------
-// Se clicamos em uma janela editbox.
-
-    static int InsideStatus=FALSE;
-
-// Check if we are inside the mouse hover.
-    if ( saved_x >= mouse_hover->absolute_x &&
-         saved_x <= mouse_hover->absolute_right &&
-         saved_y >= mouse_hover->absolute_y &&
-         saved_y <= mouse_hover->absolute_bottom )
-    {
-        // #debug
-        // printf("Inside mouse hover window :)\n");
-    
-        InsideStatus = TRUE;
-
-        // Values inside the window.
-        in_x = (unsigned long) (saved_x - mouse_hover->absolute_x);
-        in_y = (unsigned long) (saved_y - mouse_hover->absolute_y);
-
-        // Change the input pointer
-        // inside the window editbox.
-        if ( mouse_hover->type == WT_EDITBOX || 
-             mouse_hover->type == WT_EDITBOX_MULTIPLE_LINES)
-        {
-            // Se o evento for released,
-            // então mudamos o input pointer.
-            if (event_type == GWS_MouseReleased)
-            {
-                // Set the new input pointer for this window.
-                if (in_x>0){
-                    mouse_hover->ip_x = (unsigned long) (in_x/8);
-                }
-                if (in_y>0){
-                    mouse_hover->ip_y = (unsigned long) (in_y/8);
-                }
- 
-                // Set the new keyboard owner. (focus)
-                if (mouse_hover != keyboard_owner){
-                    set_focus(mouse_hover);
-                }
-
-                // Set the new mouse owner.
-                if (mouse_hover != mouse_owner){
-                    mouse_owner = mouse_hover;
-                }
-            }
-            
-            mouse_hover->single_event.has_event = FALSE;            
-
-            // Post message to the target window.
-            // #remember:
-            // The app get events only for the main window.
-            // This way the app can close the main window.
-            // #todo: 
-            // So, we need to post a message to the main window,
-            // telling that that message affects the client window.
-        
-            // #bugbug
-            // Na verdade o app so le a main window.
-            //window_post_message( mouse_hover->id, event_type, in_x, in_y );
-            
-            //------------------
-            // done for editbox. return
-            return;
-        }
-        //fail
-        mouse_hover->single_event.has_event = FALSE;
-    }
-
-    // #debug
-    // printf("Outside mouse hover window\n");
-
-// -------------------------
-// Regular button or quick launch button.
-// Not a control, not the start menu, not the menuitem.
-    struct gws_window_d *p1; // parent.
-    
-    if (mouse_hover->type == WT_BUTTON)
-    {
-        if ( mouse_hover->isControl != TRUE )
-        {
-            __button_released(ButtonWID);
-            
-            // Sending a message
-            // #todo
-            // Send a message to the overlapped window
-            // sending the new status of the button.
-            // #bugbug
-            // Its not valid on all cases,
-            // because sometimes the button is a child of a child.
-            // Get the parent
-            p1 = mouse_hover->parent;
-            if ((void*)p1 == NULL)
-                return;
-            if (p1->magic != 1234)
-                return;
-            
-            // Send to parent. (Overlapped?)
-            // A barra de tarefas nao e' overlapped.
-            // teremos que mandar mensagens pra ela tambem
-            if ( p1->type == WT_OVERLAPPED || 
-                 p1 == taskbar2_window )
-            {
-                // #debug
-                // printf ("server: Sending GWS_MouseClicked\n");
-                window_post_message( 
-                    p1->id, 
-                    GWS_MouseClicked, 
-                    mouse_hover->id, 
-                    mouse_hover->id );
-            }
-            return;
-        }
-    }
-
-//------------------------------------------------------
-//
-// Start menu button.
-//
-
-// -------------------
-// #test
-// Start menu button was released.
-    /*
-    if (ButtonWID == StartMenu.wid){
-        //wmProcessMenuEvent(MENU_EVENT_RELEASED,StartMenu.wid);
-        return;
-    }
-    */
-
-//
-// Grabbing a window.
-//
-
-// + We already pressed a window.
-// + We already moved the mouse. (Drag is active).
-// Now it's time to drop it. (Releasing the button).
-// and setting the grab as not active.
-
-// Drop event
-// Release when dragging.
-    if ( grab_is_active == TRUE &&  
-         is_dragging == TRUE &&       
-         grab_wid > 0 )
-    {
-        // #suspended
-        //on_drop();
-        grab_is_active = FALSE;
-        is_dragging = FALSE;
-        grab_wid = -1;
-        return;
-    }
-
-    //if(long1==1){ yellow_status("R1"); }
-    //if(long1==2){ yellow_status("R2"); wm_update_desktop(TRUE,TRUE); return 0; }
-    //if(long1==1){ 
-        //yellow_status("R1"); 
-        //create_main_menu(8,8);
-        //return; 
-    //}
-    //if(long1==3){ yellow_status("R3"); return 0; }
-    //if(long1==2){ create_main_menu(mousex,mousey); return 0; }
-    //if(long1==2){ create_main_menu(mousex,mousey); return 0; }
-
-//
-// Titlebar
-//
-
-// ===================================
-// Title bar
-// Release the titlebar.
-    if (mouse_hover->isTitleBar == TRUE)
-    {
-        //#suspended
-        /*
-        // Get parent.
-        p = (struct gws_window_d *) mouse_hover->parent;
-        if ((void*) p != NULL)
-        {
-            if (p->magic == 1234)
-            {
-                // Set as last window and update desktop.
-                if (p->type == WT_OVERLAPPED)
-                {
-                    // Get old active, deactivate and redraw the old.
-                    tmp = (struct gws_window_d *) get_active_window();
-                    unset_active_window();
-                    redraw_window(tmp,TRUE);
-                    on_update_window(tmp,GWS_Paint);
-                    
-                    // Set new active and redraw.
-                    set_active_window(p);
-                    //set_focus(p);
-                    redraw_window(p,TRUE);
-                    on_update_window(p,GWS_Paint);  // to wwf
-                    //on_update_window(p,GWS_Paint);
-
-                    // ?
-                    //old_focus = (void*) get_focus(); 
-                    //if ((void*) old_focus != NULL )
-                    //set_active_window(tmp);
-                    //set_focus(tmp);
-                    //redraw_window(tmp,TRUE);
-
-                    // Set the last window and update the desktop.
-                    //wm_update_desktop3(p);
-                    
-                    return;
-                }
-            }
-        }
-        */
-    }
-
-
-//
-// Controls - (Titlebar buttons).
-//
-
-// ===================================
-// >> Minimize control
-// Redraw the button
-    if (mouse_hover->isMinimizeControl == TRUE)
-    {
-        if (mouse_hover->type == WT_BUTTON)
-        {
-            __button_released(ButtonWID);
-            //printf("Release on min control\n");
-            on_control_clicked(mouse_hover);
-            return;
-        }
-    }
-// ===================================
-// >> Maximize control
-// Redraw the button
-    if (mouse_hover->isMaximizeControl == TRUE)
-    {
-        if (mouse_hover->type == WT_BUTTON)
-        {
-            __button_released(ButtonWID);
-            //printf("Release on max control\n");
-            on_control_clicked(mouse_hover);
-            return;
-        }
-    }
-// ===================================
-// >> Close control
-// Redraw the button
-    if (mouse_hover->isCloseControl == TRUE)
-    {
-        if (mouse_hover->type == WT_BUTTON)
-        {
-            __button_released(ButtonWID);
-            //printf("Release on close control\n");
-            // #test
-            // On control clicked
-            // close control: post close message.
-            on_control_clicked(mouse_hover);
-            return;
-        }
-    }
-
-
-//
-// Menu itens
-//
-
-// ===================================
-// >> Menuitens
-// Lidando com menuitens
-// Se clicamos em um menu item.
-// Redraw the button
-    
-    //#deprecated
-    /*
-    unsigned long selected_item=0;
-    if (mouse_hover->isMenuItem == TRUE)
-    {
-        if (mouse_hover->type == WT_BUTTON)
-        {
-            __button_released(ButtonWID);
-
-            // Disable all the windows in the menu.
-            main_menu_all_windows_input_status(FALSE);
-            // Update desktop but don't show the menu.
-            wm_update_desktop(TRUE,TRUE);
-
-            selected_item = (unsigned long)(ButtonWID & 0xFFFF);
-            // #test: see: menu.c
-            on_mi_clicked((unsigned long)selected_item);
-
-            return;
-        }
-    }
-    */
 }
 
 // Post a message into the window with focus message queue.
@@ -5081,74 +5170,6 @@ void __probe_tb_button_hover(unsigned long long1, unsigned long long2)
     };
 }
 */
-
-// local
-static void on_mouse_leave(struct gws_window_d *window)
-{
-// When the mouse pointer leaves a window.
-
-    if ((void*) window == NULL)
-        return;
-    if (window->magic!=1234)
-        return;
-
-// The window is disabled for events.
-    if (window->enabled != TRUE)
-        return;
-
-// Flag
-    window->is_mouse_hover = FALSE;
-
-// Update mouse pointer
-    window->x_mouse_relative = 0;
-    window->y_mouse_relative = 0;
-
-// The old mousehover needs to comeback
-// to the normal state.
-// visual efect
-    if (window->type == WT_BUTTON)
-    {
-        window->status = BS_DEFAULT;
-        window->bg_color = (unsigned int) get_color(csiButton);
-        redraw_window(window,TRUE);
-    }
-}
-
-// local
-static void on_mouse_hover(struct gws_window_d *window)
-{
-
-    if ((void*) window == NULL)
-        return;
-    if (window->magic != 1234)
-        return;
-
-// The window is disabled for events.
-    if (window->enabled != TRUE)
-        return;
-
-// Flag
-    window->is_mouse_hover = TRUE;
-
-// visual efect
-    if (window->type == WT_BUTTON)
-    {
-        window->status = BS_HOVER;
-        // Using the color that belongs to this window.
-        window->bg_color = 
-            (unsigned int) window->bg_color_when_mousehover;
-        redraw_window(window,TRUE);
-    }
-
-    // visual efect
-    if ( window->type == WT_EDITBOX_SINGLE_LINE ||
-         window->type == WT_EDITBOX_MULTIPLE_LINES )
-    {
-        // Do not redraw
-        // Change the cursor type.
-        // ...
-    }
-}
 
 static void on_drop(void)
 {

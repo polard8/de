@@ -2301,6 +2301,10 @@ int destroy_window_by_wid(int wid)
         __set_foreground_tid(taskbar2_window->client_tid);
         */
 
+        // #test
+        // This thread will not be the foreground thread anymore.
+        sc82(10012, window->client_tid, 0, 0);
+
         window->magic = 0;
         window->used = FALSE;
         window = NULL;
@@ -2401,6 +2405,10 @@ int destroy_window_by_wid(int wid)
     set_focus(taskbar2_window);
     __set_foreground_tid(taskbar2_window->client_tid);
     */
+
+    // #test
+    // This thread will not be the foreground thread anymore.
+    sc82(10012, window->client_tid, 0, 0);
 
     window->magic = 0;
     window->used = FALSE;
