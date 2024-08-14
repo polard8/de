@@ -272,6 +272,7 @@ static void wmProcessTimerEvent(unsigned long long1, unsigned long long2)
     //const int MyChar = '_';
     //const int MyChar = 219;  // Rectangle
 
+   /*
 // Acende (Draw black char)
 // #todo: Create a worker.
     if (window->ip_on != TRUE){
@@ -286,6 +287,7 @@ static void wmProcessTimerEvent(unsigned long long1, unsigned long long2)
         wm_draw_char_into_the_window( window, (int) VK_BACK, COLOR_WHITE );
         window->ip_on = FALSE;
     };
+    */
 }
 
 static void on_enter(void)
@@ -302,14 +304,11 @@ static void on_enter(void)
         return;
 
 
-// #warning
-// We also need to handle the 'enter' key when in
-// editbox single line. But for different purposes,
-// just line 'first responder' or button with focus.
+//
+// Blinking cursor on [enter]
+//
 
-    if (window->type == WT_EDITBOX_SINGLE_LINE)
-        return;
-
+    /*
     // APAGADO: Se esta apagado, ok, apenas pinte.
     if (window->ip_on != TRUE){
         // Pinte
@@ -328,32 +327,37 @@ static void on_enter(void)
                 //window, (int) VK_RETURN,  COLOR_WHITE );
             window->ip_on = FALSE;
             goto position;
-        }
+    };
+    */
 
 
 position:
 
 //--------------
 // [Enter]
-         
+
+// #warning
+// We also need to handle the 'enter' key when in
+// editbox single line. But for different purposes,
+// just line 'first responder' or button with focus.
+
+    if (window->type == WT_EDITBOX_SINGLE_LINE)
+        return;
+
+// Multiple lines
     if (window->type == WT_EDITBOX_MULTIPLE_LINES)
     {
-
-        // bottom reached
-        // Nothing for now
-        if (window->ip_y >= window->height_in_chars){
+        // #todo: Bottom reached       
+        if (window->ip_y >= window->height_in_chars)
+        {
             printf("y bottom\n");
             return;
         }
 
+        // Next line
         window->ip_y++;
 
-        // #bugbug
-        // #todo
-        // Actually, we need to handle the buffer and all
-        // the buffer for lines, and in this case the
-        // pointer needs to go to the last char in the 
-        // next line, not in the first char of the next line.
+        // First column
         window->ip_x = 0;
     }
 }
@@ -412,7 +416,7 @@ wmProcessKeyboardEvent(
         if (long1 == VK_RETURN)
         {
             on_enter();
-            window->ip_on = FALSE;
+            //window->ip_on = FALSE;
             return 0;
         }
 
@@ -420,6 +424,7 @@ wmProcessKeyboardEvent(
         // It needs to be an editbox?
         //#todo: on printable.
 
+        /*
         // APAGADO: Se esta apagado, ok, apenas pinte.
         if (window->ip_on != TRUE){
             // Pinte
@@ -440,6 +445,10 @@ wmProcessKeyboardEvent(
             wm_draw_char_into_the_window(
                 window, (int) long1, fg_color );        
         }
+        */
+
+        wm_draw_char_into_the_window(
+            window, (int) long1, fg_color );
         
         // Enqueue a message into the queue that belongs
         // to the window with focus.
@@ -4746,6 +4755,7 @@ printable:
         // Depois podemos manipular o texto, inclusive,
         // entregarmos ele para o aplicativo. 
         
+        /*
         // Draw char
         // #bugbug: Maybe we need to use draw_char??();
         // see: dtext.c
@@ -4755,7 +4765,7 @@ printable:
             (window->ip_x*8), 
             (window->ip_y*8), 
             (unsigned int) color, 
-            (unsigned char *) _string );  //&_string[0] );
+            (char *) _string );
 
         // Refresh rectangle
         // x,y,w,h
@@ -4764,6 +4774,15 @@ printable:
             (window->absolute_y + (window->ip_y*8)), 
             8, 
             8 );
+        */
+
+        dtextDrawText2 ( 
+            (struct gws_window_d *) window,
+            (window->ip_x*8), 
+            (window->ip_y*8), 
+            (unsigned int) color, 
+            (char *) _string,
+            TRUE );
 
         // Increment pointer.
         // Se for maior que a quantidade de bytes (chars?) na janela.
@@ -4908,6 +4927,7 @@ printable:
         // Depois podemos manipular o texto, inclusive,
         // entregarmos ele para o aplicativo. 
         
+        /*
         // Draw char
         // #bugbug: Maybe we need to use draw_char??();
         // see: dtext.c
@@ -4917,7 +4937,7 @@ printable:
             (window->ip_x*8), 
             (window->ip_y*8), 
             (unsigned int) color, 
-            (unsigned char *) _string );  //&_string[0] );
+            (char *) _string );
 
         // Refresh rectangle
         // x,y,w,h
@@ -4926,6 +4946,15 @@ printable:
             (window->absolute_y + (window->ip_y*8)), 
             8, 
             8 );
+        */
+
+        dtextDrawText2 ( 
+            (struct gws_window_d *) window,
+            (window->ip_x*8), 
+            (window->ip_y*8), 
+            (unsigned int) color, 
+            (char *) _string,
+            TRUE );
 
         // Increment pointer.
         // Se for maior que a quantidade de bytes (chars?) na janela.

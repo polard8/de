@@ -38,15 +38,20 @@ extern int server_mode;  // DEMO ...
 // Display device library.
 #include <libdisp.h>
 
-#include "libui/char.h"
-#include "libui/dtext.h"
 #include "libui/line.h"
 
 #include "ui/wt.h"
 #include "ui/menu.h"
 //#include "zres/grinput.h"   //#test
 #include "ui/metrics.h"
+
 #include "ui/window.h"
+
+// Draw inside the windows.
+#include "libui/char.h"
+#include "libui/dtext.h"
+
+
 #include "ui/areas/bar.h"    // Notification bar. (yellow)
 #include "ui/areas/wa.h"     // Working Area
 #include "ui/areas/swamp.h"  // Swamp

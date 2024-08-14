@@ -1347,36 +1347,6 @@ void change_window_state(struct gws_window_d *window, int state);
 void maximize_window(struct gws_window_d *window);
 void minimize_window(struct gws_window_d *window);
 
-//
-// Text/String support.
-//
-
-//---
-void 
-grDrawString ( 
-    unsigned long x,
-    unsigned long y,
-    unsigned int color,
-    unsigned char *string );
-              
-void 
-dtextDrawText ( 
-    struct gws_window_d *window,
-    unsigned long x,
-    unsigned long y,
-    unsigned int color,
-    char *string );
-
-void 
-dtextDrawText2 ( 
-    struct gws_window_d *window,
-    unsigned long x,
-    unsigned long y,
-    unsigned int color,
-    char *string,
-    int flush );
-//---
-
 int dock_active_window(int position);
 int dock_window( struct gws_window_d *window, int position );
 

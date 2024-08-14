@@ -1,7 +1,7 @@
-
 // File: dtext.c 
 // Draw text routines.
 // Created by Fred Nora.
+
 
 #include "../gwsint.h"
 
