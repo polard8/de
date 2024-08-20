@@ -2630,18 +2630,61 @@ void maximize_window(struct gws_window_d *window)
     if (window->type != WT_OVERLAPPED)
         return;
 
+// Can't maximize root or taskbar
+// They are not overlapped, but anyway.
+    if (window == __root_window)
+        return;
+    if (window == taskbar2_window)
+        return;
+
 // Enable input for overlapped window.
     window->enabled = TRUE;
 
 // 
     change_window_state(window,WINDOW_STATE_MAXIMIZED);
 
-// #test
-// Using the working area
+// Initialization: 
+// Using the working area by default.
     unsigned long l = WindowManager.wa.left;
     unsigned long t = WindowManager.wa.top;
     unsigned long w = WindowManager.wa.width;
     unsigned long h = WindowManager.wa.height;
+
+    if (MaximizationStyle.initialized != TRUE)
+    {
+        //MaximizationStyle.style = 1;  // full
+        MaximizationStyle.style = 2;  // partial
+        MaximizationStyle.initialized = TRUE;
+    }
+
+    // Based on style
+    int Style = MaximizationStyle.style;
+    switch (Style)
+    {
+        // full
+        case 1:
+            l = WindowManager.wa.left;
+            t = WindowManager.wa.top;
+            w = WindowManager.wa.width;
+            h = WindowManager.wa.height;
+            break;
+        // partial
+        case 2:
+            l = (WindowManager.wa.left + 24);
+            t = (WindowManager.wa.top  + 24);
+            w = (WindowManager.wa.width  -24 -24);
+            h = (WindowManager.wa.height -24 -24);
+            break;
+        // full
+        default:
+            l = WindowManager.wa.left;
+            t = WindowManager.wa.top;
+            w = WindowManager.wa.width;
+            h = WindowManager.wa.height;
+            break;
+    };
+
+// --------------
     if ( w==0 || h==0 ){
         return;
     }
@@ -2652,12 +2695,21 @@ void maximize_window(struct gws_window_d *window)
         (l +2), 
         (t +2) );
 
-// Set focus
-    set_focus(window);
-// Redraw and show window
-    redraw_window(window,TRUE);
 
+// Root
+    redraw_window(__root_window,TRUE);
+
+// Taskbar
 // Send message to the app to repaint all the childs.
+    redraw_window(taskbar2_window,TRUE);
+    window_post_message( taskbar2_window->id, GWS_Paint, 0, 0 );
+
+// Our window
+// Set focus
+// Redraw and show window
+// Send message to the app to repaint all the childs.
+    set_focus(window);
+    redraw_window(window,TRUE);
     window_post_message( window->id, GWS_Paint, 0, 0 );
 }
 

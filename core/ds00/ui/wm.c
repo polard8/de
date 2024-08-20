@@ -16,6 +16,8 @@ const char *rootwindow_name = "RootWin";
 struct double_click_d DoubleClick;
 
 
+struct maximization_style_d  MaximizationStyle;
+
 // #todo
 // Maybe we need a structure for this.
 // Clicked over a window.
@@ -1349,23 +1351,6 @@ static void on_mouse_leave(struct gws_window_d *window)
     }
 }
 
-// When clicked or 'pressed' via keyboard.
-static void on_control_clicked_by_wid(int wid)
-{
-    struct gws_window_d *window;
-
-    if (wid<0)
-        return;
-    window = (struct gws_window_d *) get_window_from_wid(wid);
-    if ((void*) window == NULL)
-        return;
-    if (window->magic != 1234){
-        return;
-    }
-
-    on_control_clicked(window);
-}
-
 // Let's check what control button was clicked.
 // The control is a window that belongs to the titlebar
 // of an overlapped window.
@@ -1549,7 +1534,23 @@ static void on_control_clicked(struct gws_window_d *window)
     }
 
 // Do we have more controls in the title bar?
+}
 
+// When clicked or 'pressed' via keyboard.
+static void on_control_clicked_by_wid(int wid)
+{
+    struct gws_window_d *window;
+
+    if (wid<0)
+        return;
+    window = (struct gws_window_d *) get_window_from_wid(wid);
+    if ((void*) window == NULL)
+        return;
+    if (window->magic != 1234){
+        return;
+    }
+
+    on_control_clicked(window);
 }
 
 static void on_doubleclick(void)
@@ -1671,9 +1672,9 @@ static int control_action(int msg, unsigned long long1)
 
     struct gws_window_d *aw;
     struct gws_window_d *w;
-    int minimize_wid =-1;
-    int maximize_wid =-1;
-    int close_wid=-1;
+    int minimize_wid = -1;
+    int maximize_wid = -1;
+    int close_wid    = -1;
 
     if (msg<0){
         goto fail;
@@ -1914,7 +1915,7 @@ void wmInitializeStructure(void)
 //
 
 // ffa
-    WindowManager.ffa_info.state = FFA_STATE_UNBRIO;
+    //WindowManager.ffa_info.state = FFA_STATE_UNBRIO;
 // wa
     WindowManager.wa_info.big_nothing = 0;
 // swamp

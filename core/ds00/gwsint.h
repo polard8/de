@@ -52,9 +52,10 @@ extern int server_mode;  // DEMO ...
 #include "libui/dtext.h"
 
 
-#include "ui/areas/bar.h"    // Notification bar. (yellow)
-#include "ui/areas/wa.h"     // Working Area
-#include "ui/areas/swamp.h"  // Swamp
+#include "ui/bar.h"    // Notification bar. (yellow)
+#include "ui/wa.h"     // Working Area
+#include "ui/swamp.h"  // Swamp
+
 #include "ui/wm.h"
 
 #include "libui/bitblt.h"

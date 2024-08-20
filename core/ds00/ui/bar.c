@@ -7,9 +7,15 @@
 
 #include "../gwsint.h"
 
+
+struct statusbar_info_d  StatusBarInfo;
+
+
+// ===================================
+
 // yellow bar. (rectangle not window)
 // developer status.
-void yellowstatus0(char *string,int refresh)
+void yellowstatus0(const char *string,int refresh)
 {
 // System notifications?
 // Combinations
@@ -28,6 +34,16 @@ void yellowstatus0(char *string,int refresh)
     if (WindowManager.initialized != TRUE)
         return;
 
+
+    // Initializing
+    if (StatusBarInfo.initialized != TRUE)
+    {
+        StatusBarInfo.style = 1;  // full
+        //StatusBarInfo.style = 2;  // partial
+        StatusBarInfo.initialized = TRUE;
+    }
+
+
 /*
     // Working Area
     unsigned long Left   = 0;  //WindowManager.wa.left;
@@ -42,10 +58,40 @@ void yellowstatus0(char *string,int refresh)
     unsigned long Height = 24; //WindowManager.wa.height;
 */
 
+    // Initializing
     unsigned long Left   = WindowManager.wa.width >> 1;
     unsigned long Top    = WindowManager.wa.height - 24;
     unsigned long Width  = WindowManager.wa.width >> 1;
     unsigned long Height = 24; //WindowManager.wa.height;
+
+    unsigned long DefaultHeight = 24;
+
+    // Based on style
+    int Style = StatusBarInfo.style;
+    switch (Style)
+    {
+        // full
+        case 1:
+            Left   = WindowManager.wa.left;
+            Top    = (WindowManager.wa.height - DefaultHeight);
+            Width  = WindowManager.wa.width;
+            Height = DefaultHeight;
+            break;
+        // partial
+        case 2:
+            Left   = (WindowManager.wa.left + 24);
+            Top    = (WindowManager.wa.height - DefaultHeight);
+            Width  = (WindowManager.wa.width -24 -24);
+            Height = DefaultHeight;
+            break;
+        // full
+        default:
+            Left   = WindowManager.wa.left;
+            Top    = (WindowManager.wa.height - DefaultHeight);
+            Width  = WindowManager.wa.width;
+            Height = DefaultHeight;
+            break;
+    };
 
 
     unsigned long bar_size = Width;
@@ -107,25 +153,11 @@ void yellowstatus0(char *string,int refresh)
     }
 }
 
-void yellow_status(char *string)
+void yellow_status(const char *string)
 {
     if ( (void*)string==NULL ){
         return;
     }
     yellowstatus0(string,TRUE);
 }
-
-// System notifications?
-// Combinations?
-void ffa_status(char *string)
-{
-    if ((void*) string == NULL)
-        return;
-    yellow_status(string);
-}
-
-
-
-
-
 

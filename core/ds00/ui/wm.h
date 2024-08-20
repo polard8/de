@@ -69,6 +69,13 @@ extern struct double_click_d DoubleClick;
 #define WM_MODE_MONO        3
 // ...
 
+struct maximization_style_d
+{
+    int initialized;
+    int style;
+};
+extern struct maximization_style_d  MaximizationStyle;
+
 
 // ===============================================================
 // #todo
@@ -105,7 +112,6 @@ struct gws_windowmanager_d
     int initialized;
 
 // Info for the areas.
-    struct ffa_info_d    ffa_info;
     struct wa_info_d     wa_info;
     struct swamp_info_d  swamp_info;
 
