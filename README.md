@@ -16,13 +16,10 @@
 the forms the basic graphical interface for the user. Just like,
 the Taskbar and the Virtual terminal.
   The core component of this project is the display server, found in the
-folder ui/core/server/.
+folder fw/ds00/.
 ```
 
-```
-  * commands/   - Unix-like commands to run on virtual terminals.
-  * ui/         - The graphical user interface, GUI.
-                  Display server and client-side GUI applications. 
-  * user3d/     - 3D demos. Full engines running in ring3.
-  * your/docs/  - Documentation for the Desktop Environment.
-```
+> * apps - Client-side GUI applications.
+> * fw - Framework layer. (Display server)
+> * native - Posix-like commands.
+
