@@ -1621,7 +1621,7 @@ void *doCreateWindow (
         }
         // It goes in the center.
         unsigned long offset = 
-            ( ( (unsigned long) window->width - ( (unsigned long) tmp_size * (unsigned long) gcharWidth) ) >> 1 );
+            ( ( (unsigned long) window->width - ( (unsigned long) tmp_size * (unsigned long) FontInitialization.width) ) >> 1 );
 
         // #debug: 
         // Se o botão não tem uma parent window.

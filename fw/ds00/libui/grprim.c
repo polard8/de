@@ -1965,70 +1965,27 @@ plotCharBackbufferDrawcharTransparent (
  *     ...
  */
 
-    if ( gws_currentfont_address == 0 || 
-         gcharWidth <= 0 || 
-         gcharHeight <= 0 )
+    if ( FontInitialization.address == 0 || 
+         FontInitialization.width <= 0 || 
+         FontInitialization.height <= 0 )
     {
-        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;  //ROM bios.
-        //gcharWidth = DEFAULT_CHAR_WIDTH;    //8.
-        //gcharHeight = DEFAULT_CHAR_HEIGHT;  //8.
-        // #debug
-        // Estamos parando para testes.
         printf("gws_drawchar_transparent: Initialization?\n");
         while (1){
         };
     }
 
-// #todo: 
-// Criar essas variáveis e definições.
-
-    switch (gfontSize){
-
-        //case FONT8X8:
-	        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //getFontAddress(...)
-		    //gcharWidth = 8;
-		    //gcharHeight = 8;
-		    //set_char_width(8);
-			//set_char_height(8);
-			//break;
-
-        //case FONT8X16:
-	        //gws_currentfont_address = (unsigned long) BIOSFONT8X16;    //getFontAddress(...)
-		    //gcharWidth = 8;
-		    //gcharHeight = 16;
-		    //set_char_width(8);
-			//set_char_height(16);
-		    //break;
-
-		//#todo: 
-		//Criar opções
-		//...
-
-		// #importante:
-		// #BUGBUG
-		// Se não temos um tamanho selecionado então teremos 
-		// que usar o tamanho padrão.
-
-        default:
-            //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //ROM bios.
-            //set_char_width(8);
-            //set_char_height(8);
-            //gfontSize = FONT8X8;  //#todo: fução para configurar isso.
-            break;
-    };
-
 // O caractere sendo trabalhado.
     work_char = 
-        (void *) gws_currentfont_address + (c * gcharHeight);
+        (void *) FontInitialization.address + (c * FontInitialization.height);
 
 //
 // Draw
 //
-    for ( y2=0; y2 < gcharHeight; y2++ )
+    for ( y2=0; y2 < FontInitialization.height; y2++ )
     {
         bit_mask = 0x80;
 
-        for ( x2=0; x2 < gcharWidth; x2++ )
+        for ( x2=0; x2 < FontInitialization.width; x2++ )
         {
             // Put pixel. 
             // IN: z,x,y,color,rop
@@ -2085,71 +2042,28 @@ plotCharBackbufferDrawcharTransparentZ (
  *     ...
  */
 
-    if ( gws_currentfont_address == 0 || 
-         gcharWidth <= 0 || 
-         gcharHeight <= 0 )
+    if ( FontInitialization.address == 0 || 
+         FontInitialization.width <= 0 || 
+         FontInitialization.height <= 0 )
     {
-        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //ROM bios.
-        //gcharWidth = DEFAULT_CHAR_WIDTH;               //8.
-        //gcharHeight = DEFAULT_CHAR_HEIGHT;             //8.
-        // #debug
-        // Estamos parando para testes.
         printf ("gws_drawchar_transparent : Initialization fail\n");
         while(1){}
     }
 
-// #todo: 
-// Criar essas variáveis e definições.
-
-    switch (gfontSize){
-
-        //case FONT8X8:
-	        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //getFontAddress(...)
-		    //gcharWidth = 8;
-		    //gcharHeight = 8;
-		    //set_char_width(8);
-			//set_char_height(8);
-			//break;
-
-        //case FONT8X16:
-	        //gws_currentfont_address = (unsigned long) BIOSFONT8X16;    //getFontAddress(...)
-		    //gcharWidth = 8;
-		    //gcharHeight = 16;
-		    //set_char_width(8);
-			//set_char_height(16);
-		    //break;
-
-		//#todo: 
-		//Criar opções
-		//...
-
-		// #importante:
-		// #BUGBUG
-		// Se não temos um tamanho selecionado então teremos 
-		// que usar o tamanho padrão.
-
-        default:
-            //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //ROM bios.
-            //set_char_width(8);
-            //set_char_height(8);
-            //gfontSize = FONT8X8;  //#todo: fução para configurar isso.
-            break;
-    };
-
 // O caractere sendo trabalhado.
     work_char = 
-        (void *) gws_currentfont_address + (c * gcharHeight);
+        (void *) FontInitialization.address + (c * FontInitialization.height);
 
 // Draw
 // #todo
 // We need a flat to invert or not.
 // invert
 // ok. it works
-    for ( y2=0; y2 < gcharHeight; y2++ )
+    for ( y2=0; y2 < FontInitialization.height; y2++ )
     {
         bit_mask = 0x80;
 
-        for ( x2=0; x2 < gcharWidth; x2++ )
+        for ( x2=0; x2 < FontInitialization.width; x2++ )
         {
             // Put pixel. 
             // começa do fim
@@ -2158,7 +2072,7 @@ plotCharBackbufferDrawcharTransparentZ (
             {
                 grPlot0 ( 
                     NULL, 
-                    z, x + x2, (y + gcharWidth), 
+                    z, x + x2, (y + FontInitialization.width), 
                     color, 0 ); 
             }
 

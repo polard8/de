@@ -69,7 +69,7 @@ grDrawString (
                 (unsigned int) __bg_color );   // bg color
         }
         */
-        
+
         // transparent
         //if (is_transparent == TRUE)
         //{
@@ -81,7 +81,7 @@ grDrawString (
                 x, y, 
                 (unsigned int) __fg_color, 
                 string[Index],
-                gws_currentfont_address );
+                FontInitialization.address );
          //}
 
         // gradient

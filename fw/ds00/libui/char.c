@@ -5,9 +5,7 @@
 #include "../gwsint.h"
 
 struct char_initialization_d  CharInitialization;
-// Draw char support
-int gcharWidth=0;
-int gcharHeight=0;
+
 
 // ================================================
 
@@ -134,10 +132,10 @@ int char_initialize(void)
     CharInitialization.width = DEFAULT_FONT_WIDTH;
     CharInitialization.height = DEFAULT_FONT_HEIGHT;
 
-    gcharWidth = DEFAULT_FONT_WIDTH;
-    gcharHeight = DEFAULT_FONT_HEIGHT;
-    //gcharWidth = 8;   //gde_get_system_metrics(7);
-    //gcharHeight = 8;  //gde_get_system_metrics(8);
+    FontInitialization.width = DEFAULT_FONT_WIDTH;
+    FontInitialization.height = DEFAULT_FONT_HEIGHT;
+    //FontInitialization.width = 8;   //gde_get_system_metrics(7);
+    //FontInitialization.height = 8;  //gde_get_system_metrics(8);
     //...
 
     CharInitialization.initialized = TRUE;
@@ -157,22 +155,22 @@ charBackbufferCharBlt (
 
 void charSetCharWidth (int width)
 {
-    gcharWidth = (int) width;
+    FontInitialization.width = (int) width;
 }
 
 void charSetCharHeight (int height)
 {
-    gcharHeight = (int) height;
+    FontInitialization.height = (int) height;
 }
 
 int charGetCharWidth (void)
 {
-    return (int) gcharWidth;
+    return (int) FontInitialization.width;
 }
 
 int charGetCharHeight (void)
 {
-    return (int) gcharHeight;
+    return (int) FontInitialization.height;
 }
 
 /*
@@ -212,15 +210,10 @@ grBackbufferDrawCharTransparent (
    isso deveria estar na inicialização do módulo char.
  */
 
-    if ( gws_currentfont_address == 0 || 
-         gcharWidth <= 0 || 
-         gcharHeight <= 0 )
+    if ( FontInitialization.address == 0 || 
+         FontInitialization.width <= 0 || 
+         FontInitialization.height <= 0 )
     {
-        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //ROM bios.
-        //gcharWidth = DEFAULT_CHAR_WIDTH;               //8.
-        //gcharHeight = DEFAULT_CHAR_HEIGHT;             //8.
-        // #debug
-        // Estamos parando para testes.
         printf ("grBackbufferDrawCharTransparent: Initialization fail\n");
         while (1){
         };
@@ -229,41 +222,6 @@ grBackbufferDrawCharTransparent (
 // #todo: 
 // Criar essas variáveis e definições.
 
-/*
-    switch (gfontSize){
-
-    //case FONT8X8:
-        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //getFontAddress(...)
-        //gcharWidth = 8;
-        //gcharHeight = 8;
-        //set_char_width(8);
-        //set_char_height(8);
-        //break;
-    //case FONT8X16:
-        //gws_currentfont_address = (unsigned long) BIOSFONT8X16;    //getFontAddress(...)
-        //gcharWidth = 8;
-        //gcharHeight = 16;
-        //set_char_width(8);
-        //set_char_height(16);
-        //break;
- 
-    //#todo: 
-    //Criar opções
-    //...
-    // #importante:
-    // #BUGBUG
-    // Se não temos um tamanho selecionado então teremos 
-    // que usar o tamanho padrão.
-
-    default:
-        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //ROM bios.
-        //set_char_width(8);
-        //set_char_height(8);
-        //gfontSize = FONT8X8;  //#todo: fução para configurar isso.
-        break;
-    };
-*/
-
 // O caractere sendo trabalhado.
 
     //int ascii = (int) (c & 0xFF);
@@ -271,19 +229,18 @@ grBackbufferDrawCharTransparent (
     //    printf("M: %d\n",ascii);
     //}
 
-
     work_char_p = 
-        (void *) gws_currentfont_address + (Char * gcharHeight);
+        (void *) FontInitialization.address + (Char * FontInitialization.height);
 
 // Draw char
 // Put pixel using the ring3 routine.
 // See: libgd.c
 
-    for ( y2=0; y2 < gcharHeight; y2++ )
+    for ( y2=0; y2 < FontInitialization.height; y2++ )
     {
         bit_mask = 0x80;
 
-        for ( x2=0; x2 < gcharWidth; x2++ )
+        for ( x2=0; x2 < FontInitialization.width; x2++ )
         {
             if ( ( *work_char_p & bit_mask ) )
             {
@@ -335,7 +292,7 @@ grBackbufferDrawCharTransparent2 (
     }
 
 // Invalid char dimensions.
-    if ( gcharWidth <= 0 || gcharHeight <= 0 )
+    if ( FontInitialization.width <= 0 || FontInitialization.height <= 0 )
     {
         //#debug
         //printf("grBackbufferDrawCharTransparent2: base_address\n");
@@ -344,17 +301,17 @@ grBackbufferDrawCharTransparent2 (
 
 // The pointer for the working char.
     work_char_p = 
-        (void *) base_address + (Char * gcharHeight);
+        (void *) base_address + (Char * FontInitialization.height);
 
 // Draw char
 // Put pixel using the ring3 routine.
 // See: libgd.c
 
-    for ( y2=0; y2 < gcharHeight; y2++ )
+    for ( y2=0; y2 < FontInitialization.height; y2++ )
     {
         bit_mask = 0x80;
 
-        for ( x2=0; x2 < gcharWidth; x2++ )
+        for ( x2=0; x2 < FontInitialization.width; x2++ )
         {
             if ( *work_char_p & bit_mask )
             {
@@ -411,58 +368,13 @@ grBackbufferDrawChar (
    isso deveria estar na inicialização do módulo char.
  */
  
-    if ( gws_currentfont_address == 0 ||  
-         gcharWidth <= 0 || 
-         gcharHeight <= 0 )
+    if ( FontInitialization.address == 0 ||  
+         FontInitialization.width <= 0 || 
+         FontInitialization.height <= 0 )
     {
-        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //ROM bios.
-        //gcharWidth = DEFAULT_CHAR_WIDTH;               //8.
-        //gcharHeight = DEFAULT_CHAR_HEIGHT;             //8.
-
-        //#debug
-        //Estamos parando só para testes.
-
         printf ("grBackbufferDrawChar: initialization fail\n");
         while(1){}
     }
-
-// #todo: 
-// Criar essas variáveis e definições.
-
-    switch (gfontSize){
-
-		//case FONT8X8:
-	        //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //getFontAddress(...)
-		    //gcharWidth = 8;
-		    //gcharHeight = 8;
-		    //set_char_width(8);
-			//set_char_height(8);
-			//break;
-		
-		//case FONT8X16:
-	        //gws_currentfont_address = (unsigned long) BIOSFONT8X16;    //getFontAddress(...)
-		    //gcharWidth = 8;
-		    //gcharHeight = 16;
-		    //set_char_width(8);
-			//set_char_height(16);
-		    //break;
-		 
-		//#todo: 
-		//Criar opções
-		//...
-		
-		// #importante:
-		// #BUGBUG
-		// Se não temos um tamanho selecionado então teremos 
-		// que usar o tamanho padrão.
-
-        default:
-		    //gws_currentfont_address = (unsigned long) BIOSFONT8X8;    //ROM bios.
-		    //set_char_width(8);
-			//set_char_height(8);	
-            //gfontSize = FONT8X8;  //#todo: fução para configurar isso.			
-            break;
-    };
 
 // Tentando pintar um espaço em branco.
 // Nas rotinas da biblioteca gráfica, quando encontram
@@ -472,7 +384,7 @@ grBackbufferDrawChar (
 // Offset da tabela de chars de altura 8 na ROM.
 
     work_char = 
-        (void *) gws_currentfont_address + (c * gcharHeight);
+        (void *) FontInitialization.address + (c * FontInitialization.height);
 
 // Draw:
 // Draw a char using a ring3 routine.
@@ -481,11 +393,11 @@ grBackbufferDrawChar (
 // Put pixel.
 // A cor varia de acordo com a mascara de bit.
 
-    for ( y2=0; y2 < gcharHeight; y2++ )
+    for ( y2=0; y2 < FontInitialization.height; y2++ )
     {
         bit_mask = 0x80;
 
-        for ( x2=0; x2 < gcharWidth; x2++ )
+        for ( x2=0; x2 < FontInitialization.width; x2++ )
         {
             // IN: color, x, y, rop
             libdisp_backbuffer_putpixel ( 

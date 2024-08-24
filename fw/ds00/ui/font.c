@@ -7,11 +7,7 @@
 // See: font.h
 struct font_initialization_d  FontInitialization;
 
-// #bugbug: We need two values, w and h.
-int gfontSize=0;
-
 // As fontes usadas pelo servidor gws.
-unsigned long gws_currentfont_address=0;  // fonte atual.
 unsigned long g8x8fontAddress=0;          // 8×8, 80×25,CGA, EGA
 unsigned long g8x14fontAddress=0;         // 8x14,80×25,EGA
 unsigned long g8x16fontAddress=0;         // ??
@@ -2654,8 +2650,9 @@ static unsigned char TableBitReverse[] = {
 // The final place for the lt font.
 char *font_lt8x8;
 
-// losethos font.
+// Losethos font.
 // Inverted order.
+// Credits: Terry Davis.
 static unsigned char __inverted_font_lt8x8[256*8] = {
 
 // 0
@@ -3026,9 +3023,17 @@ fail:
     return NULL;
 }
 
+
+//
+// $
+// INITIALIZATION
+//
+
 int font_initialize(void)
 {
 // Called by gwsInitGUI() in gws.c.
+
+    int UseLoseThosFont = TRUE;
 
 // #todo
 // #test
@@ -3036,23 +3041,36 @@ int font_initialize(void)
 
     FontInitialization.initialized = FALSE;
 
-// Set default 8x8 w h.
-    FontInitialization.width = DEFAULT_FONT_WIDTH;
-    FontInitialization.height = DEFAULT_FONT_HEIGHT;
-    gfontSize = 8;  // ?
-
-// Linux font.
-// This is the current.
-    FontInitialization.address = (unsigned long) font_lin8x8;
-    gws_currentfont_address = (unsigned long) font_lin8x8;
-
+// ------------------------------------
 // Losethos font.
 // We need to invert the data.
     font_lt8x8 = (char *) __initialize_lt8x8_font();
-    if ((void*) font_lt8x8 == NULL){
+    if ((void*) font_lt8x8 == NULL)
+	{
         printf("font_initialize: on __initialize_lt8x8_font\n");
         goto fail;
     }
+
+
+// ------------------------------------
+// Selecting font type.
+// This will be the current font.
+
+
+// Use Losethos 8x8 font.
+    if (UseLoseThosFont == TRUE){
+        FontInitialization.address = (unsigned long) font_lt8x8;
+        // Set default 8x8 w h.
+        FontInitialization.width = DEFAULT_FONT_WIDTH;
+        FontInitialization.height = DEFAULT_FONT_HEIGHT;
+
+// Use Linux 8x8 font.
+	}else{
+        FontInitialization.address = (unsigned long) font_lin8x8;
+        // Set default 8x8 w h.
+        FontInitialization.width = DEFAULT_FONT_WIDTH;
+        FontInitialization.height = DEFAULT_FONT_HEIGHT;
+	};
 
 // done:
     FontInitialization.initialized = TRUE;

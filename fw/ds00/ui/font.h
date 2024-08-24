@@ -15,11 +15,7 @@ extern char *font_lt8x8;
 // Font
 //
 
-// #bugbug
-extern int gfontSize;
-
 //As fontes usadas pelo servidor gws
-extern unsigned long gws_currentfont_address;  // fonte atual.
 extern unsigned long g8x8fontAddress;          // 8×8, 80×25,CGA, EGA
 extern unsigned long g8x14fontAddress;         // 8x14,80×25,EGA
 extern unsigned long g8x16fontAddress;         // ??

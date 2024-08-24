@@ -820,7 +820,7 @@ redraw_window (
         }
         // Center.
         unsigned long offset = 
-        ( ( (unsigned long) window->width - ( (unsigned long) tmp_size * (unsigned long) gcharWidth) ) / 2 );
+        ( ( (unsigned long) window->width - ( (unsigned long) tmp_size * (unsigned long) FontInitialization.width) ) / 2 );
 
         // redraw the button border.
         // #todo:

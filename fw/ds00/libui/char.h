@@ -1,13 +1,8 @@
-
 // char.h
+// Created by Fred Nora.
 
 #ifndef __CHAR_H
 #define __CHAR_H  1
-
-
-// Draw char support
-extern int gcharWidth;
-extern int gcharHeight;
 
 
 struct char_initialization_d
