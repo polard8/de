@@ -94,11 +94,13 @@ CINCLUDES += -I $(LIBDISP)
 CINCLUDES += -I $(LIBGR)
 CINCLUDES += -I .    
 CINCLUDES += -I ../
-    
+
+
 # Objects
 myObjects = wm.o \
 bmp.o \
 menu.o \
+fnt8x16.o \
 font.o \
 painter.o \
 window.o \
@@ -117,7 +119,10 @@ all-c:
 	$(CC) -c bmp.c       $(CFLAGS) $(CINCLUDES) -o bmp.o
 
 	$(CC)  -c menu.c     $(CFLAGS) $(CINCLUDES) -o menu.o
+
+	$(CC)  -c fnt8x16.c  $(CFLAGS) $(CINCLUDES) -o fnt8x16.o
 	$(CC)  -c font.c     $(CFLAGS) $(CINCLUDES) -o font.o
+
 	$(CC)  -c painter.c  $(CFLAGS) $(CINCLUDES) -o painter.o
 	$(CC)  -c window.c   $(CFLAGS) $(CINCLUDES) -o window.o
 

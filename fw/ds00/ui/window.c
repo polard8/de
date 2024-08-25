@@ -1619,9 +1619,12 @@ void *doCreateWindow (
         {
             tmp_size=64;
         }
+
         // It goes in the center.
-        unsigned long offset = 
+        unsigned long l_offset = 
             ( ( (unsigned long) window->width - ( (unsigned long) tmp_size * (unsigned long) FontInitialization.width) ) >> 1 );
+        unsigned long t_offset = 
+            ( ( (unsigned long) window->height - FontInitialization.height ) >> 1 );
 
         // #debug: 
         // Se o botão não tem uma parent window.
@@ -1665,8 +1668,8 @@ void *doCreateWindow (
             // Draw the label's string.
             // The label is the window's name.
             grDrawString ( 
-                (window->absolute_x + offset), 
-                (window->absolute_y + 8), 
+                (window->absolute_x + l_offset), 
+                (window->absolute_y + t_offset), 
                 (unsigned int) label_color, 
                 window->name );
         }

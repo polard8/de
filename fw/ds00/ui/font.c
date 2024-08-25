@@ -3034,6 +3034,7 @@ int font_initialize(void)
 // Called by gwsInitGUI() in gws.c.
 
     int UseLoseThosFont = TRUE;
+    //int UseLoseThosFont = FALSE;
 
 // #todo
 // #test
@@ -3064,12 +3065,21 @@ int font_initialize(void)
         FontInitialization.width = DEFAULT_FONT_WIDTH;
         FontInitialization.height = DEFAULT_FONT_HEIGHT;
 
-// Use Linux 8x8 font.
+
 	}else{
-        FontInitialization.address = (unsigned long) font_lin8x8;
+        /*
+		// Use Linux 8x8 font.
+		FontInitialization.address = (unsigned long) font_lin8x8;
         // Set default 8x8 w h.
         FontInitialization.width = DEFAULT_FONT_WIDTH;
         FontInitialization.height = DEFAULT_FONT_HEIGHT;
+		*/
+
+        // Use Linux 8x16 font.
+		FontInitialization.address = (unsigned long) fontdata_8x16;
+        // Set default 8x8 w h.
+        FontInitialization.width = 8;
+        FontInitialization.height = 16;
 	};
 
 // done:

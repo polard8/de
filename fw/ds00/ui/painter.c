@@ -818,9 +818,13 @@ redraw_window (
         {
             tmp_size=64;
         }
-        // Center.
-        unsigned long offset = 
-        ( ( (unsigned long) window->width - ( (unsigned long) tmp_size * (unsigned long) FontInitialization.width) ) / 2 );
+
+        // It goes in the center.
+        unsigned long l_offset = 
+            ( ( (unsigned long) window->width - ( (unsigned long) tmp_size * (unsigned long) FontInitialization.width) ) >> 1 );
+        unsigned long t_offset = 
+            ( ( (unsigned long) window->height - FontInitialization.height ) >> 1 );
+
 
         // redraw the button border.
         // #todo:
@@ -845,8 +849,8 @@ redraw_window (
         // Redraw the label's string.
         // The label is the window's name.
         grDrawString ( 
-            (window->absolute_x + offset), 
-            (window->absolute_y + 8), 
+            (window->absolute_x + l_offset), 
+            (window->absolute_y + t_offset), 
             label_color, window->name );
 
         // ok, repintamos o botao que eh um caso especial

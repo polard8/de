@@ -140,6 +140,15 @@ dtextDrawText2 (
     int flush )
 { 
 
+    unsigned long CharWidth=8;
+    unsigned long CharHeight=8;
+
+    if (FontInitialization.initialized == TRUE)
+    {
+        CharWidth = FontInitialization.width;
+        CharHeight = FontInitialization.height;
+    }
+
 // Window validation
     if ((void *) window == NULL)
         return;
@@ -166,8 +175,8 @@ dtextDrawText2 (
         gws_refresh_rectangle ( 
             (window->absolute_x +x), 
             (window->absolute_y +y), 
-            8, 
-            8 );
+            CharWidth, 
+            CharHeight );
     }
 }
 

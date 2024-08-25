@@ -8,8 +8,11 @@
 
 #define DEFAULT_FONT_WIDTH  8
 #define DEFAULT_FONT_HEIGHT  8
-
 extern char *font_lt8x8;
+
+#define FNT8X16_FONTDATAMAX   4096
+extern unsigned char fontdata_8x16[FNT8X16_FONTDATAMAX];
+
 
 //
 // Font

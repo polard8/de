@@ -2488,6 +2488,8 @@ struct gws_window_d *do_create_titlebar(
         StringSize = 64;
     }
 
+// --------------------------------------
+// Left PAD.
 // pad | icon | pad | pad
     if (useIcon == FALSE){
         StringLeftPad = (unsigned long) METRICS_ICON_LEFTPAD;
@@ -2496,6 +2498,14 @@ struct gws_window_d *do_create_titlebar(
         StringLeftPad = 
             (unsigned long) ( METRICS_ICON_LEFTPAD +iWidth +(2*METRICS_ICON_LEFTPAD));
     }
+
+// --------------------------------------
+// Top PAD.
+    
+    // #test
+    StringTopPad = 
+        ( ( (unsigned long) tbWindow->height - FontInitialization.height ) >> 1 );
+
 
 //
 // Text support

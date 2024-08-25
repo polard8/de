@@ -20,6 +20,10 @@ DrawBorder(
     register int j=0;
     int CharSize = 8;
 
+    // Chage in this case.
+    //if (FontInitialization.initialized == TRUE)
+        //CharSize = FontInitialization.width;
+
     l = (l&0xFFFF);
     r = (r&0xFFFF);
     t = (t&0xFFFF);
@@ -132,11 +136,11 @@ int char_initialize(void)
     CharInitialization.width = DEFAULT_FONT_WIDTH;
     CharInitialization.height = DEFAULT_FONT_HEIGHT;
 
-    FontInitialization.width = DEFAULT_FONT_WIDTH;
-    FontInitialization.height = DEFAULT_FONT_HEIGHT;
-    //FontInitialization.width = 8;   //gde_get_system_metrics(7);
-    //FontInitialization.height = 8;  //gde_get_system_metrics(8);
-    //...
+    if (FontInitialization.initialized != TRUE)
+    {
+        FontInitialization.width = DEFAULT_FONT_WIDTH;
+        FontInitialization.height = DEFAULT_FONT_HEIGHT;
+    }
 
     CharInitialization.initialized = TRUE;
     return 0;
