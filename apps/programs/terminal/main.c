@@ -59,6 +59,9 @@ int main(int argc, char *argv[])
 
     debug_print ("terminal.bin:\n");
 
+    saved_argc = argc;
+    saved_argv = argv;
+
 // #todo: Parse parameters.
 
     if (argc < 1){

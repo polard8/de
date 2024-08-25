@@ -53,7 +53,7 @@ LIBGWS    = ../../api/libs/libgws/include/
 LIBGWSOBJ = ../../api/libs/libgws/obj
 
 # Objects
-myObjects = crt0.o main.o terminal.o rtl.o \
+myObjects = crt0.o main.o globals.o terminal.o rtl.o \
 ctype.o stdio.o fcntl.o stdlib.o string.o \
 unistd.o termios.o ioctl.o socket.o \
 libgws.o   
@@ -66,6 +66,8 @@ all: main.o all-c hello-link finalize clean
 main.o:
 	gcc -c main.c $(CFLAGS) -I $(LIBC) -I $(LIBGWS) -I include/ -o main.o
 all-c:
+
+	gcc -c globals.c  $(CFLAGS) -I $(LIBC) -I $(LIBGWS) -I include/ -o globals.o
 	gcc -c terminal.c $(CFLAGS) -I $(LIBC) -I $(LIBGWS) -I include/ -o terminal.o
 
 # Copy

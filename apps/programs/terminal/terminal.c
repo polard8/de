@@ -35,6 +35,8 @@ FILE *__terminal_input_fp;
 
 // Windows
 struct gws_window_info_d *wi;  // Window info for the main window.
+
+// Private
 static int main_window=0;
 static int terminal_window=0;
 
@@ -183,6 +185,9 @@ static const char *program_name = "TERMINAL";
 // Client window title
 static const char *cw_string = "Client";
 
+// see: font00.h
+struct font_info_d  FontInfo;
+
 
 //
 // == Private functions: Prototypes ==============
@@ -190,7 +195,7 @@ static const char *cw_string = "Client";
 
 static void __initialize_basics(void);
 
-static void terminalTerminal(void);
+static void __initializeTerminalComponents(void);
 static void terminalInitWindowPosition(void);
 static void terminalInitWindowSizes(void);
 static void terminalInitWindowLimits(void);
@@ -287,8 +292,43 @@ static void update_clients(int fd)
 
     gws_set_focus(fd,wid);
     gws_redraw_window(fd, wid, TRUE);
-}
 
+// ------------------------------------------------
+// Update some font info based on our new viewport.
+
+// Update information in Terminal structure
+
+// Font info again
+// Based on our corrent viewport
+// In chars.
+
+// Terminal
+
+    if (Terminal.initialized != TRUE)
+        return;
+    Terminal.width = w;
+    Terminal.height = h;
+
+// Font
+// #todo: We need the font information in the window structure.
+
+    if (FontInfo.initialized != TRUE)
+        return;
+
+    if ( FontInfo.width > 0 && 
+         FontInfo.width < Terminal.width )
+    {
+        Terminal.width_in_chars = 
+            (unsigned long)((Terminal.width/FontInfo.width) & 0xFFFF);
+    }
+
+    if ( FontInfo.height > 0 && 
+         FontInfo.height < Terminal.height )
+    {
+        Terminal.height_in_chars = 
+            (unsigned long)((Terminal.height/FontInfo.height) & 0xFFFF);
+    }
+}
 
 static void __test_post_async_hello(void)
 {
@@ -1448,9 +1488,12 @@ static void doAbout(int fd)
     lf();
 }
 
+
 static void doPrompt(int fd)
 {
     register int i=0;
+    unsigned long CharWidth = 8;
+    unsigned long CharHeight = 8;
 
     if(fd<0){
         return;
@@ -1486,12 +1529,20 @@ static void doPrompt(int fd)
         return;
     }
 
+// -------------------------------
+
+    if (FontInfo.initialized == TRUE)
+    {
+        CharWidth = FontInfo.width;
+        CharHeight = FontInfo.height;
+    }
+
 // draw prompt symbol.
     gws_draw_char ( 
         fd, 
         wid, 
-        (cursor_x*8), 
-        (cursor_y*8), 
+        (cursor_x*CharWidth), 
+        (cursor_y*CharHeight), 
         prompt_color, 
         '>' ); 
 
@@ -1504,7 +1555,10 @@ static void doPrompt(int fd)
 
     gws_refresh_retangle(
         fd,
-        (cursor_x*8),(cursor_y*8),8,8);
+        (cursor_x*CharWidth),
+        (cursor_y*CharHeight),
+        CharWidth,
+        CharHeight );
 
     // it works
     //gws_refresh_window(fd,wid);
@@ -1712,9 +1766,9 @@ void test_standard_stream(int fd)
 void
 test_child_message(void)
 {
-   // lançando um processo filho.  
-   // #todo: use clone_and_execute.
-   sc80 ( 900, 
+    // lançando um processo filho.  
+    // #todo: use clone_and_execute.
+    sc80 ( 900, 
        (unsigned long) "sh1.bin", 0, 0 );
 
 }
@@ -1732,10 +1786,19 @@ terminal_write_char (
 {
 // worker
 // Print the char into the window.
+    unsigned long CharWidth = 8;
+    unsigned long CharHeight = 8;
+
+    if (FontInfo.initialized == TRUE)
+    {
+        CharWidth = FontInfo.width;
+        CharHeight = FontInfo.height;
+    }
+
 
     static char prev=0;
-    unsigned long x = (cursor_x*8);
-    unsigned long y = (cursor_y*8);
+    unsigned long x = (cursor_x*CharWidth);
+    unsigned long y = (cursor_y*CharHeight);
 
     if (fd<0)    {return;}
     if (window<0){return;}
@@ -1755,19 +1818,19 @@ terminal_write_char (
     //if ( c == '\n' && prev == '\r' ) 
     if ( c == '\n')
     {
-         //printf("NEWLINE\n");
-         cursor_x=0; // começo da linha ...(desnecessário)
-         cursor_y++;  //linha de baixo
-         // #test
-         // #todo: scroll
-         if ( cursor_y >= Terminal.height_in_chars )
-         {
-             clear_terminal_client_window(fd);  //#provisório
-         }
+        //printf("NEWLINE\n");
+        cursor_x=0; // começo da linha ...(desnecessário)
+        cursor_y++;  //linha de baixo
+        // #test
+        // #todo: scroll
+        if ( cursor_y >= Terminal.height_in_chars )
+        {
+            clear_terminal_client_window(fd);  //#provisório
+        }
 
-         //começo da linha
-         prev = c; 
-         return;
+        //começo da linha
+        prev = c; 
+        return;
     }
 
 // Draw!
@@ -2794,6 +2857,16 @@ int __terminal_clone_and_execute ( char *name )
 void _draw(int fd, int c)
 {
 
+    unsigned long CharWidth = 8;
+    unsigned long CharHeight = 8;
+
+    if (FontInfo.initialized == TRUE)
+    {
+        CharWidth = FontInfo.width;
+        CharHeight = FontInfo.height;
+    }
+
+
    //unsigned long x;
    //x=0x65666768; //last
    
@@ -2823,7 +2896,7 @@ void _draw(int fd, int c)
       
                     
                         
-                 __tmp_x = __tmp_x + 8;
+                 __tmp_x = __tmp_x + CharWidth;
                  
                  //if ( __tmp_x > (8*80) )
                  //{
@@ -2976,6 +3049,9 @@ terminalProcedure (
         }
         break;
 
+    // #todo
+    // Message when the server change the font.
+
     case MSG_CLOSE:
         printf("terminal.bin: MSG_CLOSE\n");
         gws_destroy_window(fd,terminal_window);
@@ -2997,12 +3073,19 @@ terminalProcedure (
 // It's working
 static int __input_from_connector(int fd)
 {
+// + Get bytes from stderr.
+// + Get system messages from the queue in control thread.
+// + Get events from the server.
+
 // #importante:
 // Esse event loop pega dados de um arquivo.
     int client_fd = fd;
     int window_id = Terminal.client_window_id;
     int C=0;
     const char *test_app = "shell.bin";
+    int fGetSystemEvents = TRUE;  // from kernel.
+    int fGetWSEvents = TRUE;  // from display server.
+
 
     printf ("__input_from_connector: #todo\n");
 
@@ -3046,6 +3129,8 @@ RelaunchShell:
 // Reading from stderr, with a new fd.
 
     while (1){
+
+        // + Get bytes from stderr.
         C = fgetc(__terminal_input_fp);
         if (C > 0)
         {
@@ -3061,6 +3146,15 @@ RelaunchShell:
         //if (C == 4){
         //    goto done;
         //}
+        // + Get system messages from the queue in control thread.
+        // System events.
+        if (fGetSystemEvents == TRUE){
+            __get_system_event( client_fd, window_id );
+        }
+        // + Get events from the server.
+        if (fGetWSEvents == TRUE){
+            __get_ws_event( client_fd, main_window );
+        }
     };
 
     goto RelaunchShell;
@@ -3072,13 +3166,15 @@ fail:
     return -1;
 }
 
-static int __input_STDIN(int fd)
-{
 // Get events from stdin, kernel and ws.
 // Pegando o input de 'stdin'.
 // #importante:
 // Esse event loop pega dados de um arquivo.
-
+static int __input_STDIN(int fd)
+{
+// + Get bytes from stdin.
+// + Get system messages from the queue in control thread.
+// + Get events from the server.
 
     FILE *new_stdin;
     int client_fd = fd;
@@ -3119,6 +3215,8 @@ static int __input_STDIN(int fd)
         if (isUsingEmbeddedShell == FALSE){
             break;
         }
+
+        // + Get bytes from stdin.
         // #bubug
         // Logo apos lermos um ENTER, o terminal vai colocar
         // alguma coisa em stdin. Provavelmente estamos lendo
@@ -3136,10 +3234,12 @@ static int __input_STDIN(int fd)
                 C );          // long2 (ascii)
         }
       
+        // + Get system messages from the queue in control thread.
         // System events.
         if (fGetSystemEvents == TRUE){
             __get_system_event( client_fd, window_id );
         }
+        // + Get events from the server.
         if (fGetWSEvents == TRUE){
             __get_ws_event( client_fd, main_window );
         }
@@ -3254,126 +3354,6 @@ static void __get_ws_event(int fd, int event_wid)
     };
 }
 
-// Initializing basic variables.
-static void __initialize_basics(void)
-{
-    register int i=0;
-
-// Windows
-    main_window=0;
-    terminal_window=0;
-
-// Cursor
-    cursor_x=0;
-    cursor_y=0;
-
-    __sequence_status=0;
-
-// CSI - Control Sequence Introducer.
-// see: term0.h
-    for (i=0; i<CSI_BUFFER_SIZE; i++){
-        CSI_BUFFER[i] = 0;
-    };
-    __csi_buffer_tail=0;
-    __csi_buffer_head=0;
-
-
-    __tmp_x=0;
-    __tmp_y=0;
-
-
-// Limite de tamanho da janela.
-    wlMinWindowWidth=0;
-    wlMinWindowHeight=0;
-    wlMaxWindowWidth=0;
-    wlMaxWindowHeight=0;
-
-// ...
-
-}
-
-// terminalTerminal:
-// Não emite mensagens.
-// #bugbug
-// essas configurações são configurações de janela,
-// então estão mais para terminal do que para shell.
-
-static void terminalTerminal(void)
-{
-    int i=0;
-    int j=0;
-
-    bg_color = COLOR_BLACK;
-    fg_color = COLOR_WHITE;
-    cursor_x=0;
-    cursor_y=0;
-    prompt_color = COLOR_GREEN;
-    //shellStatus = 0;
-    //shellError = 0;
-
-// Inicializando as estruturas de linha.
-// Inicializamos com espaços.
-// Limpa o buffer de linhas onde os caracteres são colocados.
-    terminalClearBuffer();
-// Deve ser pequena, clara e centralizada.
-// Para ficar mais rápido.
-// #importante:
-// O aplicativo tem que confiar nas informações 
-// retornadas pelo sistema.
-// Usar o get system metrics para pegar o 
-// tamanho da tela.
-//inicializa as metricas do sistema.
-    terminalInitSystemMetrics();
-//inicializa os limites da janela.
-    terminalInitWindowLimits();
-//inicia o tamanho da janela.
-    terminalInitWindowSizes();
-//inicializar a posição da janela.
-    terminalInitWindowPosition();
-// initialize visible area.
-// #todo: criar função para isso
-// É melhor que seja pequena por enquanto pra não ativar
-// o scroll do kernel e só usar o scroll desse terminal.
-    //textTopRow = 0;
-    //textBottomRow = 24;
-    //terminalNewVisibleArea ( 0, 19);
-    //...
-// Obs:
-// prompt[] - Aqui ficam as digitações. 
-    //shellBufferMaxColumns = DEFAULT_BUFFER_MAX_COLUMNS;
-    //shellBufferMaxRows    = DEFAULT_BUFFER_MAX_ROWS;
-    //buffersize = (shellBufferMaxColumns * shellBufferMaxRows);
-// #todo: 
-// E o fluxo padrão. Quem configurou os arquivos ???
-// o kernel configuroru???
-    //...
-
-	//for ( i=0; i<WORKINGDIRECTORY_STRING_MAX; i++ ){
-	//	current_workingdiretory_string[i] = (char) '\0';
-	//};
-
-    //sprintf ( current_workingdiretory_string, 
-    //    SHELL_UNKNOWNWORKINGDIRECTORY_STRING );    
-
-	//...
-
-//done:
-
-    //ShellFlag = SHELLFLAG_COMMANDLINE;
-
-// #bugbug
-// Nossa referência é a moldura e não a área de cliente.
-// #todo:usar a área de cliente como referência
-    //terminalSetCursor(0,0);
-    //terminalSetCursor(0,4);
-
-// #todo
-// Tentando posicionar o cursor dentro da janela
-    //terminalSetCursor( (shell_info.main_window->left/8) , (shell_info.main_window->top/8));	
-
-    //shellPrompt();
-}
-
 static void terminalInitSystemMetrics(void)
 {
 // Screen width and height.
@@ -3385,9 +3365,19 @@ static void terminalInitSystemMetrics(void)
 // Mouse pointer width and height.
     smMousePointerWidth = gws_get_system_metrics(5);
     smMousePointerHeight = gws_get_system_metrics(6);
+
 // Char width and height.
     smCharWidth = gws_get_system_metrics(7);
     smCharHeight = gws_get_system_metrics(8);
+
+// Initialize font info based on system metrics,
+// maybe we're gonna change it later,
+// when we get information from the server.
+    FontInfo.width = (unsigned long) smCharWidth;
+    FontInfo.height = (unsigned long) smCharHeight;
+    FontInfo.id = 0;
+    FontInfo.initialized = TRUE;
+
 
 //#todo:
 //vertical scroll size
@@ -3484,6 +3474,146 @@ static void terminalInitWindowPosition(void)
     //wpWindowTop = (unsigned long) ( (smScreenHeight - wsWindowHeight)/2 );  	
 }
 
+
+// __initializeTerminalComponents:
+// Não emite mensagens.
+// #bugbug
+// essas configurações são configurações de janela,
+// então estão mais para terminal do que para shell.
+
+static void __initializeTerminalComponents(void)
+{
+    int i=0;
+    int j=0;
+
+    bg_color = COLOR_BLACK;
+    fg_color = COLOR_WHITE;
+    cursor_x=0;
+    cursor_y=0;
+    prompt_color = COLOR_GREEN;
+    //shellStatus = 0;
+    //shellError = 0;
+
+// Inicializando as estruturas de linha.
+// Inicializamos com espaços.
+// Limpa o buffer de linhas onde os caracteres são colocados.
+    terminalClearBuffer();
+// Deve ser pequena, clara e centralizada.
+// Para ficar mais rápido.
+// #importante:
+// O aplicativo tem que confiar nas informações 
+// retornadas pelo sistema.
+// Usar o get system metrics para pegar o 
+// tamanho da tela.
+//inicializa as metricas do sistema.
+    terminalInitSystemMetrics();
+//inicializa os limites da janela.
+    terminalInitWindowLimits();
+//inicia o tamanho da janela.
+    terminalInitWindowSizes();
+//inicializar a posição da janela.
+    terminalInitWindowPosition();
+// initialize visible area.
+// #todo: criar função para isso
+// É melhor que seja pequena por enquanto pra não ativar
+// o scroll do kernel e só usar o scroll desse terminal.
+    //textTopRow = 0;
+    //textBottomRow = 24;
+    //terminalNewVisibleArea ( 0, 19);
+    //...
+// Obs:
+// prompt[] - Aqui ficam as digitações. 
+    //shellBufferMaxColumns = DEFAULT_BUFFER_MAX_COLUMNS;
+    //shellBufferMaxRows    = DEFAULT_BUFFER_MAX_ROWS;
+    //buffersize = (shellBufferMaxColumns * shellBufferMaxRows);
+// #todo: 
+// E o fluxo padrão. Quem configurou os arquivos ???
+// o kernel configuroru???
+    //...
+
+	//for ( i=0; i<WORKINGDIRECTORY_STRING_MAX; i++ ){
+	//	current_workingdiretory_string[i] = (char) '\0';
+	//};
+
+    //sprintf ( current_workingdiretory_string, 
+    //    SHELL_UNKNOWNWORKINGDIRECTORY_STRING );    
+
+	//...
+
+//done:
+
+    //ShellFlag = SHELLFLAG_COMMANDLINE;
+
+// #bugbug
+// Nossa referência é a moldura e não a área de cliente.
+// #todo:usar a área de cliente como referência
+    //terminalSetCursor(0,0);
+    //terminalSetCursor(0,4);
+
+// #todo
+// Tentando posicionar o cursor dentro da janela
+    //terminalSetCursor( (shell_info.main_window->left/8) , (shell_info.main_window->top/8));	
+
+/*
+// #todo:
+// Getting info from the server to setup our font info.
+// Or maybe tell the server what font we want to use.
+// the server has a limited number of embedded fonts for now.
+    FontInfo.width = (unsigned long) ?;
+    FontInfo.height = (unsigned long) ?;
+    FontInfo.id = 0;
+    FontInfo.initialized = TRUE;
+*/
+
+    //shellPrompt();
+}
+
+// Initializing basic variables.
+static void __initialize_basics(void)
+{
+    register int i=0;
+
+// Windows
+    main_window=0;
+    terminal_window=0;
+
+// Cursor
+    cursor_x=0;
+    cursor_y=0;
+
+// Font info
+    FontInfo.initialized = FALSE;
+    FontInfo.width = 8; //default
+    FontInfo.height = 8; //default
+    FontInfo.id = 0;  // Fail
+
+    __sequence_status=0;
+
+// CSI - Control Sequence Introducer.
+// see: term0.h
+    for (i=0; i<CSI_BUFFER_SIZE; i++){
+        CSI_BUFFER[i] = 0;
+    };
+    __csi_buffer_tail=0;
+    __csi_buffer_head=0;
+
+    __tmp_x=0;
+    __tmp_y=0;
+
+
+// Limite de tamanho da janela.
+    wlMinWindowWidth=0;
+    wlMinWindowHeight=0;
+    wlMaxWindowWidth=0;
+    wlMaxWindowHeight=0;
+// ...
+}
+
+//
+// $
+// INITIALIZATION
+//
+
 // --------------------------------
 // Initialization.
 // This routine will initialize the terminal variables, 
@@ -3498,7 +3628,7 @@ int terminal_init(unsigned short flags)
     addr_in.sin_family = AF_INET;
     addr_in.sin_addr.s_addr = IP(127,0,0,1);    //ok
     //addr_in.sin_addr.s_addr = IP(127,0,0,9);  //fail
-    addr_in.sin_port = __PORTS_DISPLAY_SERVER;  //PORTS_WS;
+    addr_in.sin_port = __PORTS_DISPLAY_SERVER;
 // -------------------------
 
     int client_fd = -1;
@@ -3507,13 +3637,14 @@ int terminal_init(unsigned short flags)
 
     debug_print ("terminal: Initializing\n");
 
+// Initializing basic variables.
+    __initialize_basics();
+
 // Device info
 // #todo: Check for 'zero'.
     w = gws_get_system_metrics(1);
     h = gws_get_system_metrics(2);
 
-// Initializing basic variables.
-    __initialize_basics();
 
 // Socket
 // Create the socket and save the fd into the terminal structure.
@@ -3751,6 +3882,8 @@ int terminal_init(unsigned short flags)
     gws_refresh_window(client_fd, terminal_window);
 
 
+
+
 // #bugbug
 // Something is wrong here.
 // is it in pixel or in chars?
@@ -3811,7 +3944,29 @@ int terminal_init(unsigned short flags)
 // #important:
 // We will call this function
 // only after having the Terminal structure initialized.
-    terminalTerminal();
+    __initializeTerminalComponents();
+
+
+// Font info again
+// Based on our corrent viewport
+// In chars.
+
+    if (Terminal.initialized == TRUE)
+    {
+        if (FontInfo.initialized == TRUE)
+        {
+            if (FontInfo.width > 0 && FontInfo.width < Terminal.width)
+            {
+                Terminal.width_in_chars = 
+                    (unsigned long)((Terminal.width/FontInfo.width) & 0xFFFF);
+            }
+            if (FontInfo.height > 0 && FontInfo.height < Terminal.height)
+            {
+                Terminal.height_in_chars = 
+                    (unsigned long)((Terminal.height/FontInfo.height) & 0xFFFF);
+            }
+        }
+    }
 
 // Inicializando prompt[].
     //input('\n');

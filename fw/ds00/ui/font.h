@@ -18,30 +18,39 @@ extern unsigned char fontdata_8x16[FNT8X16_FONTDATAMAX];
 // Font
 //
 
-//As fontes usadas pelo servidor gws
-extern unsigned long g8x8fontAddress;          // 8×8, 80×25,CGA, EGA
-extern unsigned long g8x14fontAddress;         // 8x14,80×25,EGA
-extern unsigned long g8x16fontAddress;         // ??
-extern unsigned long g9x14fontAddress;         // 9x14,80×25,MDA, Hercules
-extern unsigned long g9x16fontAddress;         // 9x16,80×25,VGA
-//extern unsigned long gws_eye_sprite_address;
+struct font_info_d
+{
+    int initialized;
+    int font_id;
+    unsigned long address;
+    unsigned long width;
+    unsigned long height;
+};
 
-// Font initialization
+
 struct font_initialization_d
 {
     int initialized;
-    int width;
-    int height;
     unsigned long address;
-    // ...
+    unsigned long width;
+    unsigned long height;
+    int current_font;   //index
 };
 // See: font.c
 extern struct font_initialization_d  FontInitialization;
 
+#define FONTLIST_MAX  4
+extern unsigned long fontList[FONTLIST_MAX];
 
 //
 // == prototypes =============================
 //
+
+void 
+fontSetInfo(
+    unsigned long address, 
+    unsigned long char_width, 
+    unsigned long char_height );
 
 int font_initialize(void);
 

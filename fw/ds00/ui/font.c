@@ -7,22 +7,15 @@
 // See: font.h
 struct font_initialization_d  FontInitialization;
 
-// As fontes usadas pelo servidor gws.
-unsigned long g8x8fontAddress=0;          // 8×8, 80×25,CGA, EGA
-unsigned long g8x14fontAddress=0;         // 8x14,80×25,EGA
-unsigned long g8x16fontAddress=0;         // ??
-unsigned long g9x14fontAddress=0;         // 9x14,80×25,MDA, Hercules
-unsigned long g9x16fontAddress=0;         // 9x16,80×25,VGA
-//unsigned long gws_eye_sprite_address=0;
+struct font_info_d  font00;
+struct font_info_d  font01;
+struct font_info_d  font02;
+struct font_info_d  font03;
 
-// ==================
-
-/*
-static unsigned char font_nelson_cole2[128*8] = {};
-*/
+unsigned long fontList[FONTLIST_MAX];
 
 // ----------------------------------------------------------
-// creadits: 
+// credits: 
 // 8x8 Linux font.
 // #test
 // Isso pe provisório.
@@ -3024,6 +3017,17 @@ fail:
 }
 
 
+void 
+fontSetInfo(
+    unsigned long address, 
+    unsigned long char_width, 
+    unsigned long char_height )
+{
+    FontInitialization.address = (unsigned long) address;
+    FontInitialization.width = (unsigned long) char_width;
+    FontInitialization.height = (unsigned long) char_height;
+}
+
 //
 // $
 // INITIALIZATION
@@ -3033,60 +3037,103 @@ int font_initialize(void)
 {
 // Called by gwsInitGUI() in gws.c.
 
-    int UseLoseThosFont = TRUE;
-    //int UseLoseThosFont = FALSE;
+    register int i=0;
+    int UseThisOne = 2;
 
 // #todo
 // #test
 // Maybe we need a structure to handle the font initialization.
 
     FontInitialization.initialized = FALSE;
+    FontInitialization.width = 8;  // Default
+	FontInitialization.height = 8;  // Default
 
 // ------------------------------------
-// Losethos font.
+// Font list
+    for (i=0; i<FONTLIST_MAX; i++){
+        fontList[i] = 0;
+    };
+    font00.initialized = FALSE;
+    font01.initialized = FALSE;
+    font02.initialized = FALSE;
+    font03.initialized = FALSE;
+
+
+// ------------------------------------
+// font00
+// Linux 8x8
+    font00.address = font_lin8x8;
+    font00.width = DEFAULT_FONT_WIDTH;
+	font00.height = DEFAULT_FONT_HEIGHT;
+    font00.initialized = TRUE;
+	fontList[0] = (unsigned long) &font00;
+
+// ------------------------------------
+// font01
+// Linux 8x16
+    font01.address = fontdata_8x16;
+    font01.width = 8;
+	font01.height = 16;
+    font01.initialized = TRUE;
+	fontList[1] = (unsigned long) &font01;
+
+// ------------------------------------
+// font02
+// Linux 8x16
+    font02.address = fontdata_8x16;
+    font02.width = 8;
+	font02.height = 16;
+    font02.initialized = TRUE;
+	fontList[2] = (unsigned long) &font02;
+
+// ------------------------------------
+// font03
+// Losethos 8x8
 // We need to invert the data.
     font_lt8x8 = (char *) __initialize_lt8x8_font();
-    if ((void*) font_lt8x8 == NULL)
-	{
+    if ((void*) font_lt8x8 == NULL){
         printf("font_initialize: on __initialize_lt8x8_font\n");
         goto fail;
     }
-
+    font03.address = font_lt8x8;
+    font03.width = DEFAULT_FONT_WIDTH;
+	font03.height = DEFAULT_FONT_HEIGHT;
+    font03.initialized = TRUE;
+	fontList[3] = (unsigned long) &font03;
 
 // ------------------------------------
 // Selecting font type.
 // This will be the current font.
 
+	FontInitialization.current_font = UseThisOne;
 
-// Use Losethos 8x8 font.
-    if (UseLoseThosFont == TRUE){
-        FontInitialization.address = (unsigned long) font_lt8x8;
-        // Set default 8x8 w h.
-        FontInitialization.width = DEFAULT_FONT_WIDTH;
-        FontInitialization.height = DEFAULT_FONT_HEIGHT;
-
-
-	}else{
-        /*
-		// Use Linux 8x8 font.
-		FontInitialization.address = (unsigned long) font_lin8x8;
-        // Set default 8x8 w h.
-        FontInitialization.width = DEFAULT_FONT_WIDTH;
-        FontInitialization.height = DEFAULT_FONT_HEIGHT;
-		*/
-
-        // Use Linux 8x16 font.
-		FontInitialization.address = (unsigned long) fontdata_8x16;
-        // Set default 8x8 w h.
-        FontInitialization.width = 8;
-        FontInitialization.height = 16;
-	};
+    switch (UseThisOne)
+    {
+        case 0:
+            fontSetInfo ( font00.address, font00.width, font00.height );
+            break;
+        case 1:
+            fontSetInfo ( font01.address, font01.width, font01.height );
+            break;
+        case 2:
+            fontSetInfo ( font02.address, font02.width, font02.height );
+            break;
+        case 3:
+            fontSetInfo ( font03.address, font03.width, font03.height );
+            break;
+        default:
+            fontSetInfo ( font00.address, font00.width, font00.height );
+            FontInitialization.current_font = 0;
+			break;
+    };
 
 // done:
+    
     FontInitialization.initialized = TRUE;
     return 0;
 
 fail:
+    // #bugbug: Hang the initialization?
     FontInitialization.initialized = FALSE;
     return (int) -1;
 }

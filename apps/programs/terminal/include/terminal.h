@@ -15,6 +15,8 @@
 #include <sys/socket.h>
 #include <rtl/gramado.h>
 
+#include "font00.h"
+
 // terminal project includes.
 #include "compiler.h"
 #include "globals.h"
