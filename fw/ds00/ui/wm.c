@@ -3913,7 +3913,7 @@ void __set_foreground_tid(int tid)
 // Set the keyboard_owner window.
 void set_focus(struct gws_window_d *window)
 {
-    struct gws_window_d *old_owner;
+    struct gws_window_d *old_owner_kbd_owner;
     struct gws_window_d *p;  // Parent window.
     int tid = -1;
     int SetForeground=FALSE;
@@ -3936,7 +3936,7 @@ void set_focus(struct gws_window_d *window)
     }
 
 // Save
-    old_owner = keyboard_owner;
+    old_owner_kbd_owner = keyboard_owner;
 // Set
     //keyboard_owner = (void*) window;
 // Parent
@@ -3949,7 +3949,8 @@ void set_focus(struct gws_window_d *window)
 // we're the keyboard owner to select the style.
 // IN: window, show
     if ( window->type == WT_EDITBOX || 
-         window->type == WT_EDITBOX_MULTIPLE_LINES )
+         window->type == WT_EDITBOX_MULTIPLE_LINES || 
+         window->type == WT_BUTTON )
     {
         // The new owner:
         // Update the keyboard owner.
@@ -3974,7 +3975,7 @@ void set_focus(struct gws_window_d *window)
                         // will mess up the tiling when we press F5.
                         //set_top_window(p);
                         //set_first_window(p);
-                        
+
                         redraw_window(p,TRUE);
                     }
                 }
@@ -3985,20 +3986,27 @@ void set_focus(struct gws_window_d *window)
         keyboard_owner = (void*) window;
         // Set the mouse owner
         mouse_owner = (void*) window;
-        redraw_window(keyboard_owner,TRUE);
+
+        // Setup apparence and draw.
+
+        // The 'window status' is used as 'button state'
+        if (window->type == WT_BUTTON){
+            window->status = BS_FOCUS;
+        }
+        redraw_window(window,TRUE);
 
         // The old owner
         // Repaint the old owner.
         // Now the old owner has no focus and it will ne painted
         // with a different style.
-        if ((void*) old_owner != NULL)
+        if ((void*) old_owner_kbd_owner != NULL)
         {
-            if (old_owner->magic == 1234)
+            if (old_owner_kbd_owner->magic == 1234)
             {
-                if ( old_owner->type == WT_EDITBOX ||
-                     old_owner->type == WT_EDITBOX_MULTIPLE_LINES )
+                if ( old_owner_kbd_owner->type == WT_EDITBOX ||
+                     old_owner_kbd_owner->type == WT_EDITBOX_MULTIPLE_LINES )
                 {
-                    redraw_window(old_owner,TRUE);
+                    redraw_window(old_owner_kbd_owner,TRUE);
                 }
             }
         }
