@@ -3304,6 +3304,15 @@ static void __get_system_event(int fd, int wid)
             (unsigned long) RTLEventBuffer[2],
             (unsigned long) RTLEventBuffer[3] );
         break;
+    
+    // #test
+    // The parent (we) was notified when
+    // some important event happened with the child.
+    // MSG_NOTIFY_PARENT
+    case 4000:
+        printf("terminal.bin: #test Notify parent\n");
+        break;
+
     //#test
     case 44888:
        printf("terminal.bin: 44888 Received\n");

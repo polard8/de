@@ -11,6 +11,8 @@ all:
 # External shell: The desktop. 
 #
 
+# Main system apps.
+
 	# Gramado Desktop Manager
 	make -C desktop/gdm/
 
@@ -21,19 +23,27 @@ all:
 # Internal shell: The applications.
 #
 
-	# First client (GWS.BIN)
-	make -C programs/client/
-	make -C programs/cmdline/
-	make -C programs/doc/
-	make -C programs/editor/
+# Apps for 'pro users'
+
 	# Virtual terminal connected with the child.
 	# It launches the child shell.
-	make -C programs/pubterm/
-	# Setup programs to install the o.s.
-	#make -C desktop/setup/ 
+	make -C pro/pubterm/
+
 	# Virtual terminal 
 	# with an embedded command line interpreter.
-	make -C programs/terminal/
+	make -C pro/terminal/
+
+	# First client (GWS.BIN)
+	make -C pro/client/
+	make -C pro/cmdline/
+
+	# Setup programs to install the o.s.
+	#make -C pro/setup/ 
+
+# Apps for 'regular users'
+
+	make -C programs/doc/
+	make -C programs/editor/
 
 #
 # xapps
