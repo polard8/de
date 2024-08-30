@@ -6,30 +6,28 @@ all:
 	make -C apps/
 	make -C apps/browser/
 # Display server and libraries
-	make -C fw/
+	make -C ds/
 # Extra: No time for this.
-	make -C native/aurora/
-	make -C native/commands/
-
+	make -C extra/aurora/
+	make -C extra/commands/
 
 clean:
 # Client-side GUI applications
 	-rm apps/bin/*.BIN
 	-rm apps/browser/bin/*.BIN
 # Display server and libraries
-	-rm fw/server/bin/*.BIN
+	-rm ds/server/bin/*.BIN
 # Extra: No time for this.
-	-rm native/aurora/bin/*.BIN
-	-rm native/commands/bin/*.BIN
-
+	-rm extra/aurora/bin/*.BIN
+	-rm extra/commands/bin/*.BIN
 
 clean-all:
 # Client-side GUI applications
 	-rm apps/bin/*.BIN
 	-rm apps/browser/bin/*.BIN
 # Display server and libraries
-	-rm fw/server/bin/*.BIN
+	-rm ds/server/bin/*.BIN
 # Extra: No time for this.
-	-rm native/aurora/bin/*.BIN
-	-rm native/commands/bin/*.BIN
+	-rm extra/aurora/bin/*.BIN
+	-rm extra/commands/bin/*.BIN
 
