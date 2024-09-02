@@ -7,9 +7,6 @@ all:
 	make -C apps/browser/
 # Display server and libraries
 	make -C ds/
-# Extra: No time for this.
-	make -C extra/aurora/
-	make -C extra/commands/
 
 clean:
 # Client-side GUI applications
@@ -17,9 +14,6 @@ clean:
 	-rm apps/browser/bin/*.BIN
 # Display server and libraries
 	-rm ds/server/bin/*.BIN
-# Extra: No time for this.
-	-rm extra/aurora/bin/*.BIN
-	-rm extra/commands/bin/*.BIN
 
 clean-all:
 # Client-side GUI applications
@@ -27,7 +21,3 @@ clean-all:
 	-rm apps/browser/bin/*.BIN
 # Display server and libraries
 	-rm ds/server/bin/*.BIN
-# Extra: No time for this.
-	-rm extra/aurora/bin/*.BIN
-	-rm extra/commands/bin/*.BIN
-
