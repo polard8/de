@@ -29,7 +29,7 @@ static void callback_compose(void)
         return;
 
     __compose_lock = TRUE;
-    compose();
+    comp_display_desktop_components();
     __compose_lock = FALSE;
 }
 
@@ -43,7 +43,7 @@ static void callback_procedure(void)
 // Changing the state of some variable can cause problems.
 // + Use locks.
 // + Use encapsulation.
-// + Don't call compose() if the window server is running in the
+// + Don't call comp_display_desktop_components() if the window server is running in the
 //   midle of this routine.
 
     callback_counter++;

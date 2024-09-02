@@ -8,6 +8,27 @@
 
 extern int __compose_lock;
 
+
+struct compositor_d
+{
+    int used;
+    int magic;
+    int initialized;
+
+// >> This flag enables composition for the display server.
+// In this case the server will compose a final backbbuffer
+// using buffers and the zorder for these buffers. In this case 
+// each application window will have it's own buffer.
+// >> If this flag is not set, all the windows will be painted in the
+// directly in the same backbuffer, and the compositor will just
+// copy the backbuffer to the LFB.
+    int __enable_composition;
+
+    // ...
+};
+extern struct compositor_d  Compositor;
+
+
 // Flush the window's rectangle
 int gws_show_window_rect(struct gws_window_d *window);
 
@@ -35,7 +56,10 @@ void flush_frame(void);
 void reactRefreshDirtyWindows(void);
 void wmReactToPaintEvents(void);
 // A worker for wmCompose().
-void compose(void);
+
+void comp_display_desktop_components(void);
+
+
 void 
 wmCompose(
     unsigned long jiffies, 
@@ -55,6 +79,13 @@ void mouse_at(void);
 // Sinaliza que precisamos apagar o ponteiro do mouse,
 // copiando o conteudo do backbuffer no LFB.
 void DoWeNeedToEraseMousePointer(int value);
+
+//
+// $
+// INITIALIZATION
+//
+
+int compInitializeCompositor(void);
 
 #endif    
 

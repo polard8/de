@@ -6,7 +6,11 @@
 
 #include "../gwsint.h"
 
-// The call back can't use the compose()
+// It manges the compositor behavior.
+struct compositor_d  Compositor;
+
+
+// The callback can't use the compose()
 // if the display server is using it at the moment.
 int __compose_lock = FALSE;
 
@@ -93,7 +97,7 @@ void flush_frame(void)
 /*
  * reactRefreshDirtyWindows: 
  */
-// Called by compose().
+// Called by wmReactToPaintEvents().
 // O compositor deve ser chamado para compor um frame 
 // logo após uma intervenção do painter, que reaje às
 // ações do usuário.
@@ -412,7 +416,7 @@ void __display_mouse_cursor(void)
 // Flush
 // The compositor.
 // Called by wmCompose
-void compose(void)
+void comp_display_desktop_components(void)
 {
 // Called by wmCompose() and callback_compose().
 
@@ -458,7 +462,7 @@ void compose(void)
 }
 
 // Called by the main routine for now.
-// Its gonne be called by the timer.
+// Its gonna be called by the timer.
 // See: comp.c
 void 
 wmCompose(
@@ -469,7 +473,17 @@ wmCompose(
         return;
 
     __compose_lock = TRUE;
-    compose();
+
+// Compositor
+// Every window was painted into private offscreen buffers.
+    if (Compositor.__enable_composition == TRUE){
+        // compose();
+
+// Every window was painted into the backbuffer.
+    }else{
+        comp_display_desktop_components();
+    };
+
     __compose_lock = FALSE;
 }
 
@@ -525,4 +539,42 @@ void comp_set_mouse_position(long x, long y)
     __new_mouse_x = (long) x;
     __new_mouse_y = (long) y;
 }
+
+//
+// $
+// INITIALIZATION
+//
+
+int compInitializeCompositor(void)
+{
+
+//
+// Initialize the structure.
+//
+
+    Compositor.used = TRUE;
+    Compositor.magic = 1234;
+
+// >> This flag enables composition for the display server.
+// In this case the server will compose a final backbbuffer
+// using buffers and the zorder for these buffers. In this case 
+// each application window will have it's own buffer.
+// >> If this flag is not set, all the windows will be painted in the
+// directly in the same backbuffer, and the compositor will just
+// copy the backbuffer to the LFB.
+
+    Compositor.__enable_composition = FALSE;
+
+// The structure is initialized.
+    Compositor.initialized = TRUE;
+
+// Initialize the mouser support.
+// Not enabled yet.
+    comp_initialize_mouse();
+
+// ...
+
+    return 0;
+}
+
 

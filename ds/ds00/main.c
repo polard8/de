@@ -3446,7 +3446,9 @@ static int __initializeGraphics(void)
 // invalidate the surface in ring0.
     invalidate_surface_retangle();
 
-    comp_initialize_mouse();
+
+// Initialize the compositor support.
+    compInitializeCompositor();
 
     // #debug
     // asm("int $3");
@@ -4176,8 +4178,16 @@ static int ServerLoop(int launch_tb)
         }
 
         // Compose the frame or simply update some windows.        
-        if (IsComposing == TRUE){
-            compose();
+        if (IsComposing == TRUE)
+        {           
+            // #todo: 
+            // Use this one, that will have a flag to indicate the
+            // presence of the compositor or not.
+            //wmCompose();
+
+            // Display the desktop components without using 
+            // the compositor.
+            comp_display_desktop_components();
         }
     };
 
