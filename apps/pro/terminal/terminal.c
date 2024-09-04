@@ -246,7 +246,28 @@ static void __winmin(int fd);
 
 //#test
 static void update_clients(int fd);
+
+static void terminal_poweroff_machine(int fd);
+
 //====================================================
+
+// Shutdown machine via display server.
+static void terminal_poweroff_machine(int fd)
+{
+
+// Parameter:
+    if (fd<0){
+        return;
+    }
+
+    cr();
+    lf();
+    tputstring(fd, "Poweroff machine via ds\n");
+
+    gws_destroy_window(fd,terminal_window);
+    gws_destroy_window(fd,main_window);
+    gws_shutdown(fd);
+}
 
 //#test
 static void update_clients(int fd)
@@ -1074,6 +1095,10 @@ static void compareStrings(int fd)
         sc82 ( 22001, 
         1,  // ON 
         0, 0 );
+
+        // #test
+        // Also make the DORA DHCP dialog.
+        sc82( 22003, 3, 0, 0 );
         goto exit_cmp;
     }
 // Lock network
@@ -1081,9 +1106,10 @@ static void compareStrings(int fd)
     {
         sc82 ( 22001, 
         0,  // OFF
-         0, 0 );
+        0, 0 );
         goto exit_cmp;
     }
+
 
 //
 // start-xxx section
@@ -1097,6 +1123,7 @@ static void compareStrings(int fd)
         // #todo: Create a worker for that.
         printf("Quit embedded shell.\n");
         printf("Start listening to stderr.\n");
+
         isUsingEmbeddedShell = FALSE;
         goto exit_cmp;
     } 
@@ -1109,7 +1136,7 @@ static void compareStrings(int fd)
         netd_res = 
             (int) gws_clone_and_execute2(
                       fd, 0,0,0,0,
-                      "gnssrv.bin" );
+                      "netd.bin" );
         goto exit_cmp;
     }
 
@@ -1136,8 +1163,14 @@ static void compareStrings(int fd)
     }
 
 // exit: Exit the terminal application.
-    if ( strncmp(prompt,"exit",4) == 0 ){
-        printf("~exit: Exit the terminal application\n");
+    if ( strncmp(prompt,"exit",4) == 0 )
+    {
+        cr();
+        lf();
+        tputstring(fd,"Exit the terminal application\n");
+        //cr();
+        //lf();
+        //rtl_sleep(2000);
         gws_destroy_window(fd,main_window);
         exit(0);
         goto exit_cmp;
@@ -1159,8 +1192,8 @@ static void compareStrings(int fd)
     if ( strncmp(prompt,"msg2",4) == 0 )
     {
         rtl_post_to_tid(
-            0, // init process tid.
-            44888, // message code
+            0,      // Init process tid.
+            44888,  // message code
             1234,
             5678 );
             
@@ -1230,9 +1263,11 @@ static void compareStrings(int fd)
     {
         // #test: ok, found.
         open("/DEV/TTY0",          0, "a+"); 
+        open("/DEV/TTY1",          0, "a+"); 
         open("/DEV/PS2KBD",        0, "a+");
-        open("/DEV/DEV_1234_1111", 0, "a+");  //?
-        open("/DEV/DEV_8086_100E", 0, "a+");  //?
+        open("/DEV/MOUSEKBD",      0, "a+");
+        open("/DEV/DEV_1234_1111", 0, "a+");
+        open("/DEV/DEV_8086_100E", 0, "a+");
         // ...
         goto exit_cmp;
     }
@@ -1242,15 +1277,16 @@ static void compareStrings(int fd)
         goto exit_cmp;
     }
 
-    //gp fault
+    // GP fault
     if ( strncmp(prompt,"cli",3) == 0 ){
         do_cli();
         goto exit_cmp;
     }
 
-// Poweroff via ws.
-    if ( strncmp(prompt,"poweroff",8) == 0 ){
-        gws_shutdown(fd);
+// Poweroff via ds.
+    if ( strncmp(prompt,"poweroff",8) == 0 )
+    {
+        terminal_poweroff_machine(fd);
         goto exit_cmp;
     }
 
@@ -1281,8 +1317,8 @@ static void compareStrings(int fd)
         cr();
         lf();  // next line.
         tputstring(fd, "This is a string!\n");
-        cr();
-        lf();  // enxt line.
+        //cr();
+        //lf();  // enxt line.
         goto exit_cmp;
     }
 
@@ -1414,29 +1450,18 @@ exit_cmp:
 
 static void doHelp(int fd)
 {
-    if(fd<0){
-        printf("doHelp: Invalid fd\n");
+
+// Parameter:
+    if (fd<0){
         return;
     }
 
     cr();
     lf();
-    tputstring(fd,"terminal.bin:");
-
-    cr();
-    lf();
-    tputstring(fd,"This is the terminal application");
-
-    cr();
-    lf();
-    tputstring(fd,"terminal.bin: You can type some commands");
-
-    cr();
-    lf();
-    tputstring(fd,"cls, reboot, shutdown, uname ...");
-
-    cr();
-    lf();
+    tputstring(fd,"This is the terminal application\n");
+    tputstring(fd,"You can type some commands\n");
+    tputstring(fd,"cls, help ...\n");
+    tputstring(fd,"reboot, shutdown, cat, uname ...\n");
 
 /*
  //# oldstuff
