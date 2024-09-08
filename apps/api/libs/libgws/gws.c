@@ -1,30 +1,8 @@
-/*
- * File: gws.c
- * gws - client-side library for gws window server.
- * gws is a window server running in ring3, and this is
- * a library used by the apps.
- */
-// mvc:
-// The user send requests to the controller
-// to access the data inside the model layer.
-// The user get the responses in the View layer
-// where its able to visualize the information.
-// " Think of the MVC pattern as a restaurant 
-// with the Models being the cooks, 
-// Views being the customers, and 
-// Controllers being the waiters."
-// #todo:
-// gws_refresh_rectangle
-// gws_refresh_char
-// ...
-// Devemos incluir o objeto gws.o nos aplicativos 
-// para fazermos as chamadas ao servidor.
-// #todo
-// Connection support.
-// O support para conexões deve ser uma bibliteca
-// separada, pois assim os processos cliente podem usar essa
-// biblioteca para se concetarem com outros servidores
-// do mesmo tipo.
+// gws.c
+// The main file for the client-side library.
+// It sends requests to the display server
+// following the gramado network protocol.
+// Created by Fred Nora.
 
 // rtl
 #include <types.h>
@@ -34,28 +12,19 @@
 #include <heap.h>
 #include <sys/socket.h>
 #include <rtl/gramado.h>
-
 // libgws
 #include "include/gws.h"
 
 // Library version support.
 // See: gws.h
 struct libgws_version_d  libgwsVersion;
-
 // Display
 struct gws_display_d *libgwsCurrentDisplay;
 // Event
 struct gws_event_d *CurrentEvent;
-
-// #todo
-// + draw line
-// ...
-
 // Strings
 const char *title_when_no_title = "Window";
-
 char __string_buffer[512];   // dst
-
 
 // #test
 // Tentando deixar o buffer aqui e aproveitar em mais funções.
@@ -177,7 +146,6 @@ __gws_gettext_request (
     char *string );
 static char *__gws_gettext_response(int fd);
 
-
 // ----------------------
 
 static int 
@@ -196,26 +164,8 @@ static void __gws_clear_msg_buff(void);
 
 
 //
-// == Functions ====================
+// == Helper functions ============================
 //
-
-// System call.
-// System interrupt.
-void *gws_system_call ( 
-    unsigned long a, 
-    unsigned long b, 
-    unsigned long c, 
-    unsigned long d )
-{
-/*
-    unsigned long ReturnValue=0;
-    asm volatile ( " int %1 \n"
-                 : "=a"(ReturnValue)
-                 : "i"(0x80), "a"(a), "b"(b), "c"(c), "d"(d) );
-    return (void *) ReturnValue; 
-*/
-    return (unsigned long) sc80(a,b,c,d);
-}
 
 static void __gws_clear_msg_buff(void)
 {
@@ -224,74 +174,6 @@ static void __gws_clear_msg_buff(void)
         __gws_message_buffer[i] = 0;
     }; 
 }
-
-// Debug via serial port. (COM1)
-void gws_debug_print(const char *string)
-{
-    if ((void*) string == NULL){
-        return;
-    }
-    if (*string == 0){
-        return;
-    }
-    gws_system_call ( 
-        289, 
-        (unsigned long) string,
-        (unsigned long) string,
-        (unsigned long) string );
-}
-
-//=============================================
-
-// Initialize the library.
-int gws_initialize_library(void)
-{
-    pid_t ws_pid = -1;    // PID do window server.
-
-    int __ApplicationFD = -1;
-
-    __gws_clear_msg_buff();
-
-    ws_pid = (pid_t) gws_initialize_connection();
-    if (ws_pid < 0)
-    {
-        gws_debug_print("gws_initialize_library: [fail] ws_pid\n");
-        return (int) -1;
-    }
-
-// #todo:
-// #importante
-// We need to alloc memory to the CurrentEvent struct.
-// So we need the libc support. 
-// Check the compilation and include the libc. ???
-
-    //CurrentEvent = (void *) gws_malloc(sizeof(struct gws_event_d));
-
-    return 0;
-    // return (int) ws_pid;
-}
-
-void *gws_malloc(size_t size)
-{
-    if (size <= 0){
-        size = 1;
-    }
-    return (void*) malloc(size);
-}
-
-void gws_free(void *ptr)
-{
-    if ((void*) ptr == NULL){
-        return;
-    }
-    free(ptr);
-}
-
-//
-// == Helper functions ============================
-//
-
-// ==============================================================
 
 // == get window info request ==========================
 // Let's get some information about the given window.
@@ -317,10 +199,10 @@ static int __gws_get_window_info_request( int fd, int wid )
     //...
 
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
     if (wid<0){
-        return (int) -1;
+        goto fail;
     }
 
 // Write
@@ -333,10 +215,12 @@ static int __gws_get_window_info_request( int fd, int wid )
                   0 );
 
     if (n_writes <= 0){
-        return (int) -1;
+        goto fail;
     }
 
     return (int) n_writes; 
+fail:
+    return (int) -1;
 }
 
 // get window info response ===================
@@ -376,11 +260,11 @@ static struct gws_window_info_d *__gws_get_window_info_response(
 
 // read
 
-// --------------------
 // Clean the local buffer,
 // and then populate with some data.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
     n_reads = 
         (ssize_t) recv ( 
@@ -389,9 +273,7 @@ static struct gws_window_info_d *__gws_get_window_info_response(
                       sizeof(__gws_message_buffer), 
                       0 );
 
-    if (n_reads <= 0)
-    { 
-        //
+    if (n_reads <= 0){
         return (struct gws_window_info_d *) window_info;
     }
 
@@ -401,16 +283,12 @@ static struct gws_window_info_d *__gws_get_window_info_response(
     msg = (msg & 0xFFFF);
 
     switch (msg){
-
-    // ok, that is what we need.
     case SERVER_PACKET_TYPE_REPLY:
         goto process_response;
         break;
-
-    // fail
-    case SERVER_PACKET_TYPE_EVENT:
-    case SERVER_PACKET_TYPE_REQUEST:
-    case SERVER_PACKET_TYPE_ERROR:
+    //case SERVER_PACKET_TYPE_EVENT:
+    //case SERVER_PACKET_TYPE_REQUEST:
+    //case SERVER_PACKET_TYPE_ERROR:
     default:
         goto fail;
         break; 
@@ -490,8 +368,6 @@ fail:
     return NULL;
 }
 
-// ==============================================================
-
 // == get next event ==========================
 // Send request:
 // Setup the parameters and
@@ -504,12 +380,12 @@ static int __gws_get_next_event_request(int fd,int wid)
     int n_writes = 0;
     register int i=0;
 
-// --------------------
 // Clean the main buffer.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
-// window id.
+// Window ID
     message_buffer[0] = (unsigned long) (wid & 0xFFFFFFFF); 
 // Message code
     message_buffer[1] = GWS_GetNextEvent;
@@ -518,8 +394,11 @@ static int __gws_get_next_event_request(int fd,int wid)
     //...
 
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
+    //if (wid<0){
+    //    goto fail;
+    //}
 
 // Write
 
@@ -531,10 +410,12 @@ static int __gws_get_next_event_request(int fd,int wid)
                   0 );
 
     if (n_writes <= 0){
-        return (int) -1;
+        goto fail;
     }
 
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
 
 // __gws_get_next_event_response:
@@ -567,12 +448,11 @@ static struct gws_event_d *__gws_get_next_event_response (
 
 // Read
 
-// --------------------
 // Clean the local buffer,
 // and then populate with some data.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
-
+    };
 
     n_reads = 
         (ssize_t) recv ( 
@@ -596,14 +476,12 @@ static struct gws_event_d *__gws_get_next_event_response (
     msg = (msg & 0xFFFF);
 
     switch (msg){
-
     case SERVER_PACKET_TYPE_EVENT:
         goto process_event;
         break;
-
-    case SERVER_PACKET_TYPE_REPLY:
-    case SERVER_PACKET_TYPE_REQUEST:
-    case SERVER_PACKET_TYPE_ERROR:
+    //case SERVER_PACKET_TYPE_REPLY:
+    //case SERVER_PACKET_TYPE_REQUEST:
+    //case SERVER_PACKET_TYPE_ERROR:
     default:
         //printf ("__gws_get_next_event_response: Invalid msg code\n"); 
         event->type = 0;
@@ -683,8 +561,6 @@ fail0:
     return NULL;
 }
 
-//=========
-
 static int __gws_refresh_window_request( int fd, int window )
 {
     unsigned long *message_buffer = 
@@ -694,17 +570,15 @@ static int __gws_refresh_window_request( int fd, int window )
     //gws_debug_print ("__gws_refresh_window_request: wr\n");
 
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
     if (window<0){
-        return (int) -1;
+        goto fail;
     }
 
 // Get info.
-
     message_buffer[0] = window; 
-// Message code
-    message_buffer[1] = GWS_RefreshWindow;
+    message_buffer[1] = GWS_RefreshWindow;  // Message code
     message_buffer[2] = 0;
     message_buffer[3] = 0;
     //...
@@ -718,11 +592,13 @@ static int __gws_refresh_window_request( int fd, int window )
                   sizeof(__gws_message_buffer), 
                   0 );
 
-    if (n_writes<=0){
-            return (int) -1;
+    if (n_writes <= 0){
+        goto fail;
     }
 
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
 
 static int 
@@ -735,10 +611,8 @@ __gws_redraw_window_request (
         (unsigned long *) &__gws_message_buffer[0];
     int n_writes = 0;
 
-    //gws_debug_print ("__gws_redraw_window_request: wr\n");
-
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
 // Window ID
@@ -760,10 +634,12 @@ __gws_redraw_window_request (
                   0 );
 
     if (n_writes<=0){
-        return (int) -1;
+        goto fail;
     }
 
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
 
 static int 
@@ -778,16 +654,14 @@ __gws_change_window_position_request (
     int n_writes = 0;
     register int i=0;
 
-    //gws_debug_print ("__gws_change_window_position_request: wr\n");
-
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
-// --------------------
 // Clean the main buffer.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
     message_buffer[0] = (unsigned long) (window & 0xFFFFFFFF);
 // Message code
@@ -806,10 +680,12 @@ __gws_change_window_position_request (
                   0 );
 
     if (n_writes<=0){
-        return (int) -1;
+        goto fail;
     }
 
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
 
 static int __gws_change_window_position_reponse(int fd)
@@ -829,7 +705,6 @@ static int __gws_change_window_position_reponse(int fd)
 
     //gws_debug_print ("__gws_change_window_position_reponse: Waiting ...\n");      
 
-
 // #todo
 // Podemos checar antes se o fd 
 // representa um objeto que permite leitura.
@@ -841,14 +716,14 @@ static int __gws_change_window_position_reponse(int fd)
 // We can stay here for ever.
 
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
-// --------------------
 // Clean the local buffer,
 // and then populate with some data.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
 response_loop:
 
@@ -876,23 +751,17 @@ response_loop:
         exit (1);
     }
 
-// The msg index.
-// Get the message sended by the server.
-
+// Get the message sent by the server.
     int msg = (int) message_buffer[1];
-    
     switch (msg){
-
-        // Reply!
         case SERVER_PACKET_TYPE_REPLY:
             goto process_reply;
             break;
-
-        case SERVER_PACKET_TYPE_REQUEST: 
-        case SERVER_PACKET_TYPE_EVENT:
-        case SERVER_PACKET_TYPE_ERROR:
+        //case SERVER_PACKET_TYPE_REQUEST: 
+        //case SERVER_PACKET_TYPE_EVENT:
+        //case SERVER_PACKET_TYPE_ERROR:
         default:
-            return (int) -1;
+            goto fail;
             break; 
     };
 
@@ -919,9 +788,9 @@ process_reply:
 process_event:
     //gws_debug_print ("__gws_change_window_position_reponse: We got an event\n"); 
     return 0;
+fail:
+    return (int) -1;
 }
-
-// ======================================================
 
 static int 
 __gws_resize_window_request ( 
@@ -935,20 +804,17 @@ __gws_resize_window_request (
     int n_writes = 0;
     register int i=0;
 
-    //gws_debug_print ("__gws_resize_window_request: wr\n");
-
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
-// --------------------
 // Clean the main buffer.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
     message_buffer[0] = window;
-// Message code
-    message_buffer[1] = GWS_ResizeWindow;
+    message_buffer[1] = GWS_ResizeWindow;  // Message code
     message_buffer[2] = w;
     message_buffer[3] = h;
     // ...
@@ -960,11 +826,13 @@ __gws_resize_window_request (
                   sizeof(__gws_message_buffer), 
                   0 );
 
-    if (n_writes<=0){
-        return (int) -1;
+    if (n_writes <= 0){
+        goto fail;
     }
 
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
 
 static int __gws_resize_window_reponse(int fd)
@@ -997,14 +865,14 @@ static int __gws_resize_window_reponse(int fd)
 // We can stay here for ever.
 
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
-// --------------------
 // Clean the local buffer,
 // and then populate with some data.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
 response_loop:
 
@@ -1032,23 +900,17 @@ response_loop:
         exit (1);
     }
 
-// The msg index.
-// Get the message sended by the server.
-
+// Get the message sent by the server.
     int msg = (int) message_buffer[1];
-    
     switch (msg){
-
-        // Reply!
         case SERVER_PACKET_TYPE_REPLY:
             goto process_reply;
             break;
-
-        case SERVER_PACKET_TYPE_REQUEST:
-        case SERVER_PACKET_TYPE_EVENT:
-        case SERVER_PACKET_TYPE_ERROR:
+        //case SERVER_PACKET_TYPE_REQUEST:
+        //case SERVER_PACKET_TYPE_EVENT:
+        //case SERVER_PACKET_TYPE_ERROR:
         default:
-            return (int) -1;
+            goto fail;
             break; 
     };
 
@@ -1075,9 +937,10 @@ process_reply:
 process_event:
     // gws_debug_print ("__gws_resize_window_reponse: We got an event\n"); 
     return 0;
+fail:
+    return (int) -1;
 }
 
-// =============================
 // == rectangle ========
 
 static int 
@@ -1092,10 +955,8 @@ __gws_refresh_rectangle_request (
         (unsigned long *) &__gws_message_buffer[0];
     int n_writes = 0;
 
-    //gws_debug_print ("__gws_refresh_rectangle_request: wr\n");
-
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
     message_buffer[0] = (unsigned long) 0;
@@ -1121,11 +982,13 @@ __gws_refresh_rectangle_request (
                   sizeof(__gws_message_buffer), 
                   0 );
 
-    if (n_writes<=0){
-        return (int) -1;
+    if (n_writes <= 0){
+        goto fail;
     }
 
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
 
 // Response
@@ -1140,16 +1003,16 @@ static int __gws_refresh_rectangle_response(int fd)
     //gws_debug_print ("__gws_refresh_rectangle_response: rd\n");      
 
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
 // Read
 
-// --------------------
 // Clean the local buffer,
 // and then populate with some data.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
     n_reads = 
         (ssize_t) recv( 
@@ -1159,37 +1022,29 @@ static int __gws_refresh_rectangle_response(int fd)
                       0 );
 
     if (n_reads <= 0){
-        return (int) -1;
+        goto fail;
     }
 
-//
-// The msg index.
-//
-    // Get the message sended by the server.
+// Get the message sent by the server.
 
     int msg   = (int) message_buffer[1];
     int value = (int) message_buffer[2];
 
     switch (msg){
-
-        // Reply
         case SERVER_PACKET_TYPE_REPLY:
             return (int) value;
             break;
-
-        case SERVER_PACKET_TYPE_REQUEST:
-        case SERVER_PACKET_TYPE_EVENT:
-        case SERVER_PACKET_TYPE_ERROR:
+        //case SERVER_PACKET_TYPE_REQUEST:
+        //case SERVER_PACKET_TYPE_EVENT:
+        //case SERVER_PACKET_TYPE_ERROR:
         default:
-            return (int) -1;
+            goto fail;
             break; 
     };
 
-//fail:
+fail:
     return (int) -1;
 }
-
-// ================================================
 
 static int 
 __gws_drawchar_request (
@@ -1204,10 +1059,8 @@ __gws_drawchar_request (
         (unsigned long *) &__gws_message_buffer[0];
     int n_writes = 0;
 
-    //gws_debug_print ("__gws_drawchar_request: wr\n");      
-
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
     message_buffer[0] = (unsigned long) 0;
@@ -1234,14 +1087,14 @@ __gws_drawchar_request (
                   sizeof(__gws_message_buffer), 
                   0 );
 
-    if (n_writes<=0){
-        return (int) -1;
+    if (n_writes <= 0){
+        goto fail;
     }
 
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
-
-//------------------------------------------------
 
 // Draw text
 static int 
@@ -1262,20 +1115,16 @@ __gws_drawtext_request (
     register int i=0;
     char LocalString[256];
 
-    //gws_debug_print ("gws_drawtext_request: wr\n");
-
     if (fd<0){
         goto fail;
     }
 
-//--------------------------
 // String validation
     if ((void*) string == NULL)
         goto fail;
     if (*string == 0)
         goto fail;
 
-//--------------------------
 // String size
     size_t StringSize = 0;
     StringSize = (size_t) strlen(string);
@@ -1287,14 +1136,13 @@ __gws_drawtext_request (
     memset(LocalString, 0, 256);
     sprintf(LocalString,string);
 
-// --------------------
 // Clean the main buffer.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
     message_buffer[0] = 0;
-// Message code
-    message_buffer[1] = GWS_DrawText;
+    message_buffer[1] = GWS_DrawText;  // Message code
     message_buffer[2] = 0;
     message_buffer[3] = 0;
 
@@ -1303,7 +1151,6 @@ __gws_drawtext_request (
     message_buffer[6] = top; 
     message_buffer[7] = (unsigned long) (color & 0xFFFFFFFF);
 
-//--------------------------
 // String support
 // Fill the string buffer
     int string_off=8;
@@ -1326,7 +1173,6 @@ __gws_drawtext_request (
     // Finalize the string
     *target_base = 0;
 
-
 // Write
 
     n_writes = 
@@ -1345,8 +1191,6 @@ fail:
     return (int) -1;
 }
 
-//-----------------------------------------
-
 static int 
 __gws_settext_request (
     int fd,
@@ -1362,21 +1206,17 @@ __gws_settext_request (
     int n_writes = 0;
     register int i=0;
 
-    //gws_debug_print ("gws_drawtext_request: wr\n");
-
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
     if ((void*) string == NULL)
-        return -1;
+        goto fail;
     if (*string == 0)
-        return -1;
-
+        goto fail;
 
     message_buffer[0] = 0;
-// Message code
-    message_buffer[1] = GWS_SetText;
+    message_buffer[1] = GWS_SetText;  // Msg code
     message_buffer[2] = 0;
     message_buffer[3] = 0;
 
@@ -1387,7 +1227,7 @@ __gws_settext_request (
 
 // String support
 // Fill the string buffer
-    int string_off=8;
+    int string_off = 8;
     char *p = (char *) &message_buffer[string_off];
 
     for (i=0; i<250; i++)
@@ -1408,14 +1248,14 @@ __gws_settext_request (
                   sizeof(__gws_message_buffer), 
                   0 );
 
-    if (n_writes<=0){
-            return (int) -1;
+    if (n_writes <= 0){
+        goto fail;
     }
-       
-    return (int) n_writes;
-}
 
-//-----------------------------------------
+    return (int) n_writes;
+fail:
+    return (int) -1;
+}
 
 static int 
 __gws_gettext_request (
@@ -1431,19 +1271,16 @@ __gws_gettext_request (
     //unsigned long *string_buffer = (unsigned long *) &__gws_message_buffer[128];
     int n_writes = 0;
 
-    //gws_debug_print ("gws_drawtext_request: wr\n");
-
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
     if ((void*) string == NULL)
-        return -1;
+        goto fail;
     if (*string == 0)
-        return -1;
+        goto fail;
 
     message_buffer[0] = 0;
-// Message code
-    message_buffer[1] = GWS_GetText;
+    message_buffer[1] = GWS_GetText;  // Msg code
     message_buffer[2] = 0;
     message_buffer[3] = 0;
 
@@ -1477,11 +1314,13 @@ __gws_gettext_request (
                   sizeof(__gws_message_buffer), 
                   0 );
 
-    if (n_writes<=0){
-            return (int) -1;
+    if (n_writes <= 0){
+        goto fail;
     }
-       
+
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
 
 // Draw text - response.
@@ -1507,7 +1346,7 @@ static char *__gws_gettext_response(int fd)
     register int i=0;
 
     if (fd<0){
-        printf ("__gws_gettext_response: fd\n");
+        //printf ("__gws_gettext_response: fd\n");
         return NULL;  
     }
 
@@ -1544,23 +1383,17 @@ response_loop:
         //exit (1);
     }
 
-// The msg index.
-// Get the message sended by the server.
-
-    int msg = (int) message_buffer[1];
-    
+// Get the message sent by the server.
+    int msg = (int) message_buffer[1];   
     switch (msg){
-
-        // Reply!
         case SERVER_PACKET_TYPE_REPLY:
             goto process_reply;
             break;
-
-        case SERVER_PACKET_TYPE_REQUEST:
-        case SERVER_PACKET_TYPE_EVENT:            
-        case SERVER_PACKET_TYPE_ERROR:
+        //case SERVER_PACKET_TYPE_REQUEST:
+        //case SERVER_PACKET_TYPE_EVENT:            
+        //case SERVER_PACKET_TYPE_ERROR:
         default:
-            printf ("__gws_gettext_response: Not a reply\n");
+            //printf ("__gws_gettext_response: Not a reply\n");
             return NULL;
             break; 
     };
@@ -1597,9 +1430,6 @@ process_reply:
     return (char*) __string_buffer;
 }
 
-
-//----------------------------------------------------
-
 // Clone and execute - request.
 static int 
 __gws_clone_and_execute_request (
@@ -1616,41 +1446,37 @@ __gws_clone_and_execute_request (
     int n_writes = 0;
     register int i=0;
 
-    //gws_debug_print ("__gws_clone_and_execute_request: wr\n");
-
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
 // path
     if ((void*) string == NULL)
-        return -1;
+        goto fail;
     if (*string == 0)
-        return -1;
-
+        goto fail;
 
     size_t StringSize = 0;
     StringSize = (size_t) strlen(string);
     if (StringSize <= 0)
-        return -1;
+        goto fail;
     if (StringSize > 250)
-        return -1;
+        goto fail;
 
-// --------------------
 // Clean the main buffer.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
     message_buffer[0] = 0;
-// Message code
-    message_buffer[1] = 9099;
+    message_buffer[1] = 9099;  // Msg code
     message_buffer[2] = 0;
     message_buffer[3] = 0;
 
     message_buffer[4] = (unsigned long) arg1;
-    message_buffer[5] = (unsigned long) arg2; 
-    message_buffer[6] = (unsigned long) arg3; 
-    message_buffer[7] = (unsigned long) arg4; 
+    message_buffer[5] = (unsigned long) arg2;
+    message_buffer[6] = (unsigned long) arg3;
+    message_buffer[7] = (unsigned long) arg4;
 
 // String support
 // Fill the string buffer.
@@ -1678,11 +1504,13 @@ __gws_clone_and_execute_request (
                   sizeof(__gws_message_buffer), 
                   0 );
 
-    if (n_writes<=0){
-            return (int) -1;
+    if (n_writes <= 0){
+        goto fail;
     }
 
     return (int) n_writes;
+fail:
+    return (int) -1;
 }
 
 // clone and execute - response.
@@ -1704,10 +1532,9 @@ static int __gws_clone_and_execute_response(int fd)
         (unsigned long *) &__gws_message_buffer[0];
     ssize_t n_reads=0;
 
-    // gws_debug_print ("__gws_clone_and_execute_response: rd\n");
 
     if (fd<0){
-        return (int) -1;
+        goto fail;
     }
 
 // #caution
@@ -1736,30 +1563,24 @@ response_loop:
     
     // Se retornou -1 é porque algo está errado com o arquivo.
     if (n_reads < 0){
-        gws_debug_print ("__gws_clone_and_execute_response: recv fail.\n");
+        //gws_debug_print ("__gws_clone_and_execute_response: recv fail.\n");
         printf          ("__gws_clone_and_execute_response: recv fail.\n");
-        printf ("Something is wrong with the socket.\n");
-        return (int) -1;
+        //printf ("Something is wrong with the socket.\n");
+        goto fail;
         //exit (1);
     }
 
-// The msg index.
-// Get the message sended by the server.
-
-    int msg = (int) message_buffer[1];
-    
+// Get the message sent by the server.
+    int msg = (int) message_buffer[1];    
     switch (msg){
-
-        // Reply!
         case SERVER_PACKET_TYPE_REPLY:
             goto process_reply;
             break;
-
-        case SERVER_PACKET_TYPE_REQUEST:
-        case SERVER_PACKET_TYPE_EVENT:            
-        case SERVER_PACKET_TYPE_ERROR:
+        //case SERVER_PACKET_TYPE_REQUEST:
+        //case SERVER_PACKET_TYPE_EVENT:            
+        //case SERVER_PACKET_TYPE_ERROR:
         default:
-            return (int) -1;
+            goto fail;
             break; 
     };
 
@@ -1785,6 +1606,8 @@ process_reply:
 process_event:
     // gws_debug_print ("__gws_clone_and_execute_response: We got an event\n"); 
     return 0;
+fail:
+    return (int) -1;
 }
 
 // Create window - request.
@@ -1814,28 +1637,27 @@ __gws_createwindow_request (
     int client_pid = (int) rtl_current_process();
     int client_tid = (int) rtl_current_thread();
 
-    //gws_debug_print ("__gws_createwindow_request: wr\n");
 
     if (fd<0){
-       return (int) -1;
+        goto fail;
     }
 
 // name
     if ((void*) name == NULL)
-        return -1;
+        goto fail;
     if (*name == 0)
-        return -1;
+        goto fail;
 
-// --------------------
 // Clean the main buffer.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
 // wid, message code, long1, long2.
     message_buffer[0] = 0;
     message_buffer[1] = GWS_CreateWindow;
-    message_buffer[2] = status;  // #test Status
-    message_buffer[3] = view;    // #test view
+    message_buffer[2] = status;
+    message_buffer[3] = view;
 // l,t,w,h
 // These are the outer values.
 // Including the border if it has one.
@@ -1869,13 +1691,12 @@ __gws_createwindow_request (
         Name = title_when_no_title;
     }
 
-
     size_t StringSize = 0;
     StringSize = (size_t) strlen(Name);
     if (StringSize <= 0)
-        return -1;
+        goto fail;
     if (StringSize > 250)
-        return -1;
+        goto fail;
 
     // Local name
     memset(LocalName, 0, 256);
@@ -1899,7 +1720,6 @@ __gws_createwindow_request (
     *p = 0;
 // ------
 
-
 // Write
     n_writes = -1;
     n_writes = 
@@ -1910,7 +1730,7 @@ __gws_createwindow_request (
                   0 );
 
     if (n_writes <= 0){
-        return (int) -1;
+        goto fail;
     }
 
     return (int) n_writes;
@@ -1941,21 +1761,19 @@ static wid_t __gws_createwindow_response(int fd)
     ssize_t n_reads=0;
     register int i=0;
 
-    //gws_debug_print ("__gws_createwindow_response: rd\n");
-
     if (fd<0){
-        return (wid_t) -1;
+        goto fail;
     }
 
 //
 // Read
 //
 
-// --------------------
 // Clean the local buffer,
 // and then populate with some data.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
     n_reads = 
         (ssize_t) recv ( 
@@ -1969,7 +1787,7 @@ static wid_t __gws_createwindow_response(int fd)
 // and we will not be able to write into the socket.
 
     if (n_reads <= 0){
-        return (wid_t) -1;
+        goto fail;
     }
 
 // The response message
@@ -1982,16 +1800,14 @@ static wid_t __gws_createwindow_response(int fd)
     int msg = (int) message_buffer[1];
 
     switch (msg){
-    // reply
     case SERVER_PACKET_TYPE_REPLY: 
         return (wid_t) wid;
         break;
-    // error
-    case SERVER_PACKET_TYPE_REQUEST:
-    case SERVER_PACKET_TYPE_EVENT:
-    case SERVER_PACKET_TYPE_ERROR:
+    //case SERVER_PACKET_TYPE_REQUEST:
+    //case SERVER_PACKET_TYPE_EVENT:
+    //case SERVER_PACKET_TYPE_ERROR:
     default:
-        return (wid_t) -1;
+        goto fail;
         break;
     };
 
@@ -2002,6 +1818,77 @@ fail:
 //
 // == Functions ===================================
 //
+
+// System call.
+// System interrupt.
+void *gws_system_call ( 
+    unsigned long a, 
+    unsigned long b, 
+    unsigned long c, 
+    unsigned long d )
+{
+    return (unsigned long) sc80(a,b,c,d);
+}
+
+// Debug via serial port. (COM1)
+void gws_debug_print(const char *string)
+{
+    if ((void*) string == NULL){
+        return;
+    }
+    if (*string == 0){
+        return;
+    }
+    gws_system_call ( 
+        289, 
+        (unsigned long) string,
+        (unsigned long) string,
+        (unsigned long) string );
+}
+
+// Initialize the library.
+int gws_initialize_library(void)
+{
+    pid_t ws_pid = -1;    // PID do window server.
+
+    int __ApplicationFD = -1;
+
+    __gws_clear_msg_buff();
+
+    ws_pid = (pid_t) gws_initialize_connection();
+    if (ws_pid < 0)
+    {
+        gws_debug_print("gws_initialize_library: [fail] ws_pid\n");
+        return (int) -1;
+    }
+
+// #todo:
+// #importante
+// We need to alloc memory to the CurrentEvent struct.
+// So we need the libc support. 
+// Check the compilation and include the libc. ???
+
+    //CurrentEvent = (void *) gws_malloc(sizeof(struct gws_event_d));
+
+    return 0;
+    // return (int) ws_pid;
+}
+
+void *gws_malloc(size_t size)
+{
+    if (size <= 0){
+        size = 1;
+    }
+    return (void*) malloc(size);
+}
+
+void gws_free(void *ptr)
+{
+    if ((void*) ptr == NULL){
+        return;
+    }
+    free(ptr);
+}
 
 void 
 gws_draw_char (
@@ -2045,17 +1932,17 @@ gws_draw_char (
         //if (Value == ACTION_REQUEST){}
         //if (Value == ACTION_REPLY ) { break; }
         if (Value == ACTION_ERROR ) { goto done; }
-        if (Value == ACTION_NULL )  { goto done; }  //no reponse. (syncronous)
+        if (Value == ACTION_NULL )  { goto done; }  // No reponse
     };
 
 done:
     __gws_clear_msg_buff();
     rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-    return (int) Response;
+    return;
 fail:
     __gws_clear_msg_buff();
     rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-    return -1;
+    return;
 }
 
 void 
@@ -2124,7 +2011,7 @@ gws_draw_text (
         //if (Value == ACTION_REQUEST){}
         //if (Value == ACTION_REPLY ) { break; }
         if (Value == ACTION_ERROR ) { goto done; }
-        if (Value == ACTION_NULL )  { goto done; }  //no reponse. (syncronous)
+        if (Value == ACTION_NULL )  { goto done; }  // No reponse
         
         gws_debug_print("gws_draw_text: Waiting sync flag\n"); 
     };
@@ -2161,7 +2048,7 @@ gws_set_text (
     if (fd<0)    {goto fail;}
     if (window<0){goto fail;}
 
-    if ( (void*) string == NULL )
+    if ((void*) string == NULL)
         goto fail;
     if (*string == 0)
         goto fail;
@@ -2177,7 +2064,7 @@ gws_set_text (
                   (unsigned long) y,
                   (unsigned long) (color & 0xFFFFFFFF),
                   (char *) string );
-    if (req_status<=0){
+    if (req_status <= 0){
         goto fail;
     }
     rtl_set_file_sync( 
@@ -2193,7 +2080,7 @@ gws_set_text (
         //if (Value == ACTION_REQUEST){}
         //if (Value == ACTION_REPLY ) { break; }
         if (Value == ACTION_ERROR ) { goto done; }
-        if (Value == ACTION_NULL )  { goto done; }  //no reponse. (syncronous)
+        if (Value == ACTION_NULL )  { goto done; }  // No reponse
     };
 
 done:
@@ -2229,12 +2116,10 @@ gws_get_text (
     if (fd<0)    {goto fail;}
     if (window<0){goto fail;}
 
-
-    if ( (void*) string == NULL )
+    if ((void*) string == NULL)
         goto fail;
     if (*string == 0)
         goto fail;
-
 
 // Request
 // IN: fd, window, x, y, color, string
@@ -2249,10 +2134,7 @@ gws_get_text (
     if (req_status<=0){
         goto fail;
     }
-    rtl_set_file_sync( 
-        fd, 
-        SYNC_REQUEST_SET_ACTION, 
-        ACTION_REQUEST );
+    rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_REQUEST );
 
 // Response
 // Waiting to read the response.
@@ -2292,14 +2174,12 @@ gws_get_text (
 // status OK.
     __gws_clear_msg_buff();
     rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-    return (int) 0;
+    return 0;
 fail:
     __gws_clear_msg_buff();
     rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-    return -1;
+    return (int) -1;
 }
-
-
 
 // ========================================================
 // clone and execute
@@ -2343,10 +2223,7 @@ gws_clone_and_execute2 (
     if(req_status<=0){
         goto fail;
     }
-    rtl_set_file_sync( 
-        fd, 
-        SYNC_REQUEST_SET_ACTION, 
-        ACTION_REQUEST );
+    rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_REQUEST );
 
 // Response
 // Waiting to read the response.
@@ -2367,7 +2244,7 @@ gws_clone_and_execute2 (
 fail:
     __gws_clear_msg_buff();
     rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-    return -1;
+    return (int) -1;
 }
 
 // ========================================================
@@ -2383,13 +2260,13 @@ void gws_clone_and_execute_from_prompt(int fd)
 // Clean the buffer.
     memset(filename_buffer,0,32);
 
-    if (fd<0){
-        return;
+    if (fd < 0){
+        goto fail;
     }
 // Empty buffer
-   if (*prompt == 0){
-       goto fail;
-   }
+    if (*prompt == 0){
+        goto fail;
+    }
 
 // Clone.
 // #important:
@@ -2579,7 +2456,6 @@ void gws_clone_and_execute_from_prompt(int fd)
 // Clone and execute.
 //
 
-
 //#todo
 // Tem que limpar o buffer do arquivo em ring0, 
 // antes de escrever no arquivo.
@@ -2673,7 +2549,6 @@ fail:
     return;
 }
 
-
 /*
 // #todo
 // Services.
@@ -2711,16 +2586,13 @@ gws_send_message_to_process (
     unsigned long message_buffer[8];
     unsigned long Value=0;
 
-
     if (pid<0){
         gws_debug_print ("gws_send_message_to_process: pid\n");
-        return (int) (-1);
+        goto fail;
     }
-
     //if(message<0){
-    //    return -1;
+    //    goto fail;
     //}
-
 
 // wid, message code, long1, long2.
     message_buffer[0] = (unsigned long) (window & 0xFFFFFFFF);
@@ -2742,6 +2614,8 @@ gws_send_message_to_process (
 // #todo
 // Error message
     return (int) (Value & 0xF);
+fail:
+    return (int) -1;
 }
 
 // gws_send_message_to_thread:
@@ -2760,7 +2634,7 @@ gws_send_message_to_thread (
 
     if (tid<0){
         gws_debug_print ("gws_send_message_to_thread: tid\n");
-        return (int) (-1);
+        goto fail;
     }
 
 // wid, message code, long1, long2
@@ -2783,6 +2657,8 @@ gws_send_message_to_thread (
 // #todo
 // Error message
     return (int) (Value & 0xF);
+fail:
+    return (int) -1;
 }
 
 // Reboot via ws.
@@ -2838,34 +2714,33 @@ gws_load_path (
     unsigned long buffer, 
     unsigned long buffer_len )
 {
-    unsigned long Value=0;
+    unsigned long RetValue=0;
 
-// string
+// String
     if ((void*) path == NULL){
-        return -1;
+        goto fail;
     }
     if ( *path == 0 ){
-         return -1;
+        goto fail;
     }
-    if (buffer == 0)    { return -1; }
-    if (buffer_len == 0){ return -1; }
+// Buffer
+    if (buffer == 0)    { goto fail; }
+    if (buffer_len == 0){ goto fail; }
 
 // #todo
 // Chame a rtl e não uma syscall.
 
-    Value = 
+    RetValue = 
         (unsigned long) gws_system_call ( 
                             4004, 
                             (unsigned long) path, 
                             (unsigned long) buffer, 
                             (unsigned long) buffer_len );
 
-// #todo
-// Error message.
-
-    return (int) (Value & 0xF);
+    return (int) (RetValue & 0xF);
+fail:
+    return (int) -1;
 }
-
 
 // Window position.
 int 
@@ -2909,7 +2784,7 @@ gws_change_window_position (
 fail:
     __gws_clear_msg_buff();
     rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-    return -1;
+    return (int) -1;
 }
 
 // Resize window.
@@ -2950,7 +2825,7 @@ gws_resize_window(
 fail:
     __gws_clear_msg_buff();
     rtl_set_file_sync( fd, SYNC_REQUEST_SET_ACTION, ACTION_NULL );
-    return -1;
+    return (int) -1;
 }
 
 // Redraw window.
@@ -3442,11 +3317,6 @@ fail:
     return (wid_t) -1;
 }
 
-
-
-
-
-
 // Yield current thread.
 void gws_yield(void)
 {
@@ -3775,32 +3645,29 @@ struct gws_menu_item_d *gws_create_menu_item (
     int window=0;    //menu item window
 
     if (fd<0){
-        debug_print("gws_create_menu_item: fd\n");
-        return (struct gws_menu_item_d *) 0;
+        goto fail;
     }
     if ((void*)label == NULL)
-        return NULL;
-    if ( (void *) menu == NULL ){
-        debug_print("gws_create_menu_item: menu\n");
-        return (struct gws_menu_item_d *) 0;
+        goto fail;
+    if ((void *) menu == NULL){
+        goto fail;
     }
 
 // Create menu item.
     item = 
         (struct gws_menu_item_d *) gws_malloc( sizeof(struct gws_menu_item_d) );
 
-    if ( (void *) item == NULL ){
-        debug_print("gws_create_menu_item: item\n");
-        return (struct gws_menu_item_d *) 0;
+    if ((void *) item == NULL){
+        goto fail;
     }
 
 // ID
 // Provisório
 
-    if (id>5 || id>menu->itens_count)
+    if ( id > 5 || 
+         id > menu->itens_count )
     {
-        // ? msg ?
-        return (struct gws_menu_item_d *) 0;
+        goto fail;
     }
     item->id = id;
 
@@ -3840,6 +3707,8 @@ struct gws_menu_item_d *gws_create_menu_item (
 
 // Return the pointer fot the menu item.
     return (struct gws_menu_item_d *) item;
+fail:
+    return NULL;
 }
 
 // Expand a byte all over the long.
@@ -3861,12 +3730,10 @@ int gws_create_empty_file(const char *file_name)
 
 // name
     if ((void*) file_name == NULL){
-        debug_print("gws_create_empty_file: [FAIL] file_name\n");
-        return (int) -1;
+        goto fail;
     }
     if ( *file_name == 0 ){
-        debug_print("gws_create_empty_file: [FAIL] *file_name\n");
-        return (int) -1;
+        goto fail;
     }
 
     Value = 
@@ -3876,10 +3743,9 @@ int gws_create_empty_file(const char *file_name)
                             0, 
                             0 );
 
-// #todo
-// Error message.
-
     return (int) (Value & 0xF);
+fail:
+    return (int) -1;
 }
 
 // Create empty directory.
@@ -3894,11 +3760,11 @@ int gws_create_empty_directory(const char *dir_name)
 // name
     if ((void*) dir_name == NULL){
         debug_print("gws_create_empty_directory: [FAIL] dir_name\n");
-        return (int)(-1);
+        goto fail;
     }
     if ( *dir_name == 0 ){
         debug_print("gws_create_empty_directory: [FAIL] *dir_name\n");
-        return (int)(-1);
+        goto fail;
     }
 
 // #todo
@@ -3912,14 +3778,14 @@ int gws_create_empty_directory(const char *dir_name)
                             0, 
                             0 );
 
-// #todo
-// Error message
-
     return (int) (Value & 0xF);
+fail:
+    return (int) -1;
 }
 
 // Destroy overlapped window.
 // (Application window).
+// #? Or it also destroy any kind of window?
 void gws_destroy_window(int fd, wid_t wid)
 {
     if (fd<0){
@@ -3991,8 +3857,9 @@ gws_async_command (
 
 // --------------------
 // Clean the main buffer.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
 // wid, message code, request, subrequest, data1
     message_buffer[0] = 0;
@@ -4083,8 +3950,9 @@ gws_async_command2 (
 
 // --------------------
 // Clean the main buffer.
-    for (i=0; i<512; i++)
+    for (i=0; i<512; i++){
         __gws_message_buffer[i] = 0;
+    };
 
 // Window ID
     message_buffer[0] = 0;
@@ -4122,12 +3990,12 @@ gws_async_command2 (
         SYNC_REQUEST_SET_ACTION, 
         ACTION_REQUEST );
 
-// No return.
+// No return
     while (1){
         Value = 
             (int) rtl_get_file_sync( 
-                      fd, 
-                      SYNC_REQUEST_GET_ACTION );
+                    fd, 
+                    SYNC_REQUEST_GET_ACTION );
         // Essa é a sincronização esperada.
         // Não teremos uma resposta, mas precisamos
         // conferir a sincronização.
@@ -4155,8 +4023,8 @@ fail:
 // We can use this to broadcast.
 void gws_send_wm_magic( int fd, int pid )
 {
-    if(fd<0) { return; }
-    if(pid<0){ return; }
+    if (fd<0) { return; }
+    if (pid<0){ return; }
     gws_async_command(fd,7,0,pid);
 }
 
@@ -4247,7 +4115,6 @@ struct gws_display_d *gws_open_display(const char *display_name)
             break;
         };
     };
-
 
 //
 // Screens
@@ -4388,9 +4255,7 @@ int application_start(void)
 // IN: 
 // hostname:number.screen_number
 
-    Display = 
-        (struct gws_display_d *) gws_open_display("display:name.0");
-
+    Display = (struct gws_display_d *) gws_open_display("display:name.0");
     if ((void*) Display == NULL)
     {
         debug_print ("application_start: Couldn't open display\n");
@@ -4398,7 +4263,6 @@ int application_start(void)
         //exit(1);
         goto fail;
     }
-
     if (Display->fd <= 0)
     {
         debug_print ("application_start: bad Display->fd\n");
@@ -4420,7 +4284,7 @@ fail:
     __ApplicationDisplay = NULL;
     __ApplicationFD = -1;
     exit(1);
-    return -1;
+    return (int) -1;
 }
 
 // #todo: gws_application_end()
@@ -4434,7 +4298,7 @@ void application_end(void)
 int gws_enable_input_method(int method)
 {
     if (method<0){
-        return (int) -1;
+        goto fail;
     }
 
     switch (method){
@@ -4552,12 +4416,12 @@ struct gws_thread_info_d *thread_info_from_wid(int fd, int wid)
 }
 */
 
-
 // #todo: Not tested yet.
 unsigned int gws_rgb(int r, int g, int b)
 {
     unsigned int Color = 
-        (unsigned int) (r<<16 &0xff0000)|(g<<8 &0xff00)|(b &0xff); 
+        (unsigned int) (r<<16 &0xff0000)|(g<<8 &0xff00)|(b &0xff);
+
     return (unsigned int) Color;
 }
 
@@ -4569,9 +4433,6 @@ unsigned int gws_argb(int a, int r, int g, int b)
     return (unsigned int) Color;
 }
 
-
-
 //
 // End
 //
-

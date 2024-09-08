@@ -1,17 +1,15 @@
-
 // gramuser.h
 // User interactive components, not system components.
+// Created by Fred Nora.
 
 #ifndef __LIBGWS_GRAMUSER_H_
 #define __LIBGWS_GRAMUSER_H_    1
-
 
 // Explode byte.
 unsigned int gws_explode_byte_32(unsigned char data);
 
 unsigned int gws_rgb(int r, int g, int b);
 unsigned int gws_argb(int a, int r, int g, int b);
-
 
 //
 // == 2d ==============================================
@@ -58,7 +56,6 @@ gws_get_text (
     unsigned long y,
     unsigned int color,
     const char *string );
-
 
 //
 // Rectangle support
@@ -134,8 +131,6 @@ gws_resize_window (
     unsigned long w, 
     unsigned long h );
 
-
-
 void gws_invalidate_window(int fd,int wid);
 
 // Create a window.
@@ -164,7 +159,6 @@ gws_create_application_window(
     unsigned long width,      // Largura da janela.
     unsigned long height );    // Altura da janela.
 
-
 void gws_destroy_window(int fd, wid_t wid);
 void gws_set_active(int fd, wid_t wid);
 void gws_set_focus(int fd, wid_t wid);
@@ -172,8 +166,6 @@ void gws_clear_window(int fd, wid_t wid);
 
 // wm initialization
 void gws_send_wm_magic( int fd, int pid );
-
-
 
 //
 // Menu support.
@@ -203,8 +195,6 @@ struct gws_menu_item_d *gws_create_menu_item (
 // #todo: Explain it better.
 void gws_update_desktop(int fd);
 
-
-// ==========================
 //
 // Event support
 //
@@ -262,8 +252,5 @@ gws_async_command2 (
     unsigned long data3,
     unsigned long data4 );
 
-
 #endif  
-
-
 

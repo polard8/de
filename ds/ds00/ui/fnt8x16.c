@@ -6,6 +6,7 @@
 
 // #test
 // Just testing fonts with 8x16 dimension.
+// We know nothing about the special symbols until now.
 
 #include "../gwsint.h"
 

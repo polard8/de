@@ -1,9 +1,10 @@
-
 // grambase.h
 // System components, not user interactive components.
+// Created by Fred Nora.
 
 #ifndef __LIBGWS_GRAMBASE_H_
 #define __LIBGWS_GRAMBASE_H_    1
+
 
 // This is a wrapper for the main systemcall
 // in rtl.
@@ -31,7 +32,6 @@ void *gws_services (
     unsigned long arg3,
     unsigned long arg4 );
 
-
 // Send system message to a process.
 int
 gws_send_message_to_process ( 
@@ -50,14 +50,12 @@ gws_send_message_to_thread (
     unsigned long long1,
     unsigned long long2 ); 
 
-
 //
 // System stuff
 //
 
 void gws_reboot(int fd);
 void gws_shutdown(int fd);
-
 
 //
 // Thread support
@@ -79,7 +77,6 @@ void *gws_create_thread (
 
 void gws_start_thread (void *thread);
 
-
 //
 // Child process support.
 //
@@ -98,7 +95,6 @@ gws_clone_and_execute2 (
 
 void gws_clone_and_execute_from_prompt(int fd);
 
-
 //
 // System support.
 //
@@ -111,7 +107,6 @@ unsigned long gws_get_system_metrics (int index);
 
 void gws_enter_critical_section(void);
 void gws_exit_critical_section(void);
-
 
 //
 // File support
@@ -126,10 +121,8 @@ gws_load_path (
     unsigned long buffer, 
     unsigned long buffer_len );
 
-
 int gws_create_empty_directory(const char *dir_name);
 int gws_create_empty_file(const char *file_name);
-
 
 // 
 // Application
@@ -143,5 +136,3 @@ void application_end(void);
 int gws_enable_input_method(int method);
 
 #endif  
-
-
