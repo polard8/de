@@ -180,8 +180,8 @@ static unsigned long last_dy = 0;
 const char *cmd_shutdown = "shutdown.bin";  // Shutdown command.
 
 // Client-side GUI applications.
-const char *app_gdm = "gdm.bin";          // Display manager GUI app.
-const char *app_taskbar = "taskbar.bin";  // Taskbar GUI app.
+const char *app_gdm = "#gdm.bin";          // Display manager GUI app.
+const char *app_taskbar = "#taskbar.bin";  // Taskbar GUI app.
 
 //
 // == Private functions: Prototypes ========
@@ -2830,7 +2830,7 @@ dsProcedure (
                 dtextDrawText ( 
                     (struct gws_window_d *) gui->screen_window,
                     long1, long2, COLOR_GREEN,
-                    "DS00.bin: Hello from Gramland");
+                    "ds00.bin: Hello from the display server");
 
                 gws_show_backbuffer();
             //}
@@ -3865,18 +3865,15 @@ static int ServerInitialization(void)
     //printf ("fd: %d\n", serverClient->fd);
     //while(1){}
 
-
 // ------------------------------------
 // Let's initialize the ring0 kernel module called MOD0.BIN.
     __initialize_kernel_module();
-
 
     return 0;
 
 fail:
     return (int) -1;
 }
-
 
 //
 // $$ 

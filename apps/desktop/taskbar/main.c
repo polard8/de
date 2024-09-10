@@ -122,8 +122,8 @@ int startmenu_window = -1;
 const char *program_name = "Taskbar";
 const char *start_menu_button_label = "Gramado";
 
-const char *app1_name = "terminal.bin";
-const char *app2_name = "terminal.bin";  //"editor.bin";
+const char *app1_name = "#terminal.bin";
+const char *app2_name = "#terminal.bin";  //"editor.bin";
 
 //static const char *cmdline1 = "gramland -1 -2 -3 --tb";
 
@@ -531,13 +531,13 @@ tbProcedure(
             switch(long1){
             case 4001:  //app1
             printf("taskbar.bin: 4001\n");
-            gws_clone_and_execute("browser.bin");  break;
+            gws_clone_and_execute("#browser.bin");  break;
             case 4002:  //app2
             printf("taskbar.bin: 4002\n");
-            gws_clone_and_execute("editor.bin");  break;
+            gws_clone_and_execute("#editor.bin");  break;
             case 4003:  //app3
             printf("taskbar.bin: 4003\n");
-            gws_clone_and_execute("terminal.bin");  break;
+            gws_clone_and_execute("#terminal.bin");  break;
             };
             */
             break;
@@ -600,15 +600,15 @@ tbProcedure(
             switch (long1){
 
                 // 1~4
-                case VK_F1: gws_clone_and_execute("editor.bin");   break;
-                case VK_F2: gws_clone_and_execute("gwm.bin");      break;
-                case VK_F3: gws_clone_and_execute("fileman.bin");  break;
-                case VK_F4: gws_clone_and_execute("terminal.bin"); break;
+                case VK_F1: gws_clone_and_execute("#editor.bin");   break;
+                case VK_F2: gws_clone_and_execute("#gwm.bin");      break;
+                case VK_F3: gws_clone_and_execute("#fileman.bin");  break;
+                case VK_F4: gws_clone_and_execute("#terminal.bin"); break;
 
                 // 4~8
-                //case VK_F5: gws_clone_and_execute("browser.bin"); break;
-                //case VK_F6: gws_clone_and_execute("browser.bin"); break;
-                //case VK_F7: gws_clone_and_execute("browser.bin"); break;
+                //case VK_F5: gws_clone_and_execute("#browser.bin"); break;
+                //case VK_F6: gws_clone_and_execute("#browser.bin"); break;
+                //case VK_F7: gws_clone_and_execute("#browser.bin"); break;
                 case VK_F8: 
                     // #test
                     // Setup the flag to show or not the fps window.
@@ -624,15 +624,15 @@ tbProcedure(
                     //gws_async_command(fd,4,9,0);  // cat
                     //gws_async_command(fd,4,1,0);
                     //gws_async_command(fd,4,2,0);
-                    //gws_clone_and_execute("browser.bin"); 
+                    //gws_clone_and_execute("#browser.bin"); 
                     break;
                 case VK_F10: 
                     //gws_async_command(fd,4,6,0);
-                    //gws_clone_and_execute("browser.bin"); 
+                    //gws_clone_and_execute("#browser.bin"); 
                     break;
                 case VK_F11: 
                     //gws_async_command(fd,4,7,0);
-                    //gws_clone_and_execute("browser.bin"); 
+                    //gws_clone_and_execute("#browser.bin"); 
                     break;
 
                 // #test
@@ -641,8 +641,8 @@ tbProcedure(
                     //gws_async_command(fd,4,10,0);   //triangle
                     //gws_async_command(fd,4,11,0); //polygon
                     //gws_async_command(fd,4,12,0); //lines
-                    //gws_clone_and_execute("browser.bin"); 
-                    //printf("gws.bin: Shutting down ...\n");
+                    //gws_clone_and_execute("#browser.bin"); 
+                    //printf("#gws.bin: Shutting down ...\n");
                     //f12Status = (int) gws_clone_and_execute("shutdown.bin");
                     //if (f12Status<0){ break; } // fail
                     //exit(0);
@@ -1178,17 +1178,16 @@ int main(int argc, char *argv[])
         gws_redraw_window(client_fd,main_window,0);
         
         // Interface 1: File manager.
-        //gws_clone_and_execute("fileman.bin");
+        //gws_clone_and_execute("#fileman.bin");
 
         // Interface 1: Test app.
-        //gws_clone_and_execute("editor.bin");
+        //gws_clone_and_execute("#editor.bin");
     }
     */
 
 //
 // Input
 //
-
     
     // Enable input method number 1.
     // Event queue in the current thread.
@@ -1233,7 +1232,6 @@ int main(int argc, char *argv[])
     printf ("#test lX: %lX \n",0x1000ABCDDCBA0001); //
     // ...
 */
-
 
 // ===============================
 // Testing fpu
