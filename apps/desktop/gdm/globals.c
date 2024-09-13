@@ -32,4 +32,5 @@ const char *b2_string = "Start"; //"button 2";
 
 const char *bar1_text_string = "admin";
 
-const char *tb_image_name = "taskbar.bin";
+// Child application
+const char *tb_image_name = "#taskbar.bin";

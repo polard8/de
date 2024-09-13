@@ -342,9 +342,11 @@ static void do_done(int fd)
     if (fd<0){
         printf("do_done: fd\n");
     }
+
+// #test
 // #todo
 // Get the return. it can NOT fail.
-    rtl_clone_and_execute(tb_image_name);
+    //rtl_clone_and_execute(tb_image_name);
 
     destroy_windows(fd);
     exit(0);
