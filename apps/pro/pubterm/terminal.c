@@ -17,8 +17,8 @@
 
 #include "include/terminal.h"
 
-
-const char *child_image_name = "pubsh.bin";
+// In DE/
+const char *child_image_name = "#pubsh.bin";
 
 // network ports.
 #define PORTS_WS  4040
