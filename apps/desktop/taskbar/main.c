@@ -100,8 +100,9 @@ struct device_info_d
     unsigned long width;
     unsigned long height;
 };
-struct device_info_d DeviceInfo;
+struct device_info_d  DeviceInfo;
 
+// Clients
 // Creating 32 clients.
 // It represents the order in the taskbar.
 // If an entry is not used, it will not be
@@ -112,8 +113,8 @@ struct tb_client_d clientList[CLIENT_COUNT_MAX];
 // Windows
 //
 
-int main_window = -1;
-int startmenu_window = -1;
+static int main_window = -1;
+static int startmenu_window = -1;
 
 //
 // Strings
@@ -162,9 +163,10 @@ static void __initialize_client_list(void);
 void pump(int fd, int wid);
 
 static int 
-create_start_menu(
+create_bar_icon(
     int fd,
     int parent,
+    int icon_id,
     unsigned long left,
     unsigned long top,
     unsigned long width,
@@ -766,9 +768,10 @@ void pump(int fd, int wid)
 }
 
 static int 
-create_start_menu(
+create_bar_icon(
     int fd,
     int parent,
+    int icon_id,
     unsigned long left,
     unsigned long top,
     unsigned long width,
@@ -778,9 +781,9 @@ create_start_menu(
     unsigned long style = 0;
 
     if (fd<0)
-        return -1;
+        goto fail;
     if (parent<0)
-        return -1;
+        goto fail;
 
     tmp1 = 
         (int) gws_create_window (
@@ -794,16 +797,18 @@ create_start_menu(
                      style, 
                      COLOR_GRAY, 
                      COLOR_GRAY );
-    if (tmp1<0)
-    {
+    if (tmp1<0){
         printf("taskbar.bin: tmp1\n");
         exit(1);
     }
 
     //gws_refresh_window(fd, tmp1);
-    
-    startmenu_window = tmp1;
-    return 0;
+    //startmenu_window = tmp1;
+    //return 0;
+    return (int) tmp1;
+
+fail:
+    return (int) -1;
 }
 
 //==========================================
@@ -966,13 +971,18 @@ int main(int argc, char *argv[])
 // ========================
 // Create th start menu button 
 // based on the taskbar dimensions.
-    create_start_menu(
+
+    startmenu_window = 
+    (int) create_bar_icon (
         client_fd,
         main_window,
+        0, // Icon ID
         2, 
         2, 
         (8*10),   // 8 chars width. 
         tb_h -4 );
+
+
 
     //printf ("taskbar.bin: main_window created\n");
     //while(1){}

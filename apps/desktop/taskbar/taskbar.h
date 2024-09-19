@@ -17,7 +17,7 @@ struct icon_info_d
     int state;
 };
 
-#define CLIENT_COUNT_MAX  32
+
 struct tb_client_d 
 {
     int used;
@@ -31,9 +31,9 @@ struct tb_client_d
 // The information about the icon.
     struct icon_info_d icon_info;
 };
-
-
+#define CLIENT_COUNT_MAX  32
 extern struct tb_client_d clientList[CLIENT_COUNT_MAX];
+
 
 #endif   
 
