@@ -750,13 +750,16 @@ void serviceExitGWS(void)
 // For now we're exiting without any kind of notification.
 // Maybe we need to notify all the clients before exiting.
 
-    printf ("serviceExitGWS: \n");
+    //printf ("serviceExitGWS: \n");
     // Kill all the clients.
-    printf ("[TODO] Kill all the clients\n");
+    //printf ("[TODO] Kill all the clients\n");
     // #todo
     // Deallocate resources used by the server.
     // Close the server.
-    printf ("[TODO] Close all the clients\n");
+    //printf ("[TODO] Close all the clients\n");
+
+    yellow_status("serviceExitGWS");
+
     DestroyAllWindows();
     exit(0);
 }
@@ -1788,6 +1791,7 @@ int serviceDrawButton(void)
     //server_debug_print("serviceDrawButton: deprecated\n");
     printf            ("serviceDrawButton: deprecated\n");
     exit(1);
+
     return -1;
 }
 
@@ -2383,11 +2387,11 @@ int serviceSetText(void)
     return 0;
 
 crazy_fail:
-    debug_print("serviceSetText: [ERROR] crazy_fail\n");
-    return -1;
+    //debug_print("serviceSetText: [ERROR] crazy_fail\n");
+    return (int) -1;
 fail:
    printf("fail\n");
-   return -1;
+   return (int) -1;
 }
 
 int serviceGetText(void)
@@ -2525,7 +2529,7 @@ int serviceGetText(void)
 // We have nothing.
     if (gotten <= 0){
         printf("Fail on getting text from window buffer\n");
-        return -1;
+        return (int) -1;
     }
 
     //#debug
@@ -2536,8 +2540,8 @@ int serviceGetText(void)
 // OK
     return 0;
 crazy_fail:
-    debug_print("serviceGetText: [ERROR] crazy_fail\n");
-    return -1;
+    //debug_print("serviceGetText: [ERROR] crazy_fail\n");
+    return (int) -1;
 }
 
 // O buffer é uma global nesse documento.
@@ -3410,32 +3414,23 @@ static int __initializeGraphics(void)
 {
     int __init_status = -1;
 
+    //#debug
     //debug_print("__initializeGraphics\n");
     //printf("__initializeGraphics: \n");
+    //gws_show_backbuffer();
+    //while(1){}
 
     display_server->graphics_initialization_status = FALSE;
 
 
-//#debug
-    //gws_show_backbuffer();
-    //while(1){}
-
 // Initialize the graphics support.
 // Now we can use 3d routines.
 // See: grprim.c
-    
-    //server_debug_print ("__initializeGraphics: Calling grInit() \n");
-    //printf ("__initializeGraphics: Calling grInit() \n");
+
     grInit();
 
-//#debug
+    //#debug
     //gws_show_backbuffer();
-    //while(1){}
-
-    // #debug
-    //server_debug_print ("__initializeGraphics: :)\n");
-    //printf ("__initializeGraphics: :)\n");
-    //asm("int $3");
     //while(1){}
 
 //
@@ -3470,8 +3465,7 @@ static void __initialize_ds_structure(void)
     display_server = 
         (struct display_server_d *) malloc ( sizeof(struct display_server_d) );
     if ((void*) display_server == NULL){
-        //server_debug_print("__initialize_ds_structure: [FAIL] display_server\n");
-        printf            ("__initialize_ds_structure: [FAIL] display_server\n");
+        printf ("__initialize_ds_structure: display_server\n");
         exit(1);
     }
     memset( display_server, 0, sizeof(struct display_server_d) );
@@ -3565,9 +3559,7 @@ static int __initialize_gui(void)
 
     int __init_status = (int) gwsInitGUI();
     if (__init_status != 0){
-        debug_print ("__initialize_gui: [PANIC] Couldn't initialize the gui\n");
-        printf      ("__initialize_gui: [PANIC] Couldn't initialize the gui\n");
-        //goto fail;
+        printf ("__initialize_gui: [PANIC] Couldn't initialize the gui\n");
         exit(1);
     }
 
@@ -3584,10 +3576,8 @@ static int __initialize_gui(void)
 
 // Check if we already have the root window.
 
-    if ( (void*) __root_window == NULL ){
-        //server_debug_print ("__initializeGraphics: [FAIL] root window doesn't exist\n");
-        printf             ("__initializeGraphics: [FAIL] root window doesn't exist\n");
-        //goto fail;
+    if ((void*) __root_window == NULL){
+        printf ("__initialize_gui: __root_window\n");
         exit(1);
     }
     keyboard_owner = (void*) __root_window;
@@ -3720,7 +3710,7 @@ static int ServerInitialization(void)
 // ex: OsInit();
 
     // #debug
-    server_debug_print("DS00.BIN: Initializing\n");
+    // server_debug_print("DS00.BIN: Initializing\n");
 
 //
 // Client support
@@ -3761,8 +3751,7 @@ static int ServerInitialization(void)
 
     _status = (int) registerDS();
     if (_status < 0){
-        //server_debug_print("gramland: Couldn't register the server\n");
-        printf            ("gramland: Couldn't register the server\n");
+        printf ("Couldn't register the server\n");
         goto fail;
     }
     display_server->registration_status = TRUE;
@@ -3810,10 +3799,8 @@ static int ServerInitialization(void)
     }
 
     if ( (void*) WindowManager.root == NULL ){
-        //server_debug_print("gwssrv: WindowManager.root fail\n");
-                    printf("gwssrv: WindowManager.root fail\n");
+        printf("WindowManager.root fail\n");
         goto fail;
-        //exit(0);
     }
     /*
     if ( (void*) WindowManager.taskbar == NULL )
@@ -3936,18 +3923,11 @@ static int ServerLoop(int launch_tb)
 
 // Socket
 // Creating a socket file and saving the fd in different places.
-    server_fd = 
-        (int) socket(
-            AF_GRAMADO,    // Family
-            SOCK_STREAM,   // Not UDP in AF_GRAMADO. 
-            0 );           // No protocol
-
-    if (server_fd<0)
-    {
-        //server_debug_print("gramland: on socket()\n");
-        printf            ("gramland: on socket()\n");
+// IN: family, (Not UDP in AF_GRAMADO), No protocol.
+    server_fd = (int) socket( AF_GRAMADO, SOCK_STREAM, 0 );
+    if (server_fd < 0){
+        printf ("on socket()\n");
         goto fail;
-        //exit(1);
     }
 // Display server structure.
     display_server->socket = (int) server_fd;
@@ -3979,14 +3959,13 @@ static int ServerLoop(int launch_tb)
     };
 
     if (bind_status < 0){
-        //server_debug_print("gramland: on bind()\n");
-        printf            ("gramland: on bind()\n");
+        printf ("on bind()\n");
         goto fail;
     }
 
     // #debug Breakpoint
-    //printf ("fd: %d\n", serverClient->fd);
-    //while(1){}
+    // printf ("fd: %d\n", serverClient->fd);
+    // while(1){}
 
 // Listen
 // Setup how many pending connections.
@@ -4084,7 +4063,10 @@ static int ServerLoop(int launch_tb)
 // Each thread has it's own circular queue for system events.
 
 // Set focus, this way we can get system events.
-    server_debug_print("ds00: Entering main loop\n");
+
+    //#debug
+    //server_debug_print("ds00: Entering main loop\n");
+
     rtl_focus_on_this_thread();
 
 // + Accept connection from a client.
@@ -4272,6 +4254,7 @@ int main (int argc, char **argv)
         };
     }
 
+/*
     if (f1 == TRUE)
         printf("F1\n");
     if (f2 == TRUE)
@@ -4282,6 +4265,7 @@ int main (int argc, char **argv)
         printf("F4\n");
     if (fLaunchDM == TRUE)
         printf("fLaunchDM\n");
+*/
 
     //exit(0);
 

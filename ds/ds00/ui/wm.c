@@ -352,7 +352,7 @@ position:
         // #todo: Bottom reached       
         if (window->ip_y >= window->height_in_chars)
         {
-            printf("y bottom\n");
+            //printf("y bottom\n");
             return;
         }
 
@@ -734,7 +734,7 @@ wmProcessMouseEvent(
 
     if (event_type == MSG_MOUSE_DOUBLECLICKED)
     {
-        printf("MSG_MOUSE_DOUBLECLICKED: #todo\n");
+        yellow_status("MSG_MOUSE_DOUBLECLICKED");
         on_doubleclick();
         return;
     }
@@ -1215,7 +1215,7 @@ static void on_mouse_released(void)
         if (mouse_hover->type == WT_BUTTON)
         {
             __button_released(ButtonWID);
-            //printf("Release on min control\n");
+            //yellow_status("Release on min control\n");
             on_control_clicked(mouse_hover);
             return;
         }
@@ -1228,7 +1228,7 @@ static void on_mouse_released(void)
         if (mouse_hover->type == WT_BUTTON)
         {
             __button_released(ButtonWID);
-            //printf("Release on max control\n");
+            //yellow_status("Release on max control\n");
             on_control_clicked(mouse_hover);
             return;
         }
@@ -1241,7 +1241,7 @@ static void on_mouse_released(void)
         if (mouse_hover->type == WT_BUTTON)
         {
             __button_released(ButtonWID);
-            //printf("Release on close control\n");
+            //yellow_status("Release on close control\n");
             // #test
             // On control clicked
             // close control: post close message.
@@ -1411,7 +1411,7 @@ static void on_control_clicked(struct gws_window_d *window)
                         // of the client app.
                         if (w2->type == WT_OVERLAPPED)
                         {
-                            printf("Minimize\n");
+                            yellow_status("Minimize");
 
                             // It is minimized.
                             if (w2->state == WINDOW_STATE_MINIMIZED)
@@ -1463,7 +1463,7 @@ static void on_control_clicked(struct gws_window_d *window)
                         // of the client app.
                         if (w2->type == WT_OVERLAPPED)
                         {
-                            //printf("Maximize\n");
+                            //yellow_status("Maximize");
 
                             // It is minimized.
                             // We can't press a button for an minimized window.
@@ -1517,14 +1517,14 @@ static void on_control_clicked(struct gws_window_d *window)
                         // of the client app.
                         if (w2->type == WT_OVERLAPPED)
                         {
-                            printf("Close wid={%d}\n",w2->id);
+                            yellow_status("Close window");
+                            //printf("Close wid={%d}\n",w2->id);
 
                             // It is minimized.
                             if (w2->state == WINDOW_STATE_MINIMIZED)
                                 return;
 
-                            window_post_message ( 
-                                w2->id, GWS_Close, 0, 0 );
+                            window_post_message ( w2->id, GWS_Close, 0, 0 );
                             return;
                         }
                     }
@@ -2418,7 +2418,7 @@ struct gws_window_d *do_create_titlebar(
     if (icon_id < 1 || icon_id > 5)
     {
         //icon_id = 1;
-        printf("do_create_titlebar: Invalid icon id\n");
+        yellow_status("Invalid icon id");
         return NULL;
     }
 
@@ -3046,39 +3046,33 @@ void wm_reboot(void)
     {
         if (__root_window->magic == 1234)
         {
-            __root_window->bg_color = 
-                (unsigned int) get_color(csiDesktop);
+            __root_window->bg_color = (unsigned int) get_color(csiDesktop);
             redraw_window(__root_window,FALSE);
-            // #todo
-            // Print some message, draw some image, etc.
-            //printf("wm_reboot:\n");
             yellowstatus0("Rebooting ...",FALSE);
             wm_flush_window(__root_window);
-            
+
             // #todo
             // Free resources
 
             rtl_yield();
-            //rtl_yield();
-            //rtl_yield();
         }
     }
 
-// Destroy all the windows.
+// Destroy all the windows, hw reboot and paranoia.
+
     DestroyAllWindows();
-// Hw reboot.
     rtl_reboot();
-    exit(0);  //paranoia
+    exit(0);
 }
 
 static void animate_window(struct gws_window_d *window)
 {
     register int i=0;
 
-    if ( (void*) window == __root_window){
+    if ((void*) window == __root_window){
         return;
     }
-    if (window->magic!=1234){
+    if (window->magic != 1234){
         return;
     }
     
@@ -3136,7 +3130,7 @@ static void wm_tile(void)
     cnt=0;
     w = (struct gws_window_d *) first_window;
     if ((void*)w == NULL){
-        debug_print("wm_tile: w==NULL\n");
+        //debug_print("wm_tile: w==NULL\n");
         return;
     }
     while ((void*)w != NULL)
@@ -3151,7 +3145,7 @@ static void wm_tile(void)
 // create a stack of windows in the top/left corner of the screen.
     w = (struct gws_window_d *) first_window;
     if ((void*) w == NULL){
-        debug_print("wm_tile: w==NULL\n");
+        //debug_print("wm_tile: w==NULL\n");
         return; 
     }
     //if(w->magic!=1234)
@@ -3358,7 +3352,6 @@ int wmBindWindowToClient(struct gws_window_d *w)
 
 fail:
     yellow_status("wmBindWindowToClient");
-    printf("wmBindWindowToClient: fail\n");
     return (int) (-1);
 }
 
@@ -5462,7 +5455,6 @@ static int wmProcessCombinationEvent(int msg_code)
 // Control + z. (Undo)
     if (msg_code == GWS_Undo)
     {
-        //printf("ws: undo\n");
         yellow_status("Undo");
         demoCat();
         //demoTriangle();
@@ -5472,7 +5464,6 @@ static int wmProcessCombinationEvent(int msg_code)
 // Control + x. (Cut)
     if (msg_code == GWS_Cut)
     {
-        //printf("ws: cut\n"); 
         yellow_status("Cut");
         
         // #test
@@ -5496,7 +5487,6 @@ static int wmProcessCombinationEvent(int msg_code)
 // Control + c. (Copy)
     if (msg_code == GWS_Copy)
     {
-        //printf("ws: copy\n");
         yellow_status("Copy");
         //__switch_active_window(FALSE);  //active NOT FIRST
 
@@ -5509,8 +5499,8 @@ static int wmProcessCombinationEvent(int msg_code)
     }
 
 // Control + v. (Paste)
-    if (msg_code == GWS_Paste){
-        //printf("ws: paste\n");
+    if (msg_code == GWS_Paste)
+    {
         yellow_status("Paste");
         return 0;
     }
@@ -5521,7 +5511,6 @@ static int wmProcessCombinationEvent(int msg_code)
 // Post message to all the overlapped windows.
     if (msg_code == GWS_SelectAll)
     {
-        //printf("ws: select all\n");
         yellow_status("Control + a");
         
         // #test:
@@ -5534,23 +5523,16 @@ static int wmProcessCombinationEvent(int msg_code)
 
 // [control+f]
 // Find
-    if (msg_code == GWS_Find)
-    {
-        //printf("ws: find\n");
+    if (msg_code == GWS_Find){
         yellow_status("Control + f");
-
-        //printf("root: %s\n", WindowManager.root->name );
-        //printf("taskbar: %s\n", WindowManager.taskbar->name );
         return 0;
     }
-
 
 // Control + s
 // #test
 // Cfor the root window.
 // Only refresh if it is already created.
-    if (msg_code == GWS_Save)
-    {
+    if (msg_code == GWS_Save){
         yellow_status("Control + s");
         return 0;
     }
@@ -5936,10 +5918,10 @@ int wmInputReader2(void)
                 // Hot key id.
                 // Activate the window associated with the given ID.
                 if (e.long1 == 1){
-                    printf ("GWS_Hotkey 1\n");
+                    yellow_status ("GWS_Hotkey 1\n");
                 }
                 if (e.long1 == 2){
-                    printf ("GWS_Hotkey 2\n");
+                    yellow_status ("GWS_Hotkey 2\n");
                 }
                 // ...
             }
@@ -6155,10 +6137,8 @@ int gwssrv_initialize_default_color_scheme(void)
 // Criando o esquema de cores humility. (cinza)
 
     cs = (void *) malloc( sizeof(struct gws_color_scheme_d) );
-    if ((void *) cs == NULL)
-    {
-        //server_debug_print("gwssrv_initialize_color_schemes: cs\n");
-        printf            ("gwssrv_initialize_color_schemes: cs\n"); 
+    if ((void *) cs == NULL){
+        printf ("gwssrv_initialize_color_schemes: cs\n"); 
         goto fail;
     }
     memset ( cs, 0, sizeof(struct gws_color_scheme_d) );
@@ -6292,7 +6272,7 @@ int gwssrv_initialize_default_color_scheme(void)
 
 fail:
     printf("Couldn't initialize the default color scheme!\n");
-    return -1;
+    return (int) -1;
 }
 
 
@@ -6375,7 +6355,8 @@ struct gws_window_d *wmCreateRootWindow(unsigned int bg_color)
     unsigned long width  = (unsigned long) (__device_width  & 0xFFFF );
     unsigned long height = (unsigned long) (__device_height & 0xFFFF );
 
-    if (__device_width == 0 || __device_height == 0){
+    if (__device_width == 0 || __device_height == 0)
+    {
         debug_print("wmCreateRootWindow: w h\n");
         printf     ("wmCreateRootWindow: w h\n");
         exit(1);
@@ -6402,7 +6383,8 @@ struct gws_window_d *wmCreateRootWindow(unsigned int bg_color)
                                     NULL, 0, bg_color, bg_color );
 
 // Struture validation
-    if ( (void*) w == NULL){
+    if ((void*) w == NULL)
+    {
         debug_print("wmCreateRootWindow: w\n");
         printf     ("wmCreateRootWindow: w\n");
         exit(1);
@@ -6970,7 +6952,6 @@ gwssrv_change_window_position (
     int tmp_wid = -1;
 
     if ((void *) window == NULL){
-        //server_debug_print("gwssrv_change_window_position: window\n");
         goto fail;
     }
 
@@ -7275,10 +7256,10 @@ int get_window_tid( struct gws_window_d *window)
 }
 */
 
-
 void wmInitializeGlobals(void)
 {
     //debug_print ("wmInitializeGlobals:\n");
+
     fps=0;
     frames_count=0;
     ____old_time=0;
