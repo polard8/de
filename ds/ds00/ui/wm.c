@@ -1463,7 +1463,7 @@ static void on_control_clicked(struct gws_window_d *window)
                         // of the client app.
                         if (w2->type == WT_OVERLAPPED)
                         {
-                            printf("Maximize\n");
+                            //printf("Maximize\n");
 
                             // It is minimized.
                             // We can't press a button for an minimized window.
