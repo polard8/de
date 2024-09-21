@@ -832,14 +832,10 @@ int serviceAsyncCommand(void)
     data3 = (unsigned long) message_address[6];
     data4 = (unsigned long) message_address[7];
 
-// 2222
-// Validate our message number.
-    if (message_id != GWS_AsyncCommand)
-    {
-        //server_debug_print ("serviceAsyncCommand: [ERROR] message_id\n");
-                    printf ("serviceAsyncCommand: [ERROR] message_id\n");
+// 2222: Validate our message number.
+    if (message_id != GWS_AsyncCommand){
+        printf ("serviceAsyncCommand: message_id\n");
         goto fail;
-        //return (int) (-1);
     }
 
 //
@@ -1022,6 +1018,14 @@ int serviceAsyncCommand(void)
     // Power off, qemu only.
     case ASYNC_REQUEST_LAUNCH_SHUTDOWN:
         rtl_clone_and_execute(cmd_shutdown);
+        goto done;
+        break;
+
+    // #test
+    // Update desktop.
+    // #todo: We have some other options for 'update desktop'.
+    case 30:
+        wm_update_desktop(TRUE,TRUE);
         goto done;
         break;
 

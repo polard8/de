@@ -121,7 +121,8 @@ static int startmenu_window = -1;
 //
 
 const char *program_name = "Taskbar";
-const char *start_menu_button_label = "Gramado";
+//const char *start_menu_button_label = "Gramado";
+const char *start_menu_button_label = "|||";
 
 const char *app1_name = "#terminal.bin";
 const char *app2_name = "#terminal.bin";  //"editor.bin";
@@ -479,11 +480,12 @@ tbProcedure(
 {
     int f12Status = -1;
 
+// Parameters:
     if (fd<0)
-        return -1;
+        return (int) -1;
 
-    if(event_type<=0){
-        return (-1);
+    if (event_type <= 0){
+        return (int) (-1);
     }
 
     switch (event_type){
@@ -502,8 +504,12 @@ tbProcedure(
         // One button was clicked
         case GWS_MouseClicked:
             printf("taskbar: GWS_MouseClicked\n");
+            //if (event_window == startmenu_window)
+            // #ps: Probably the event window is the main window.
+            if (long1 == startmenu_window)
+                gws_async_command(fd,30,0,0);
             break;
-       
+
         // Add new client. Given the wid.
         // The server created a client.
         case 99440:
